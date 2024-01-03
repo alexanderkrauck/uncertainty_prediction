@@ -402,3 +402,4 @@ fabric.properties
 /datasets
 /other_repos
 /.idea
+/wandb
