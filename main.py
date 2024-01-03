@@ -3,7 +3,7 @@
 import argparse
 import yaml
 
-from utils.gmm import MDN
+from utils.models.mdn import MDN
 from utils.data_module import SyntheticDataModule
 from utils.train import outer_train, cv_experiment, seeded_experiment
 
