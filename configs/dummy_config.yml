@@ -1,5 +1,5 @@
-config_id: improved_dummy_config2
-seeds: [0, 1, 2, 3, 4]
+config_id: improved_dummy_config4_no_dropout
+seeds: [0, 1, 2]
 data_seed: 0
 
 training_hyperparameters:
@@ -13,7 +13,7 @@ training_hyperparameters:
   optimizer: Adam
   input_noise_x: 0.1
   input_noise_y: 0.1
-  reliability_loss_weight: 20.0
+  reliability_loss_weight: 0.0
 
 data_hyperparameters:
   data_type: synthetic
@@ -22,6 +22,6 @@ data_hyperparameters:
 model_hyperparameters:
   n_hidden: [32,32]
   n_distributions: 10
-  dropout_rate: 0.2
+  dropout_rate: 0.0
   activation_function: relu
   distribution_type: gaussian

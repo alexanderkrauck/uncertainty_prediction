@@ -104,7 +104,7 @@ def evaluate_model(
     val_loader: DataLoader,
     device: str,
     distribution=None,
-    hellinger_dist_first_n_batches: int = 2,
+    hellinger_dist_first_n_batches: int = 3,
     is_test: bool = False,
 ):
     model.eval()
@@ -227,9 +227,17 @@ def outer_train(
 
     model = model_class(train_data_module, **model_hyperparameters).to(device)
 
+    wandb.watch(model, log="all", log_freq=100)
+
     best_params, best_val_loss = train_model(
         model, train_data_module, **training_hyperparameters, device=device
     )
+
+    best_params_path =  wandb.run.dir + "/best_params.pt"
+    torch.save(best_params, best_params_path)
+    artifact = wandb.Artifact(name="best_model", type="model")
+    artifact.add_file(best_params_path)
+    wandb.log_artifact(artifact)
 
     model.load_state_dict(best_params)
     test_metrics = evaluate_model(
