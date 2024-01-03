@@ -8,6 +8,9 @@ import sys
 import numpy as np
 import os
 
+from abc import ABC, abstractmethod
+from typing import Iterable
+
 path_to_repo = os.path.abspath(".") + '/other_repos/Conditional_Density_Estimation/'
 
 if path_to_repo not in sys.path:
@@ -44,8 +47,29 @@ class TrainingDataModule:
     def get_val_dataloader(self, batch_size:int):
         return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False)
 
+class DataModule(ABC):
+    
+        @abstractmethod
+        def get_train_dataloader(self, batch_size:int) -> DataLoader:
+            pass
+        
+        @abstractmethod
+        def get_val_dataloader(self, batch_size:int) -> DataLoader:
+            pass
+    
+        @abstractmethod
+        def get_test_dataloader(self, batch_size:int) -> DataLoader:
+            pass
+        
+        @abstractmethod
+        def iterable_cv_splits(self, n_splits: int, seed: int) -> Iterable[TrainingDataModule]:
+            pass
 
-class SyntheticDataModule:
+        @abstractmethod
+        def has_distribution(self) -> bool:
+            pass
+
+class SyntheticDataModule(DataModule):
 
     def __init__(self, data_path:str, **kwargs):
 
@@ -97,4 +121,7 @@ class SyntheticDataModule:
 
         # Return the generator object
         return cv_generator()
+    
+    def has_distribution(self):
+        return True
     

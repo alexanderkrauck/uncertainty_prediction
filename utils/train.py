@@ -6,9 +6,11 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
 
-from utils.data_module import TrainingDataModule
+from utils.data_module import TrainingDataModule, DataModule
 
 import wandb
+
+from typing import List, Type
 
 
 def mdn_loss_fn(y, weights, mu, sigma, reduce="mean"):
@@ -98,7 +100,12 @@ def reliabiltiy_loss_fn(
 
 
 def evaluate_model(
-    model, val_loader, device, distribution=None, hellinger_dist_first_n_batches=2
+    model: nn.Module,
+    val_loader: DataLoader,
+    device: str,
+    distribution=None,
+    hellinger_dist_first_n_batches: int = 2,
+    is_test: bool = False,
 ):
     model.eval()
     val_loss = 0
@@ -109,7 +116,10 @@ def evaluate_model(
         for idx, (x, y) in enumerate(val_loader):
             x, y = x.to(device), y.to(device)
             weights, mu, sigma = model(x)
-            if distribution and idx < hellinger_dist_first_n_batches:
+            if distribution and (
+                idx < hellinger_dist_first_n_batches
+                or hellinger_dist_first_n_batches == -1
+            ):
                 hellinger_dist += hellinger_distance(
                     distribution, x, weights, mu, sigma, reduce="sum"
                 )
@@ -119,10 +129,14 @@ def evaluate_model(
     val_loss /= len(val_loader.dataset)
     reliability_loss /= len(val_loader.dataset)
 
-    return_dict = {"val_loss": val_loss, "val_reliability_loss": reliability_loss.item()}
+    prefix = "test_" if is_test else "val_"
+    return_dict = {
+        prefix + "loss": val_loss,
+        prefix + "reliability_loss": reliability_loss.item(),
+    }
     if distribution:
         hellinger_dist /= first_n_batch_sizes
-        return_dict["val_hellinger_dist"] = hellinger_dist
+        return_dict[prefix + "hellinger_dist"] = hellinger_dist
     return return_dict
 
 
@@ -134,16 +148,16 @@ optimizer_map = {
 
 
 def train_model(
-    model,
+    model: nn.Module,
     train_data_module: TrainingDataModule,
     optimizer: str,
     optimizer_hyperparameters: dict,
-    epochs,
-    batch_size,
-    device,
+    epochs: int,
+    batch_size: int,
+    device: str,
     reliability_loss_weight: float = 50.0,
-    input_noise_x=0.0,
-    input_noise_y=0.0,
+    input_noise_x: float = 0.0,
+    input_noise_y: float = 0.0,
 ):
     optimizer = optimizer_map[optimizer.lower()](
         model.parameters(), **optimizer_hyperparameters
@@ -192,15 +206,15 @@ def train_model(
     return best_params, best_val_loss
 
 
-
 def outer_train(
-    model_class,
+    model_class: Type[nn.Module],
     train_data_module: TrainingDataModule,
+    test_dataloader: DataLoader,
     config_id,
-    seed,
+    seed: int,
     model_hyperparameters: dict,
     training_hyperparameters: dict,
-    device,
+    device: str,
 ):
     group_name = f"config_{config_id}"
     run_name = f"config_{config_id}_seed_{seed}"
@@ -213,7 +227,20 @@ def outer_train(
 
     model = model_class(train_data_module, **model_hyperparameters).to(device)
 
-    best_params, best_val_loss = train_model(model, train_data_module, **training_hyperparameters, device=device)
+    best_params, best_val_loss = train_model(
+        model, train_data_module, **training_hyperparameters, device=device
+    )
+
+    model.load_state_dict(best_params)
+    test_metrics = evaluate_model(
+        model,
+        test_dataloader,
+        device,
+        train_data_module.distribution,
+        hellinger_dist_first_n_batches=-1,
+        is_test=True,
+    )
+    wandb.log(test_metrics)
 
     wandb.finish()
 
@@ -225,11 +252,11 @@ def seed_all(seed):
 
 
 def cv_experiment(
-    model_class,
-    data_module,
+    model_class: Type[nn.Module],
+    data_module: DataModule,
     config_id,
-    data_seed,
-    seeds,
+    data_seed: int,
+    seeds: List[int],
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
@@ -241,6 +268,7 @@ def cv_experiment(
         outer_train(
             model_class,
             train_data_module,
+            data_module.get_test_dataloader(128),
             config_id,
             seeds[seed_idx],
             model_hyperparameters,
@@ -251,11 +279,11 @@ def cv_experiment(
         seed_idx += 1
 
 
-def experiment(
-    model_class,
-    data_module,
+def seeded_experiment(
+    model_class: Type[nn.Module],
+    data_module: DataModule,
     config_id,
-    seeds,
+    seeds: List[int],
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
@@ -265,6 +293,7 @@ def experiment(
         outer_train(
             model_class,
             data_module,
+            data_module.get_test_dataloader(128),
             config_id,
             seed,
             model_hyperparameters,
