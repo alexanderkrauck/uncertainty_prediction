@@ -56,7 +56,7 @@ class MDN(nn.Module):
         )
 
     def forward(self, x):
-        x = (x - self.mean_x) / self.std_y
+        x = (x - self.mean_x) / self.std_x
 
         mlp_out = self.mlp(x)
         logits, mu, log_sigma = torch.split(mlp_out, self.n_distributions, dim=1)
