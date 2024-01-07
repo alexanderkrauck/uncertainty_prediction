@@ -13,15 +13,17 @@ import wandb
 from typing import List, Type
 
 
-def mdn_loss_fn(y, weights, mu, sigma, reduce="mean"):
-    distribution = torch.distributions.Normal(mu, sigma)
-    loss = torch.exp(distribution.log_prob(y.unsqueeze(-1)))
+def mdn_loss_fn(y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
+    distribution = torch.distributions.Normal(mu, sigma + numeric_stability) # for numerical stability if predicted sigma is too close to 0
+    loss = torch.exp(distribution.log_prob(y.unsqueeze(-1))) + numeric_stability #for numerical stability because outliers can cause this to be 0
     loss = torch.sum(loss * weights, dim=1)
     loss = -torch.log(loss)
     if reduce == "mean":
         loss = torch.mean(loss)
     elif reduce == "sum":
         loss = torch.sum(loss)
+    if loss.item() == np.inf or loss.item() == -np.inf:
+        print("inf loss")
     return loss
 
 
@@ -158,6 +160,7 @@ def train_model(
     reliability_loss_weight: float = 50.0,
     input_noise_x: float = 0.0,
     input_noise_y: float = 0.0,
+    clip_gradient_norm: float = 5.0,
 ):
     optimizer = optimizer_map[optimizer.lower()](
         model.parameters(), **optimizer_hyperparameters
@@ -165,7 +168,10 @@ def train_model(
 
     train_loader = train_data_module.get_train_dataloader(batch_size)
     val_loader = train_data_module.get_val_dataloader(batch_size)
-    distribution = train_data_module.distribution  # TODO, might not exist or so
+    if train_data_module.has_distribution():
+        distribution = train_data_module.distribution  # TODO, might not exist or so
+    else:
+        distribution = None
 
     best_val_loss = np.inf
     best_params = None
@@ -193,6 +199,8 @@ def train_model(
                 train_metrics["train_reliability_loss"] = reliabiltiy_loss.item()
             wandb.log({**train_metrics, "step": step})
             loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clip_gradient_norm)
             optimizer.step()
 
         val_metrics = evaluate_model(model, val_loader, device, distribution)
@@ -244,7 +252,7 @@ def outer_train(
         model,
         test_dataloader,
         device,
-        train_data_module.distribution,
+        train_data_module.distribution if train_data_module.has_distribution() else None,
         hellinger_dist_first_n_batches=-1,
         is_test=True,
     )
