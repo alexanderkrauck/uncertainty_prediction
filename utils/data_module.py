@@ -58,6 +58,9 @@ class TrainingDataModule:
 
     def get_val_dataloader(self, batch_size: int):
         return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False)
+    
+    def has_distribution(self):
+        return self.distribution is not None
 
 
 class DataModule(ABC):
@@ -145,6 +148,7 @@ class UCIDataModule(DataModule):
         val_split: float = 0.0,
         test_split: float = 0.0,
         random_state: int = 42,
+        **kwargs
     ):
         self.x_total, self.y_total = UCIDataModule.load_full_ds(dataset_name)
 
@@ -237,19 +241,18 @@ class VoestDataModule(DataModule):
         test_split: float = 0.15,
         split_random: bool = False,
         random_state: int = 42,
+        **kwargs
     ):
         self.data_path = data_path
         self.original = original
         if original:
             meta_cols = 4
             filename = "Export_Nov22_Oktl23_Rohdaten_Kontr.csv"
-            remove_first_n = (
-                56  #  because has nans in many columns of the first 56 rows
-            )
+            remove_first_n = 0
         else:
             meta_cols = 1
             filename = "Export_Nov22_Oktl23_Rohdaten_Train.csv"
-            remove_first_n = 0
+            remove_first_n = 56
 
         voest_ds = pd.read_csv(
             filepath_or_buffer=f"{data_path}/{filename}", sep=";", dtype=str
@@ -273,7 +276,17 @@ class VoestDataModule(DataModule):
         # voest_ds_1.columns = new_columns
 
         self.x_total = voest_ds.iloc[:, meta_cols:].to_numpy()
-        self.y_total = voest_ds.iloc["85"].to_numpy()
+        self.y_total = voest_ds["85"].to_numpy()
+
+        mean_vals = np.nanmean(self.x_total, axis=0)
+        std_exclude = np.nan_to_num(np.nanstd(self.x_total, axis=0)) < 1e-7
+        nan_mask = np.isnan(self.x_total)
+        self.x_total[nan_mask] = np.take(mean_vals, np.where(nan_mask)[1])
+        self.x_total = np.nan_to_num(self.x_total)
+
+        self.x_total = self.x_total[:, ~std_exclude] #remove columns that are constant as they do not contribute to the model at all
+
+
 
         if split_random:
             self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
