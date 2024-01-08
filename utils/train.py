@@ -27,7 +27,7 @@ def mdn_loss_fn(y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
     return loss
 
 
-def hellinger_distance(distribution, x, weights, mu, sigma, reduce="mean"):
+def hellinger_distance(distribution, x, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
     if not isinstance(x, np.ndarray):
         x = x.detach().cpu().numpy()
     if not isinstance(weights, np.ndarray):
@@ -49,7 +49,7 @@ def hellinger_distance(distribution, x, weights, mu, sigma, reduce="mean"):
 
         # Calculate estimated density
         dist = torch.distributions.Normal(
-            torch.from_numpy(mu[idx]), torch.from_numpy(sigma[idx])
+            torch.from_numpy(mu[idx]), torch.from_numpy(sigma[idx]) + numeric_stability
         )
         estimated_densities = torch.exp(dist.log_prob(torch.from_numpy(y_space)))
         estimated_densities = torch.sum(
@@ -77,11 +77,11 @@ def hellinger_distance(distribution, x, weights, mu, sigma, reduce="mean"):
 
 
 def reliabiltiy_loss_fn(
-    y: Tensor, weights: Tensor, mu: Tensor, sigma: Tensor, n_samples: int = 100
+    y: Tensor, weights: Tensor, mu: Tensor, sigma: Tensor, numeric_stability:int = 1e-6 ,n_samples: int = 100
 ):
     device = y.device
 
-    distribution = torch.distributions.Normal(mu, sigma)
+    distribution = torch.distributions.Normal(mu, sigma + numeric_stability)
     drawn_samples = distribution.sample((n_samples,)).transpose(0, 1)
     component_indices = torch.multinomial(weights, n_samples, replacement=True)
     effective_samples = torch.gather(
