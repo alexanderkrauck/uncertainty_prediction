@@ -1,23 +1,24 @@
-config_id: improved_dummy_config4_no_dropout
-seeds: [0, 1, 2]
+config_id: voest_first_try3
+seeds: [3, 4, 5, 6, 7, 8, 9]
 data_seed: 0
 
 training_hyperparameters:
-  epochs: 50
+  epochs: 150
   batch_size: 128
   optimizer_hyperparameters:
     lr: 0.001
     betas: [0.9, 0.999]
     eps: 1.0e-08
-    weight_decay: 0.0
+    weight_decay: 1.0e-6
   optimizer: Adam
   input_noise_x: 0.1
   input_noise_y: 0.1
   reliability_loss_weight: 0.0
 
 data_hyperparameters:
-  data_type: synthetic
-  data_path: datasets/simulated_data/gmm
+  data_type: voest
+  data_path: datasets/voest_datasets/
+  original: False
   
 
 model_hyperparameters:
