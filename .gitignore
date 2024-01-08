@@ -402,4 +402,5 @@ fabric.properties
 /datasets
 /other_repos
 /.idea
+/.vscode
 /wandb
