@@ -85,36 +85,6 @@ def hellinger_distance(
     return hellinger_distances
 
 
-def reliabiltiy_loss_fn(
-    y: Tensor,
-    weights: Tensor,
-    mu: Tensor,
-    sigma: Tensor,
-    numeric_stability: int = 1e-6,
-    n_samples: int = 100,
-):
-    device = y.device
-
-    distribution = torch.distributions.Normal(mu, sigma + numeric_stability)
-    drawn_samples = distribution.sample((n_samples,)).transpose(0, 1)
-    component_indices = torch.multinomial(weights, n_samples, replacement=True)
-    effective_samples = torch.gather(
-        drawn_samples, -1, component_indices.unsqueeze(-1)
-    ).squeeze(-1)
-    y = y.squeeze(-1)
-
-    quantiles = torch.arange(5, 96, 10, device=device) / 100
-
-    upper_bounds = torch.quantile(effective_samples, quantiles, dim=-1)
-    y_r = (y < upper_bounds).sum(dim=-1) / y.shape[0]
-
-    reliability_loss = (
-        (y_r - quantiles).abs().mean()
-    )  # maybe use trapz shomehow instead of mean
-
-    return reliability_loss
-
-
 def evaluate_model(
     model: ConditionalDensityEstimator,
     val_loader: DataLoader,
