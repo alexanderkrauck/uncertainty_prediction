@@ -43,7 +43,7 @@ def generate_configs(config, tune_key="tune"):
     yield config
 
 
-def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="default"):
+def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="default", disable_wandb=False):
     # Your code for running deep learning experiments goes here
     print("Running deep learning experiments...")
     print("Parameters:")
@@ -51,8 +51,9 @@ def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="def
     print("log_directory:", log_directory)
     print("model_class:", model_class)
     print("eval_mode:", eval_mode)
+    print("disable_wandb:", disable_wandb)
 
-    torch.autograd.set_detect_anomaly(True)
+    #torch.autograd.set_detect_anomaly(True)
 
     # Load hyperparameters
     with open(config_file, 'r') as f:
@@ -95,7 +96,8 @@ def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="def
                 config["seeds"],
                 config["model_hyperparameters"],
                 config["training_hyperparameters"],
-                device
+                device,
+                disable_wandb
             )
         elif eval_mode == "cv":
             # Run cross-validation experiment
@@ -107,7 +109,8 @@ def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="def
                 config["seeds"],
                 config["model_hyperparameters"],
                 config["training_hyperparameters"],
-                device
+                device,
+                disable_wandb
             )
 
 
@@ -120,6 +123,7 @@ if __name__ == "__main__":
     parser.add_argument("--log_directory", type=str, help="Directory where wandb logs are saved")
     parser.add_argument("--model_class", type=str, help="Model class")
     parser.add_argument("--eval_mode", type=str, help="Evaluation mode")
+    parser.add_argument("--disable_wandb", action="store_true", help="Disable wandb logging")
     
     args = parser.parse_args()
     pass_args = {k: v for k, v in dict(args._get_kwargs()).items() if v is not None}

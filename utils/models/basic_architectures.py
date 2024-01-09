@@ -1,7 +1,57 @@
-from torch import nn
+from torch import nn, Tensor
 import torch
-from typing import List
+from typing import List, Dict
+from abc import ABC, abstractmethod
 
+class ConditionalDensityEstimator(ABC, torch.nn.Module):
+    """
+    Abstract base class for conditional density estimators.
+    """
+
+    @abstractmethod
+    def forward(self, x: Tensor, y: Tensor) -> Dict[str, Tensor]:
+        """
+        Forward pass through the network.
+
+        Parameters:
+        -----------
+        x : torch.Tensor
+            The input features.
+        y : torch.Tensor
+            The target features.
+
+        Returns:
+        --------
+        Dict[str, torch.Tensor]
+            Dictionary containing the outputs of the network.
+        """
+        pass
+
+    @abstractmethod
+    def eval_output(self, y: Tensor, output: Tensor, reduce:str = "mean", **loss_hyperparameters) -> Tensor:
+        """
+        Returns the loss of the output distribution at the given points."""
+        pass
+
+    def training_pass(self, x: Tensor, y: Tensor, **loss_hyperparameters) -> Tensor:
+        output = self(x, y)
+
+        return self.eval_output(y, output, **loss_hyperparameters)
+
+    @abstractmethod
+    def get_density(self, x: torch.Tensor, y: torch.Tensor, numeric_stability: float = 1e-6, **precomputed_variables) -> torch.Tensor:
+        """
+        Returns the density of the output distribution at the given points."""
+        pass
+
+    def get_nll(self, x: torch.Tensor, y: torch.Tensor, numeric_stability: float = 1e-6, **kwargs) -> torch.Tensor:
+        """
+        Returns the negative log-likelihood of the output distribution at the given points."""
+        
+        probabilities = self.get_density(x, y, numeric_stability)
+        nll = -torch.log(probabilities)
+
+        return nll
 
 class MLP(nn.Module):
     def __init__(

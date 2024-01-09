@@ -10,12 +10,18 @@ from utils.data_module import TrainingDataModule, DataModule
 
 import wandb
 
-from typing import List, Type
+from typing import List, Type, Dict
+
+from .models.basic_architectures import ConditionalDensityEstimator
 
 
 def mdn_loss_fn(y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
-    distribution = torch.distributions.Normal(mu, sigma + numeric_stability) # for numerical stability if predicted sigma is too close to 0
-    loss = torch.exp(distribution.log_prob(y.unsqueeze(-1))) + numeric_stability #for numerical stability because outliers can cause this to be 0
+    distribution = torch.distributions.Normal(
+        mu, sigma + numeric_stability
+    )  # for numerical stability if predicted sigma is too close to 0
+    loss = (
+        torch.exp(distribution.log_prob(y.unsqueeze(-1))) + numeric_stability
+    )  # for numerical stability because outliers can cause this to be 0
     loss = torch.sum(loss * weights, dim=1)
     loss = -torch.log(loss)
     if reduce == "mean":
@@ -27,39 +33,42 @@ def mdn_loss_fn(y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
     return loss
 
 
-def hellinger_distance(distribution, x, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
-    if not isinstance(x, np.ndarray):
-        x = x.detach().cpu().numpy()
-    if not isinstance(weights, np.ndarray):
-        weights = weights.detach().cpu().numpy()
-    if not isinstance(mu, np.ndarray):
-        mu = mu.detach().cpu().numpy()
-    if not isinstance(sigma, np.ndarray):
-        sigma = sigma.detach().cpu().numpy()
-
-    linspace = np.linspace(-10, 10, 100)  # Adjust range as necessary
-    y_space = np.reshape(linspace, (-1, 1))
-
+def hellinger_distance(
+    distribution,
+    x: Tensor,
+    model: ConditionalDensityEstimator,
+    precomputed_variables: Dict[str, Tensor] = None,
+    reduce="mean",
+    numeric_stability=1e-6,
+    num_steps=100,
+):
+    y_space = torch.linspace(-10, 10, num_steps, device=x.device).view(-1, 1)
     hellinger_distances = []
 
-    for idx in range(weights.shape[0]):
+    for idx in range(x.shape[0]):
         # Calculate true density
-        x_space = np.repeat(np.reshape(x[idx], (1, -1)), y_space.shape[0], axis=0)
-        true_densities = distribution.pdf(x_space, y_space)  # True density
+        x_space = x[idx].unsqueeze(0).expand(num_steps, -1)
+        true_densities = distribution.pdf(
+            x_space.detach().cpu().numpy(), y_space.detach().cpu().numpy()
+        )  # True density
 
         # Calculate estimated density
-        dist = torch.distributions.Normal(
-            torch.from_numpy(mu[idx]), torch.from_numpy(sigma[idx]) + numeric_stability
-        )
-        estimated_densities = torch.exp(dist.log_prob(torch.from_numpy(y_space)))
-        estimated_densities = torch.sum(
-            estimated_densities * torch.from_numpy(weights[idx]), dim=1
-        )
-
+        if precomputed_variables:
+            to_pass_precomputed_variables = {
+                key: value[idx].unsqueeze(0).expand(num_steps, -1)
+                for key, value in precomputed_variables.items()
+            }
+            estimated_densities = model.get_density(
+                x_space, y_space, numeric_stability, **to_pass_precomputed_variables
+            )
+        else:
+            estimated_densities = model.get_density(x_space, y_space, numeric_stability)
         # Calculate Hellinger distance component wise
         # sqrt(p(x)) - sqrt(q(x)) and then square
         diff_sq = (
-            torch.sqrt(torch.tensor(true_densities, dtype=torch.float32))
+            torch.sqrt(
+                torch.tensor(true_densities, dtype=torch.float32, device=x.device)
+            )
             - torch.sqrt(estimated_densities)
         ) ** 2
         h_distance = torch.sqrt(
@@ -77,7 +86,12 @@ def hellinger_distance(distribution, x, weights, mu, sigma, reduce="mean", numer
 
 
 def reliabiltiy_loss_fn(
-    y: Tensor, weights: Tensor, mu: Tensor, sigma: Tensor, numeric_stability:int = 1e-6 ,n_samples: int = 100
+    y: Tensor,
+    weights: Tensor,
+    mu: Tensor,
+    sigma: Tensor,
+    numeric_stability: int = 1e-6,
+    n_samples: int = 100,
 ):
     device = y.device
 
@@ -102,43 +116,49 @@ def reliabiltiy_loss_fn(
 
 
 def evaluate_model(
-    model: nn.Module,
+    model: ConditionalDensityEstimator,
     val_loader: DataLoader,
     device: str,
+    loss_hyperparameters: dict,
     distribution=None,
     hellinger_dist_first_n_batches: int = 3,
     is_test: bool = False,
 ):
     model.eval()
-    val_loss = 0
     hellinger_dist = 0
-    reliability_loss = 0
     first_n_batch_sizes = 0
+    eval_metrics = {}
     with torch.no_grad():
         for idx, (x, y) in enumerate(val_loader):
             x, y = x.to(device), y.to(device)
-            weights, mu, sigma = model(x)
+            model_output = model(x, y)
+            _, current_eval_metrics = model.eval_output(
+                y, model_output, "sum", **loss_hyperparameters
+            )
+            if idx == 0:
+                eval_metrics = current_eval_metrics
+            else:
+                for key, value in current_eval_metrics.items():
+                    eval_metrics[key] += value
+
             if distribution and (
                 idx < hellinger_dist_first_n_batches
                 or hellinger_dist_first_n_batches == -1
             ):
                 hellinger_dist += hellinger_distance(
-                    distribution, x, weights, mu, sigma, reduce="sum"
+                    distribution, x, model, model_output, reduce="sum"
                 )
                 first_n_batch_sizes += x.shape[0]
-            val_loss += mdn_loss_fn(y, weights, mu, sigma, reduce="sum").item()
-            reliability_loss += reliabiltiy_loss_fn(y, weights, mu, sigma) * y.shape[0]
-    val_loss /= len(val_loader.dataset)
-    reliability_loss /= len(val_loader.dataset)
+
+    for key, value in eval_metrics.items():
+        eval_metrics[key] /= len(val_loader.dataset)
 
     prefix = "test_" if is_test else "val_"
-    return_dict = {
-        prefix + "loss": val_loss,
-        prefix + "reliability_loss": reliability_loss.item(),
-    }
+    return_dict = {prefix + key: value for key, value in eval_metrics.items()}
+
     if distribution:
         hellinger_dist /= first_n_batch_sizes
-        return_dict[prefix + "hellinger_dist"] = hellinger_dist
+        eval_metrics[prefix + "hellinger_dist"] = hellinger_dist
     return return_dict
 
 
@@ -150,14 +170,14 @@ optimizer_map = {
 
 
 def train_model(
-    model: nn.Module,
+    model: ConditionalDensityEstimator,
     train_data_module: TrainingDataModule,
     optimizer: str,
     optimizer_hyperparameters: dict,
     epochs: int,
     batch_size: int,
     device: str,
-    reliability_loss_weight: float = 50.0,
+    loss_hyperparameters: dict,
     input_noise_x: float = 0.0,
     input_noise_y: float = 0.0,
     clip_gradient_norm: float = 5.0,
@@ -169,7 +189,7 @@ def train_model(
     train_loader = train_data_module.get_train_dataloader(batch_size)
     val_loader = train_data_module.get_val_dataloader(batch_size)
     if train_data_module.has_distribution():
-        distribution = train_data_module.distribution  # TODO, might not exist or so
+        distribution = train_data_module.distribution
     else:
         distribution = None
 
@@ -190,20 +210,18 @@ def train_model(
                 y = y + torch.randn_like(y) * input_noise_y
 
             optimizer.zero_grad()
-            weights, mu, sigma = model(x)
-            loss = mdn_loss_fn(y, weights, mu, sigma)
-            train_metrics = {"train_loss": loss.item()}
-            if reliability_loss_weight > 0.0:
-                reliabiltiy_loss = reliabiltiy_loss_fn(y, weights, mu, sigma)
-                loss = loss + reliabiltiy_loss * reliability_loss_weight
-                train_metrics["train_reliability_loss"] = reliabiltiy_loss.item()
+            loss, train_metrics = model.training_pass(x, y, **loss_hyperparameters)
             wandb.log({**train_metrics, "step": step})
             loss.backward()
 
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clip_gradient_norm)
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(), max_norm=clip_gradient_norm
+            )
             optimizer.step()
 
-        val_metrics = evaluate_model(model, val_loader, device, distribution)
+        val_metrics = evaluate_model(
+            model, val_loader, device, loss_hyperparameters, distribution
+        )
         wandb.log({"epoch": epoch, **val_metrics})
         bar.set_description(str(val_metrics))
 
@@ -223,6 +241,7 @@ def outer_train(
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
+    disable_wandb: bool,
 ):
     group_name = f"config_{config_id}"
     run_name = f"config_{config_id}_seed_{seed}"
@@ -231,7 +250,18 @@ def outer_train(
         "training_hyperparameters": training_hyperparameters,
         "model_hyperparameters": model_hyperparameters,
     }
-    wandb.init(project="mdn_synthetic1", config=config, name=run_name, group=group_name)
+    if disable_wandb:
+        wandb.init(
+            project="mdn_synthetic1",
+            config=config,
+            name=run_name,
+            group=group_name,
+            mode="disabled",
+        )
+    else:
+        wandb.init(
+            project="mdn_synthetic1", config=config, name=run_name, group=group_name
+        )
 
     model = model_class(train_data_module, **model_hyperparameters).to(device)
 
@@ -241,7 +271,7 @@ def outer_train(
         model, train_data_module, **training_hyperparameters, device=device
     )
 
-    best_params_path =  wandb.run.dir + "/best_params.pt"
+    best_params_path = wandb.run.dir + "/best_params.pt"
     torch.save(best_params, best_params_path)
     artifact = wandb.Artifact(name="best_model", type="model")
     artifact.add_file(best_params_path)
@@ -252,7 +282,9 @@ def outer_train(
         model,
         test_dataloader,
         device,
-        train_data_module.distribution if train_data_module.has_distribution() else None,
+        train_data_module.distribution
+        if train_data_module.has_distribution()
+        else None,
         hellinger_dist_first_n_batches=-1,
         is_test=True,
     )
@@ -276,6 +308,7 @@ def cv_experiment(
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
+    disable_wandb: bool,
 ):
     seed_idx = 0
 
@@ -290,6 +323,7 @@ def cv_experiment(
             model_hyperparameters,
             training_hyperparameters,
             device,
+            disable_wandb,
         )
 
         seed_idx += 1
@@ -303,6 +337,7 @@ def seeded_experiment(
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
+    disable_wandb: bool,
 ):
     for seed in seeds:
         seed_all(seed)
@@ -315,4 +350,5 @@ def seeded_experiment(
             model_hyperparameters,
             training_hyperparameters,
             device,
+            disable_wandb,
         )

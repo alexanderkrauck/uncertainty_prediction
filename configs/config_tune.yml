@@ -15,7 +15,8 @@ training_hyperparameters:
   optimizer: Adam
   input_noise_x: 0.1
   input_noise_y: 0.1
-  reliability_loss_weight: 0.0
+  loss_hyperparameters:
+    reliability_loss_weight: 0.0
 
 data_hyperparameters:
   data_type: voest
