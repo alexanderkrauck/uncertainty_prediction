@@ -253,6 +253,7 @@ def outer_train(
         model,
         test_dataloader,
         device,
+        training_hyperparameters["loss_hyperparameters"],
         train_data_module.distribution
         if train_data_module.has_distribution()
         else None,
