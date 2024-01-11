@@ -1,0 +1,40 @@
+config_id: voest_grid_search_run1
+seeds: [3, 4, 5, 6, 7]
+data_seed: 0
+
+training_hyperparameters:
+  epochs: 150
+  batch_size: 
+    tune: [64, 128, 256]
+  optimizer_hyperparameters:
+    lr: 
+      tune: [0.001, 0.0001]
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+    weight_decay: 
+      tune: [1.0e-6, 1.0e-7]
+  optimizer: Adam
+  input_noise_x: 
+    tune: [0.0, 0.1, 0.2]
+  input_noise_y: 
+    tune: [0.0, 0.1, 0.2]
+  loss_hyperparameters:
+    reliability_loss_weight: 0.0
+
+data_hyperparameters:
+  data_type: voest
+  data_path: datasets/voest_datasets/
+  original: False
+  
+
+model_hyperparameters:
+  n_hidden: 
+    tune: [[32,32], [64, 64], [64, 64, 32]]
+  n_distributions: 
+    tune: [10, 20]
+  dropout_rate: 
+    tune: [0.0, 0.1, 0.2]
+  activation_function: 
+    tune: [relu, leaky_relu, tanh, elu]
+  distribution_type: 
+    tune: [gaussian, laplacian]

@@ -2,6 +2,7 @@
 
 import argparse
 import yaml
+import random
 
 from utils.models.mdn import MDN
 from utils.models.vae import VAE
@@ -43,7 +44,7 @@ def generate_configs(config, tune_key="tune"):
     yield config
 
 
-def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="default", disable_wandb=False):
+def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="default", choose_n_configs: int = None, disable_wandb=False):
     # Your code for running deep learning experiments goes here
     print("Running deep learning experiments...")
     print("Parameters:")
@@ -52,6 +53,7 @@ def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="def
     print("model_class:", model_class)
     print("eval_mode:", eval_mode)
     print("disable_wandb:", disable_wandb)
+    print("choose_n_configs:", choose_n_configs)
 
     #torch.autograd.set_detect_anomaly(True)
 
@@ -68,6 +70,13 @@ def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="def
         raise ValueError(f"Model class {model_class} not supported.")
 
     configs = [conf for conf in generate_configs(config=true_config)]
+
+    if choose_n_configs and len(configs) > choose_n_configs:
+        random.shuffle(configs)
+        print(f"Randomly choosing {choose_n_configs} configs from {len(configs)} configs.")
+        configs = configs[:choose_n_configs]
+        
+    
     for idx, config in enumerate(configs):
         if len(configs) > 1:
             config["config_id"] = config["config_id"] + "_cnf" + str(idx)
@@ -124,6 +133,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_class", type=str, help="Model class")
     parser.add_argument("--eval_mode", type=str, help="Evaluation mode")
     parser.add_argument("--disable_wandb", action="store_true", help="Disable wandb logging")
+    parser.add_argument("--choose_n_configs", type=int, help="Choose n configs randomly")
     
     args = parser.parse_args()
     pass_args = {k: v for k, v in dict(args._get_kwargs()).items() if v is not None}

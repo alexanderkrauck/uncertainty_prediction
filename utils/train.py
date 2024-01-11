@@ -148,6 +148,7 @@ def train_model(
     batch_size: int,
     device: str,
     loss_hyperparameters: dict,
+    eval_metric_for_best_model: str = "val_loss",
     input_noise_x: float = 0.0,
     input_noise_y: float = 0.0,
     clip_gradient_norm: float = 5.0,
@@ -195,8 +196,8 @@ def train_model(
         wandb.log({"epoch": epoch, **val_metrics})
         bar.set_description(str(val_metrics))
 
-        if val_metrics["val_loss"] < best_val_loss:
-            best_val_loss = val_metrics["val_loss"]
+        if val_metrics[eval_metric_for_best_model] < best_val_loss:
+            best_val_loss = val_metrics[eval_metric_for_best_model]
             best_params = model.state_dict()
 
     return best_params, best_val_loss

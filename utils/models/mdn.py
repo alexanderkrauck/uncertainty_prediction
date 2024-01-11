@@ -11,6 +11,8 @@ ACTIVATION_FUNCTION_MAP = {
     "tanh": nn.Tanh(),
     "sigmoid": nn.Sigmoid(),
     "leaky_relu": nn.LeakyReLU(),
+    "elu": nn.ELU(),
+    "selu": nn.SELU(),
 }
 
 DISTRIBUTION_MAP = {
