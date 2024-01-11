@@ -164,6 +164,7 @@ def train_model(
     else:
         distribution = None
 
+    best_val_metrics = None
     best_val_loss = np.inf
     best_params = None
 
@@ -198,9 +199,11 @@ def train_model(
 
         if val_metrics[eval_metric_for_best_model] < best_val_loss:
             best_val_loss = val_metrics[eval_metric_for_best_model]
+            best_val_metrics = val_metrics
+            best_val_metrics["val_epoch"] = epoch
             best_params = model.state_dict()
 
-    return best_params, best_val_loss
+    return best_params, best_val_metrics
 
 
 def outer_train(
@@ -221,6 +224,7 @@ def outer_train(
         "training_hyperparameters": training_hyperparameters,
         "model_hyperparameters": model_hyperparameters,
     }
+    print(config)
     if disable_wandb:
         wandb.init(
             project="mdn_synthetic1",
@@ -238,7 +242,7 @@ def outer_train(
 
     wandb.watch(model, log="all", log_freq=100)
 
-    best_params, best_val_loss = train_model(
+    best_params, best_val_metrics = train_model(
         model, train_data_module, **training_hyperparameters, device=device
     )
 
@@ -247,6 +251,8 @@ def outer_train(
     artifact = wandb.Artifact(name="best_model", type="model")
     artifact.add_file(best_params_path)
     wandb.log_artifact(artifact)
+
+    
 
     model.load_state_dict(best_params)
     test_metrics = evaluate_model(
@@ -260,7 +266,11 @@ def outer_train(
         hellinger_dist_first_n_batches=-1,
         is_test=True,
     )
+
+    best_val_metrics = {"best_" + key: value for key, value in best_val_metrics.items()}
     wandb.log(test_metrics)
+    wandb.log(best_val_metrics)
+    print("Test metrics:", test_metrics, "\n Best val metrics:", best_val_metrics)
 
     wandb.finish()
 

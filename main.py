@@ -96,31 +96,71 @@ def main(config_file=None, log_directory=None, model_class="gmm", eval_mode="def
         
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        if eval_mode == "default":
-            # Run experiment
-            seeded_experiment(
-                model_class,
-                data_module,
-                config["config_id"],
-                config["seeds"],
-                config["model_hyperparameters"],
-                config["training_hyperparameters"],
-                device,
-                disable_wandb
-            )
-        elif eval_mode == "cv":
-            # Run cross-validation experiment
-            cv_experiment(
-                model_class,
-                data_module,
-                config["config_id"],
-                config["data_seed"],
-                config["seeds"],
-                config["model_hyperparameters"],
-                config["training_hyperparameters"],
-                device,
-                disable_wandb
-            )
+        try:
+            torch.autograd.set_detect_anomaly(False)
+            if eval_mode == "default":
+                # Run experiment
+                seeded_experiment(
+                    model_class,
+                    data_module,
+                    config["config_id"],
+                    config["seeds"],
+                    config["model_hyperparameters"],
+                    config["training_hyperparameters"],
+                    device,
+                    disable_wandb
+                )
+            elif eval_mode == "cv":
+                # Run cross-validation experiment
+                cv_experiment(
+                    model_class,
+                    data_module,
+                    config["config_id"],
+                    config["data_seed"],
+                    config["seeds"],
+                    config["model_hyperparameters"],
+                    config["training_hyperparameters"],
+                    device,
+                    disable_wandb
+                )
+        except ValueError as e:
+            print(e)
+            print("Redoing this config with anomaly detection on:")
+            print(config)
+            torch.autograd.set_detect_anomaly(True) #makes it much slower but can better see where the error is
+
+            try:
+                if eval_mode == "default":
+                    # Run experiment
+                    seeded_experiment(
+                        model_class,
+                        data_module,
+                        config["config_id"],
+                        config["seeds"],
+                        config["model_hyperparameters"],
+                        config["training_hyperparameters"],
+                        device,
+                        disable_wandb
+                    )
+                elif eval_mode == "cv":
+                    # Run cross-validation experiment
+                    cv_experiment(
+                        model_class,
+                        data_module,
+                        config["config_id"],
+                        config["data_seed"],
+                        config["seeds"],
+                        config["model_hyperparameters"],
+                        config["training_hyperparameters"],
+                        device,
+                        disable_wandb
+                    )
+            except Exception as e:
+                print(e)
+                print("Now skipping this config.")
+                continue
+            
+            continue
 
 
 
