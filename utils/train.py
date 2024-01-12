@@ -1,4 +1,5 @@
 import torch
+import os
 from torch import Tensor
 import torch.nn as nn
 import torch.optim as optim
@@ -13,6 +14,26 @@ import wandb
 from typing import List, Type, Dict
 
 from .models.basic_architectures import ConditionalDensityEstimator
+
+#from chatgpt
+class EarlyStopping:
+    def __init__(self, patience=5, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
+
+    def __call__(self, val_loss):
+        if self.best_loss == None:
+            self.best_loss = val_loss
+        elif self.best_loss - val_loss > self.min_delta:
+            self.best_loss = val_loss
+            self.counter = 0
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
 
 
 def mdn_loss_fn(y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
@@ -152,6 +173,8 @@ def train_model(
     input_noise_x: float = 0.0,
     input_noise_y: float = 0.0,
     clip_gradient_norm: float = 5.0,
+    early_stopping_patience: int = 15,
+    early_stopping_min_delta: float = 1e-4,
 ):
     optimizer = optimizer_map[optimizer.lower()](
         model.parameters(), **optimizer_hyperparameters
@@ -170,6 +193,7 @@ def train_model(
 
     bar = tqdm(range(epochs))
     step = 0
+    early_stpping = EarlyStopping(early_stopping_patience, early_stopping_min_delta)
     for epoch in bar:
         model.train()
         for batch_idx, (x, y) in enumerate(train_loader):
@@ -195,13 +219,18 @@ def train_model(
             model, val_loader, device, loss_hyperparameters, distribution
         )
         wandb.log({"epoch": epoch, **val_metrics})
-        bar.set_description(str(val_metrics))
+        bar.set_description(str(val_metrics["val_loss"]))
 
         if val_metrics[eval_metric_for_best_model] < best_val_loss:
             best_val_loss = val_metrics[eval_metric_for_best_model]
             best_val_metrics = val_metrics
             best_val_metrics["val_epoch"] = epoch
             best_params = model.state_dict()
+        
+        early_stpping(val_metrics[eval_metric_for_best_model])
+        if early_stpping.early_stop:
+            print("Early stopping")
+            break
 
     return best_params, best_val_metrics
 
@@ -216,24 +245,18 @@ def outer_train(
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
-    disable_wandb: bool,
+    wandb_mode: str,
+    project_name: str,
 ):
     group_name = f"config_{config_id}"
     run_name = f"config_{config_id}_seed_{seed}"
 
-    print(config)
-    if disable_wandb:
-        wandb.init(
-            project="mdn_synthetic1",
-            config=config,
-            name=run_name,
-            group=group_name,
-            mode="disabled",
-        )
-    else:
-        wandb.init(
-            project="mdn_synthetic1", config=config, name=run_name, group=group_name
-        )
+    if wandb_mode != "disabled":
+        os.makedirs(os.path.join("runs" , project_name, "wandb"), exist_ok=True)
+
+    wandb.init(
+        project=project_name, config=config, name=run_name, group=group_name, dir=os.path.join("runs" , project_name), mode=wandb_mode
+    )
 
     model = model_class(
         train_data_module=train_data_module, **model_hyperparameters
@@ -267,7 +290,6 @@ def outer_train(
     best_val_metrics = {"best_" + key: value for key, value in best_val_metrics.items()}
     wandb.log(test_metrics)
     wandb.log(best_val_metrics)
-    print("Test metrics:", test_metrics, "\n Best val metrics:", best_val_metrics)
 
     wandb.finish()
 
@@ -288,12 +310,14 @@ def cv_experiment(
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
-    disable_wandb: bool,
+    wandb_mode: str,
+    project_name: str,
 ):
     seed_idx = 0
 
     for train_data_module in data_module.iterable_cv_splits(len(seeds), data_seed):
         seed_all(seeds[seed_idx])
+        print(f"Running with seed {seeds[seed_idx]}")
         outer_train(
             model_class,
             train_data_module,
@@ -304,7 +328,8 @@ def cv_experiment(
             model_hyperparameters,
             training_hyperparameters,
             device,
-            disable_wandb,
+            wandb_mode,
+            project_name,
         )
 
         seed_idx += 1
@@ -319,10 +344,12 @@ def seeded_experiment(
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
-    disable_wandb: bool,
+    wandb_mode: str,
+    project_name: str,
 ):
     for seed in seeds:
         seed_all(seed)
+        print(f"Running with seed {seed}")
         outer_train(
             model_class,
             data_module,
@@ -333,5 +360,6 @@ def seeded_experiment(
             model_hyperparameters,
             training_hyperparameters,
             device,
-            disable_wandb,
+            wandb_mode,
+            project_name,
         )
