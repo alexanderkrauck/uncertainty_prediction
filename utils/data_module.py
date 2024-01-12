@@ -327,14 +327,14 @@ class VoestDataModule(DataModule):
     def has_distribution(self) -> bool:
         return False
 
-    def get_train_dataloader(self, batch_size: int) -> DataLoader:
-        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
+    def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
+        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle)
 
-    def get_val_dataloader(self, batch_size: int) -> DataLoader:
-        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False)
+    def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
+        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle)
 
-    def get_test_dataloader(self, batch_size: int) -> DataLoader:
-        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=False)
+    def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
+        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle)
 
     def iterable_cv_splits(
         self, n_splits: int, seed: int
