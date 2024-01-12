@@ -30,6 +30,7 @@ class MDN(ConditionalDensityEstimator):
         dropout_rate: float = 0.2,
         activation_function: str = "relu",
         distribution_type: str = "gaussian",
+        tanh_std_stability: Optional[float] = 3.0,
         **kwargs,
     ):
         super().__init__()
@@ -44,6 +45,8 @@ class MDN(ConditionalDensityEstimator):
 
         self.mean_x, self.std_x = train_data_module.train_dataset.scaler_x
         self.mean_y, self.std_y = train_data_module.train_dataset.scaler_y
+
+        self.tanh_std_stability = tanh_std_stability
 
         self.mean_x = nn.Parameter(self.mean_x, requires_grad=False)
         self.std_x = nn.Parameter(self.std_x, requires_grad=False)
@@ -62,13 +65,17 @@ class MDN(ConditionalDensityEstimator):
             **kwargs,
         )
 
-    def forward(self, x, y = None):
+    def forward(self, x, y=None):
         x = (x - self.mean_x) / self.std_x
 
         mlp_out = self.mlp(x)
-        logits, mu, log_sigma = torch.split(mlp_out, self.n_distributions, dim=1)
+        logits, mu, log_sigma = torch.split(mlp_out, self.n_distributions, dim=1) 
 
-        sigma = torch.exp(log_sigma)
+        if self.tanh_std_stability:
+            log_sigma = F.tanh(log_sigma) * self.tanh_std_stability #TODO !!!!!!!!!!!!!!! justify that. its intended to be a hack to prevent sigmas from getting too large
+
+        sigma = torch.exp(log_sigma) #this can lead to instability easily as sigmas can get extremely large
+
         weights = F.softmax(logits, dim=1)
 
         mu = self.std_y * mu + self.mean_y
@@ -77,17 +84,33 @@ class MDN(ConditionalDensityEstimator):
         return_dict = {"weights": weights, "mu": mu, "sigma": sigma}
         return return_dict
 
-    def eval_output(self, y, output, reduce = "mean", reliability_loss_weight: float = 0.0, **kwargs):
+    def eval_output(
+        self, y, output, reduce="mean", reliability_loss_weight: float = 0.0, **kwargs
+    ):
         mdn_loss = self.mdn_loss_fn(y, **output, reduce=reduce)
+
+        metric_dict = {}
+        for key, value in output.items():
+            val = value.detach().cpu().numpy()
+            metric_dict["mean_" + key] = (
+                np.mean(val) if reduce == "mean" else np.mean(val) * y.shape[0]
+            )
+            metric_dict["std_" + key] = (
+                np.std(val) if reduce == "mean" else np.std(val) * y.shape[0]
+            )
+
         if reliability_loss_weight > 0:
             reliability_loss = self.reliabiltiy_loss_fn(y, **output, reduce=reduce)
             loss = mdn_loss + reliability_loss_weight * reliability_loss
-            return loss, {
+            return loss, {**metric_dict, **{
                 "loss": loss.item(),
                 "mdn_loss": mdn_loss.item(),
                 "reliability_loss": reliability_loss.item(),
-            }
-        return mdn_loss, {"loss": mdn_loss.item(), "mdn_loss": mdn_loss.item()}
+            }}
+        return mdn_loss, {**metric_dict, **{
+            "loss": mdn_loss.item(),
+            "mdn_loss": mdn_loss.item(),
+        }}
 
     def get_density(
         self,
@@ -113,8 +136,9 @@ class MDN(ConditionalDensityEstimator):
         distribution = self.distribution_class(
             mu, sigma + numeric_stability
         )  # for numerical stability if predicted sigma is too close to 0
+        log_prob = distribution.log_prob(y.unsqueeze(-1))
         loss = (
-            torch.exp(distribution.log_prob(y.unsqueeze(-1))) + numeric_stability
+            torch.exp(log_prob) + numeric_stability
         )  # for numerical stability because outliers can cause this to be 0
         loss = torch.sum(loss * weights, dim=1)
         loss = -torch.log(loss)

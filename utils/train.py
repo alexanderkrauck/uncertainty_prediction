@@ -212,6 +212,7 @@ def outer_train(
     test_dataloader: DataLoader,
     config_id,
     seed: int,
+    config: dict,
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
@@ -220,10 +221,6 @@ def outer_train(
     group_name = f"config_{config_id}"
     run_name = f"config_{config_id}_seed_{seed}"
 
-    config = {
-        "training_hyperparameters": training_hyperparameters,
-        "model_hyperparameters": model_hyperparameters,
-    }
     print(config)
     if disable_wandb:
         wandb.init(
@@ -238,7 +235,9 @@ def outer_train(
             project="mdn_synthetic1", config=config, name=run_name, group=group_name
         )
 
-    model = model_class(train_data_module, **model_hyperparameters).to(device)
+    model = model_class(
+        train_data_module=train_data_module, **model_hyperparameters
+    ).to(device)
 
     wandb.watch(model, log="all", log_freq=100)
 
@@ -251,8 +250,6 @@ def outer_train(
     artifact = wandb.Artifact(name="best_model", type="model")
     artifact.add_file(best_params_path)
     wandb.log_artifact(artifact)
-
-    
 
     model.load_state_dict(best_params)
     test_metrics = evaluate_model(
@@ -287,6 +284,7 @@ def cv_experiment(
     config_id,
     data_seed: int,
     seeds: List[int],
+    config: dict,
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
@@ -302,6 +300,7 @@ def cv_experiment(
             data_module.get_test_dataloader(128),
             config_id,
             seeds[seed_idx],
+            config,
             model_hyperparameters,
             training_hyperparameters,
             device,
@@ -316,6 +315,7 @@ def seeded_experiment(
     data_module: DataModule,
     config_id,
     seeds: List[int],
+    config: dict,
     model_hyperparameters: dict,
     training_hyperparameters: dict,
     device: str,
@@ -329,6 +329,7 @@ def seeded_experiment(
             data_module.get_test_dataloader(128),
             config_id,
             seed,
+            config,
             model_hyperparameters,
             training_hyperparameters,
             device,
