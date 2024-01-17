@@ -136,7 +136,7 @@ class MDN(ConditionalDensityEstimator):
         distribution = self.distribution_class(
             mu, sigma + numeric_stability
         )  # for numerical stability if predicted sigma is too close to 0
-        log_prob = distribution.log_prob(y.unsqueeze(-1))
+        log_prob = distribution.log_prob(y.reshape(-1, 1))
         loss = (
             torch.exp(log_prob) + numeric_stability
         )  # for numerical stability because outliers can cause this to be 0
@@ -146,8 +146,6 @@ class MDN(ConditionalDensityEstimator):
             loss = torch.mean(loss)
         elif reduce == "sum":
             loss = torch.sum(loss)
-        if loss.item() == np.inf or loss.item() == -np.inf:
-            print("inf loss")
         return loss
 
     def reliabiltiy_loss_fn(
@@ -162,9 +160,9 @@ class MDN(ConditionalDensityEstimator):
     ):
         device = y.device
 
-        distribution = self.distribution_class(mu, sigma + numeric_stability)
+        distribution = self.distribution_class(mu, sigma + numeric_stability) # this should be differentiable (ChatGPT) but maybe confirm it
         drawn_samples = distribution.sample((n_samples,)).transpose(0, 1)
-        component_indices = torch.multinomial(weights, n_samples, replacement=True)
+        component_indices = torch.multinomial(weights, n_samples, replacement=True) #this is non differentiable
         effective_samples = torch.gather(
             drawn_samples, -1, component_indices.unsqueeze(-1)
         ).squeeze(-1)
