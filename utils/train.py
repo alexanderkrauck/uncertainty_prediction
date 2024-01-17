@@ -15,7 +15,8 @@ from typing import List, Type, Dict
 
 from .models.basic_architectures import ConditionalDensityEstimator
 
-#from chatgpt
+
+# from chatgpt
 class EarlyStopping:
     def __init__(self, patience=5, min_delta=0):
         self.patience = patience
@@ -175,7 +176,54 @@ def train_model(
     clip_gradient_norm: float = 5.0,
     early_stopping_patience: int = 15,
     early_stopping_min_delta: float = 1e-4,
+    eval_every_n: int = 1,
+    eval_mode: str = "epoch",
+    num_steps: int = None,
 ):
+    """Train a model using the given hyperparameters and return the best model and its validation metrics
+
+    Parameters
+    ----------
+    model : ConditionalDensityEstimator
+        Model to train
+    train_data_module : TrainingDataModule
+        DataModule containing the data (training and validation)
+    optimizer : str
+        Name of the optimizer to use
+    optimizer_hyperparameters : dict
+        Hyperparameters for the optimizer
+    epochs : int
+        Number of epochs to train for
+    batch_size : int
+        Batch size to use
+    device : str
+        Device to use
+    loss_hyperparameters : dict
+        Hyperparameters for the loss function
+    eval_metric_for_best_model : str, optional
+        Metric to use for early stopping, by default "val_loss"
+    input_noise_x : float, optional
+        Standard deviation of Gaussian noise to add to the input x, by default 0.0
+    input_noise_y : float, optional
+        Standard deviation of Gaussian noise to add to the input y, by default 0.0
+    clip_gradient_norm : float, optional
+        Maximum norm of the gradients, by default 5.0
+    early_stopping_patience : int, optional
+        Number of epochs/evaluations to wait before early stopping, by default 15
+    early_stopping_min_delta : float, optional
+        Minimum change in the metric to be considered an improvement, by default 1e-4
+    eval_every_n : int, optional
+        Evaluate the model every n epochs/steps, by default 1
+    eval_mode : str, optional
+        Whether to evaluate the model every n epochs or every n steps, by default "epoch". If "step", then eval_every_n is interpreted as the number of steps. If "step" then num_steps must be provided.
+    num_steps : int, optional
+        Number of steps to do. Required if eval_mode is "step". If provided and eval_mode is "epoch", then it stops after num_steps if it is hit before the number of epochs.
+    """
+
+    if eval_mode == "step":
+        if num_steps is None:
+            raise ValueError("num_steps must be provided if eval_mode is step")
+
     optimizer = optimizer_map[optimizer.lower()](
         model.parameters(), **optimizer_hyperparameters
     )
@@ -193,7 +241,39 @@ def train_model(
 
     bar = tqdm(range(epochs))
     step = 0
-    early_stpping = EarlyStopping(early_stopping_patience, early_stopping_min_delta)
+    early_stopping = EarlyStopping(early_stopping_patience, early_stopping_min_delta)
+
+    val_metrics = evaluate_model(
+        model, val_loader, device, loss_hyperparameters, distribution
+    )
+    wandb.log({"step": step, **val_metrics, "epoch": 0})
+
+    def log_evaluation(step, epoch=None):
+        nonlocal val_metrics, best_val_loss, best_val_metrics, best_params
+
+        val_metrics = evaluate_model(
+            model, val_loader, device, loss_hyperparameters, distribution
+        )
+        log_data = {"step": step, **val_metrics}
+        if epoch is not None:
+            log_data["epoch"] = epoch
+
+        wandb.log(log_data)
+
+        if val_metrics[eval_metric_for_best_model] < best_val_loss:
+            best_val_loss = val_metrics[eval_metric_for_best_model]
+            best_val_metrics = val_metrics
+            best_val_metrics["val_epoch"] = epoch if epoch is not None else step
+            best_params = model.state_dict()
+
+        early_stopping(val_metrics[eval_metric_for_best_model])
+        if early_stopping.early_stop:
+            print("Early stopping")
+            return True  # Indicate that early stopping condition is met
+
+        return False  # Continue training
+
+    outer_break = False
     for epoch in bar:
         model.train()
         for batch_idx, (x, y) in enumerate(train_loader):
@@ -214,23 +294,25 @@ def train_model(
                 model.parameters(), max_norm=clip_gradient_norm
             )
             optimizer.step()
+            if eval_mode == "step" and step % eval_every_n == 0:
+                if log_evaluation(step, epoch):
+                    outer_break = True
+                    break
 
-        val_metrics = evaluate_model(
-            model, val_loader, device, loss_hyperparameters, distribution
-        )
-        wandb.log({"epoch": epoch, **val_metrics})
-        bar.set_description(str(val_metrics["val_loss"]))
+            if num_steps is not None and step >= num_steps:
+                log_evaluation(step, epoch)
+                outer_break = True
+                break
 
-        if val_metrics[eval_metric_for_best_model] < best_val_loss:
-            best_val_loss = val_metrics[eval_metric_for_best_model]
-            best_val_metrics = val_metrics
-            best_val_metrics["val_epoch"] = epoch
-            best_params = model.state_dict()
-        
-        early_stpping(val_metrics[eval_metric_for_best_model])
-        if early_stpping.early_stop:
-            print("Early stopping")
+        if outer_break:
             break
+
+        if eval_mode == "epoch" and epoch % eval_every_n == 0:
+            if log_evaluation(step, epoch):
+                break
+        elif eval_mode == "epoch":
+            wandb.log({"step": step, "epoch": epoch})
+        bar.set_description(str(val_metrics["val_loss"]))
 
     return best_params, best_val_metrics
 
@@ -252,10 +334,15 @@ def outer_train(
     run_name = f"config_{config_id}_seed_{seed}"
 
     if wandb_mode != "disabled":
-        os.makedirs(os.path.join("runs" , project_name, "wandb"), exist_ok=True)
+        os.makedirs(os.path.join("runs", project_name, "wandb"), exist_ok=True)
 
     wandb.init(
-        project=project_name, config=config, name=run_name, group=group_name, dir=os.path.join("runs" , project_name), mode=wandb_mode
+        project=project_name,
+        config=config,
+        name=run_name,
+        group=group_name,
+        dir=os.path.join("runs", project_name),
+        mode=wandb_mode,
     )
 
     model = model_class(
