@@ -14,6 +14,8 @@ from typing import Iterable
 
 from sklearn.model_selection import train_test_split
 
+from sklearn.preprocessing import StandardScaler
+
 path_to_repo = os.path.abspath(".") + "/other_repos/Conditional_Density_Estimation/"
 
 if path_to_repo not in sys.path:
@@ -47,7 +49,6 @@ class CustomDataset(Dataset):
         return self.x[idx], self.y[idx]
 
 
-
 class TrainingDataModule:
     def __init__(self, train_dataset, val_dataset, distribution=None):
         self.train_dataset = train_dataset
@@ -65,10 +66,9 @@ class TrainingDataModule:
 
 
 class DataModule(ABC, TrainingDataModule):
-
     @abstractmethod
-    def __init__(self, **kwargs):
-        pass
+    def __init__(self, pre_normalize_datasets: bool = False, **kwargs):
+        self.pre_normalize_datasets = pre_normalize_datasets
 
     @abstractmethod
     def get_train_dataloader(self, batch_size: int) -> DataLoader:
@@ -92,23 +92,42 @@ class DataModule(ABC, TrainingDataModule):
     def has_distribution(self) -> bool:
         pass
 
+    def create_datasets(self) -> None:
+        if self.pre_normalize_datasets:
+            self.normalize_datasets()
+
+        self.train_dataset = CustomDataset(self.x_train, self.y_train)
+        self.val_dataset = CustomDataset(self.x_val, self.y_val)
+        self.test_dataset = CustomDataset(self.x_test, self.y_test)
+
+    def normalize_datasets(self) -> None:
+        x_scaler = StandardScaler().fit(self.x_train)
+        y_scaler = StandardScaler().fit(self.y_train.reshape(-1, 1))
+
+        self.x_train = x_scaler.transform(self.x_train)
+        self.x_val = x_scaler.transform(self.x_val)
+        self.x_test = x_scaler.transform(self.x_test)
+
+        self.y_train = y_scaler.transform(self.y_train.reshape(-1, 1)).reshape(-1)
+        self.y_val = y_scaler.transform(self.y_val.reshape(-1, 1)).reshape(-1)
+        self.y_test = y_scaler.transform(self.y_test.reshape(-1, 1)).reshape(-1)
 
 class SyntheticDataModule(DataModule):
     def __init__(self, data_path: str, **kwargs):
+        super().__init__(**kwargs)
+
         self.data_path = data_path
         with open(data_path + ".pkl", "rb") as file:
             self.distribution = pickle.load(file)
 
-        self.samples_x_train = np.loadtxt(data_path + "_x_train.csv", delimiter=",")
-        self.samples_y_train = np.loadtxt(data_path + "_y_train.csv", delimiter=",")
-        self.samples_x_test = np.loadtxt(data_path + "_x_test.csv", delimiter=",")
-        self.samples_y_test = np.loadtxt(data_path + "_y_test.csv", delimiter=",")
-        self.samples_x_val = np.loadtxt(data_path + "_x_val.csv", delimiter=",")
-        self.samples_y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",")
+        self.x_train = np.loadtxt(data_path + "_x_train.csv", delimiter=",")
+        self.y_train = np.loadtxt(data_path + "_y_train.csv", delimiter=",")
+        self.x_test = np.loadtxt(data_path + "_x_test.csv", delimiter=",")
+        self.y_test = np.loadtxt(data_path + "_y_test.csv", delimiter=",")
+        self.x_val = np.loadtxt(data_path + "_x_val.csv", delimiter=",")
+        self.y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",")
 
-        self.train_dataset = CustomDataset(self.samples_x_train, self.samples_y_train)
-        self.val_dataset = CustomDataset(self.samples_x_val, self.samples_y_val)
-        self.test_dataset = CustomDataset(self.samples_x_test, self.samples_y_test)
+        self.create_datasets()
 
     def get_test_dataloader(self, batch_size: int):
         return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=False)
@@ -121,8 +140,8 @@ class SyntheticDataModule(DataModule):
 
     def iterable_cv_splits(self, n_splits: int, seed: int):
         # Ensure numpy array type for compatibility with KFold
-        x = np.array(self.samples_x_train)
-        y = np.array(self.samples_y_train)
+        x = np.array(self.x_train)
+        y = np.array(self.y_train)
 
         # Create a KFold object
         kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
@@ -156,6 +175,8 @@ class UCIDataModule(DataModule):
         random_state: int = 42,
         **kwargs,
     ):
+        super().__init__(**kwargs)
+
         self.x_total, self.y_total = UCIDataModule.load_full_ds(dataset_name)
 
         self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
@@ -171,9 +192,7 @@ class UCIDataModule(DataModule):
             random_state=random_state,
         )
 
-        self.train_dataset = CustomDataset(self.x_train, self.y_train)
-        self.val_dataset = CustomDataset(self.x_val, self.y_val)
-        self.test_dataset = CustomDataset(self.x_test, self.y_test)
+        self.create_datasets()
 
     @staticmethod
     def load_full_ds(dataset_name: str, val_split: float = 0.0, random_state: int = 42):
@@ -249,6 +268,8 @@ class VoestDataModule(DataModule):
         random_state: int = 42,
         **kwargs,
     ):
+        super().__init__(**kwargs)
+
         self.data_path = data_path
         self.original = original
         if original:
@@ -326,9 +347,7 @@ class VoestDataModule(DataModule):
             ]
             self.y_test = self.y_total[int(n_rows * (1 - test_split)) :]
 
-        self.train_dataset = CustomDataset(self.x_train, self.y_train)
-        self.val_dataset = CustomDataset(self.x_val, self.y_val)
-        self.test_dataset = CustomDataset(self.x_test, self.y_test)
+        self.create_datasets()
 
     def has_distribution(self) -> bool:
         return False

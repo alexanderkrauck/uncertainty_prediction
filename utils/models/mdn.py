@@ -104,7 +104,7 @@ class MDN(ConditionalDensityEstimator):
             **kwargs,
         )
 
-    def forward(self, x, y=None):
+    def forward(self, x, y=None, normalised_output_domain: bool = False):
         x = (x - self.mean_x) / self.std_x
 
         mlp_out = self.mlp(x)
@@ -120,15 +120,19 @@ class MDN(ConditionalDensityEstimator):
 
         weights = F.softmax(logits, dim=1)
 
-        mu = self.std_y * mu + self.mean_y
-        sigma = self.std_y * sigma
+        if not normalised_output_domain:
+            mu = self.std_y * mu + self.mean_y
+            sigma = self.std_y * sigma
 
         return_dict = {"weights": weights, "mu": mu, "sigma": sigma}
         return return_dict
 
     def eval_output(
-        self, y, output, reduce="mean", reliability_loss_weight: float = 0.0, **kwargs
+        self, y, output, reduce="mean", normalised_output_domain: bool = False, reliability_loss_weight: float = 0.0, **kwargs
     ):
+        if normalised_output_domain:
+            y = (y - self.mean_y) / self.std_y
+
         mdn_loss = self.mdn_loss_fn(y, **output, reduce=reduce)
 
         metric_dict = {}

@@ -14,12 +14,14 @@ The original way of predicting the standard deviation of the mixture density net
 
 The TanH seems to work fine. I evaluated it on a dataset where it is not required (synthetic dataset) and the performance is comparable. Thus I decide on always using it for further experiments.
 
-# Evaluation in Rothfuss paper about noise regularisation
+## Evaluation in Rothfuss paper about noise regularisation
 
-Reported in Table 1, are averages over 3 different train/test 
-splits and 5 seeds each for initializing the neural networks. 
-The heldout test set amounts to 20% of the respective data 
-set. Consistent with the results of the simulation study, 
-noise regularization outperforms the other methods across 
-the great majority of data sets and CDE models. 
+Reported in Table 1, are averages over 3 different train/test splits and 5 seeds each for initializing the neural networks. The heldout test set amounts to 20% of the respective data set. Consistent with the results of the simulation study, noise regularization outperforms the other methods across the great majority of data sets and CDE models.
 
+## Correctness of the (negative) log likelihood as an objective function
+
+The NLL Loss actually is the ideal loss function for CDE as implicitly we are having this $\arg \max _{\theta \in \Theta} \sum_{i=1}^n \log \hat{f}_\theta\left(x_i\right)=\arg \min _{\theta \in \Theta} \mathcal{D}_{K L}\left(p_{\mathcal{D}} \| \hat{f}_\theta\right)$ with $p_{\mathcal{D}}(x)=\frac{1}{n} \sum_{i=1}^n \delta\left(\left\|x-x_i\right\|\right)$. $p_{\mathcal{D}}(x)$ is the mixture function of point masses that we empiricly have. Of course this is only of very theoretic nature but if we assume that the training datapoints correctly represent the sourcing distribution, then we want in fact exactly $p_{\mathcal{D}}(x)$. However, clearly as long as we have a limited amount of training samples this will not actually resemble the sourcing distribution as this would be dense. Consequently, we need regularisation metrics that induce smoothness assumtions into the model.
+
+## Scaling of Distributions for Loss Calculation
+
+I was doing the loss calculation on the scale of the domain of the input data (the scale of $y$ to be precise). I realised that it is not the same. Now for training the predicted distributions are kept in the normalised domain and the loss is calculated w.r.t. them which means that also the likelihood is different (as the distribution is scaled). For evaluation however I figured that it would be better to stay in the original domain of the data to keep it more comparable to other results.
