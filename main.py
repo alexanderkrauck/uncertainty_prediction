@@ -24,7 +24,9 @@ def main(
 ):
     
     wandb_mode = wandb_mode.lower()
-    project_name = "cde_" + project_name.lower()
+    project_name = project_name.lower()
+    if not project_name.startswith("cde_"):
+        project_name = "cde_" + project_name
     # Your code for running deep learning experiments goes here
     print("Running deep learning experiments...")
     print("Parameters:")
