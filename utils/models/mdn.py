@@ -6,6 +6,8 @@ from typing import Tuple, Optional
 from torch import Tensor
 import numpy as np
 
+from ..data_module import TrainingDataModule #TODO: not ideal class dependencies here. Idealy would have some sort of models module class that contains the data dependencies. But this is not a priority right now
+
 ACTIVATION_FUNCTION_MAP = {
     "relu": nn.ReLU(),
     "tanh": nn.Tanh(),
@@ -24,7 +26,7 @@ DISTRIBUTION_MAP = {
 class MDN(ConditionalDensityEstimator):
     def __init__(
         self,
-        train_data_module,
+        train_data_module: TrainingDataModule,
         n_hidden: list,
         n_distributions: int,
         dropout_rate: float = 0.2,

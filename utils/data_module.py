@@ -47,6 +47,7 @@ class CustomDataset(Dataset):
         return self.x[idx], self.y[idx]
 
 
+
 class TrainingDataModule:
     def __init__(self, train_dataset, val_dataset, distribution=None):
         self.train_dataset = train_dataset
@@ -58,12 +59,17 @@ class TrainingDataModule:
 
     def get_val_dataloader(self, batch_size: int):
         return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False)
-    
+
     def has_distribution(self):
         return self.distribution is not None
 
 
-class DataModule(ABC):
+class DataModule(ABC, TrainingDataModule):
+
+    @abstractmethod
+    def __init__(self, **kwargs):
+        pass
+
     @abstractmethod
     def get_train_dataloader(self, batch_size: int) -> DataLoader:
         pass
@@ -148,7 +154,7 @@ class UCIDataModule(DataModule):
         val_split: float = 0.0,
         test_split: float = 0.0,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         self.x_total, self.y_total = UCIDataModule.load_full_ds(dataset_name)
 
@@ -196,14 +202,14 @@ class UCIDataModule(DataModule):
     def has_distribution(self) -> bool:
         return False
 
-    def get_train_dataloader(self, batch_size: int) -> DataLoader:
-        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
+    def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
+        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle)
 
-    def get_val_dataloader(self, batch_size: int) -> DataLoader:
-        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False)
+    def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
+        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle)
 
-    def get_test_dataloader(self, batch_size: int) -> DataLoader:
-        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=False)
+    def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
+        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle)
 
     def iterable_cv_splits(
         self, n_splits: int, seed: int
@@ -241,7 +247,7 @@ class VoestDataModule(DataModule):
         test_split: float = 0.15,
         split_random: bool = False,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         self.data_path = data_path
         self.original = original
@@ -284,9 +290,9 @@ class VoestDataModule(DataModule):
         self.x_total[nan_mask] = np.take(mean_vals, np.where(nan_mask)[1])
         self.x_total = np.nan_to_num(self.x_total)
 
-        self.x_total = self.x_total[:, ~std_exclude] #remove columns that are constant as they do not contribute to the model at all
-
-
+        self.x_total = self.x_total[
+            :, ~std_exclude
+        ]  # remove columns that are constant as they do not contribute to the model at all
 
         if split_random:
             self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
@@ -298,7 +304,7 @@ class VoestDataModule(DataModule):
             self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
                 self.x_train,
                 self.y_train,
-                test_size=0.2 * ((1 / (1-test_split)) - 1),
+                test_size=0.2 * ((1 / (1 - test_split)) - 1),
                 random_state=random_state,
             )
         else:

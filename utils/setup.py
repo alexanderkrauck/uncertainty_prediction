@@ -1,5 +1,5 @@
 import os, subprocess
-from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule, DataModule
+from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule, DataModule, TrainingDataModule
 from utils.models import MDN, VAE, ConditionalDensityEstimator
 from copy import deepcopy
 
@@ -35,7 +35,7 @@ def load_model_class(model_class: str) -> ConditionalDensityEstimator:
     else:
         raise ValueError(f"Model class {model_class} not supported yet.")
     
-def load_model(train_data_module, model_class: str, **model_hyperparameters: dict):
+def load_model(train_data_module: TrainingDataModule, model_class: str, **model_hyperparameters: dict):
     model_class = load_model_class(model_class)
     return model_class(train_data_module, **model_hyperparameters)
     
