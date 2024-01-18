@@ -6,7 +6,7 @@ import random
 import os
 import subprocess
 
-from utils.setup import sync_wandb
+from utils.setup import sync_wandb, load_data_module, load_model_class
 from utils.models.mdn import MDN
 from utils.models.vae import VAE
 from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule
@@ -51,7 +51,7 @@ def generate_configs(config, tune_key="tune"):
 def main(
     config_file=None,
     log_directory=None,
-    model_class="gmm",
+    model_class="mdn",
     eval_mode="default",
     choose_n_configs: int = None,
     wandb_mode:str="offline",
@@ -69,22 +69,14 @@ def main(
     print("eval_mode:", eval_mode)
     print("wandb_mode:", wandb_mode)
     print("choose_n_configs:", choose_n_configs)
-    print("project_name:", project_name)
-
-    # torch.autograd.set_detect_anomaly(True)
-    
+    print("project_name:", project_name)    
 
     # Load hyperparameters
     with open(config_file, "r") as f:
         true_config = yaml.safe_load(f)
 
-    # Load model class
-    if model_class.lower() == "gmm":
-        model_class = MDN
-    elif model_class.lower() == "vae":
-        model_class = VAE
-    else:
-        raise ValueError(f"Model class {model_class} not supported.")
+    if model_class is not None:
+        true_config["model_class"] = model_class
 
     configs = [conf for conf in generate_configs(config=true_config)]
 
@@ -98,25 +90,20 @@ def main(
     for idx, config in enumerate(configs):
         if len(configs) > 1:
             config["config_id"] = config["config_id"] + "_cnf" + str(idx)
-        print("Running config:\n", config)
+        print(f"Running config {idx}:\n", config)
 
-        # Load data
-        data_hyperparams = config["data_hyperparameters"]
-        data_type = data_hyperparams["data_type"]
-        if data_type == "synthetic":
-            data_module = SyntheticDataModule(**data_hyperparams)
-        elif data_type == "voest":
-            data_module = VoestDataModule(**data_hyperparams)
-        elif data_type == "uci":
-            data_module = UCIDataModule(**data_hyperparams)
-        else:
-            raise ValueError(f"Data type {data_type} not supported yet.")
-            # TODO: Add support for real data
+        # Load model class
+        model_class = load_model_class(config["model_class"])
+
+        data_module = load_data_module(**config["data_hyperparameters"])
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        try:
-            torch.autograd.set_detect_anomaly(False)
+        eval_mode = eval_mode.lower()
+        if eval_mode not in ["default", "cv"]:
+            raise ValueError(f"Evaluation mode {eval_mode} not supported yet.")
+
+        def run_experiments():
             if eval_mode == "default":
                 # Run experiment
                 seeded_experiment(
@@ -146,7 +133,12 @@ def main(
                     wandb_mode,
                     project_name,
                 )
+
+        try:
+            torch.autograd.set_detect_anomaly(False)
+            run_experiments()
         except ValueError as e:
+
             print(e)
             print("Redoing this config with anomaly detection on:")
             print(config)
@@ -155,35 +147,7 @@ def main(
             )  # makes it much slower but can better see where the error is
 
             try:
-                if eval_mode == "default":
-                    # Run experiment
-                    seeded_experiment(
-                    model_class,
-                    data_module,
-                    config["config_id"],
-                    config["seeds"],
-                    config,
-                    config["model_hyperparameters"],
-                    config["training_hyperparameters"],
-                    device,
-                    wandb_mode,
-                    project_name,
-                )
-                elif eval_mode == "cv":
-                    # Run cross-validation experiment
-                    cv_experiment(
-                    model_class,
-                    data_module,
-                    config["config_id"],
-                    config["data_seed"],
-                    config["seeds"],
-                    config,
-                    config["model_hyperparameters"],
-                    config["training_hyperparameters"],
-                    device,
-                    wandb_mode,
-                    project_name,
-                )
+                run_experiments()
             except Exception as e:
                 print(e)
                 print("Now skipping this config.")
