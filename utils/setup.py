@@ -1,6 +1,7 @@
 import os, subprocess
 from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule, DataModule
-from utils.models import MDN, VAE
+from utils.models import MDN, VAE, ConditionalDensityEstimator
+from copy import deepcopy
 
 def sync_wandb(project_name: str):
     for item in os.listdir(os.path.join("runs", project_name, "wandb")):
@@ -25,7 +26,7 @@ def load_data_module(data_type: str, **data_hyperparameters:dict) -> DataModule:
     else:
         raise ValueError(f"Data type {data_type} not supported yet.")
     
-def load_model_class(model_class: str):
+def load_model_class(model_class: str) -> ConditionalDensityEstimator:
     model_class = model_class.lower()
     if model_class == "mdn":
         return MDN
@@ -33,3 +34,38 @@ def load_model_class(model_class: str):
         return VAE
     else:
         raise ValueError(f"Model class {model_class} not supported yet.")
+    
+def load_model(train_data_module, model_class: str, **model_hyperparameters: dict):
+    model_class = load_model_class(model_class)
+    return model_class(train_data_module, **model_hyperparameters)
+    
+def generate_configs(config, tune_key="tune"):
+    """
+    Recursively generate all combinations of configurations.
+    Each time a 'tune' element is found, create new configs for each option in the 'tune' list.
+    This function handles nested 'tune' elements as well.
+    """
+
+    if isinstance(config, dict):
+        for key, value in config.items():
+            if isinstance(value, dict):
+                if tune_key in value:
+                    for option in value[tune_key]:
+                        new_config = deepcopy(config)
+                        new_config[key] = option  # Replace 'tune' with the actual value
+                        yield from generate_configs(
+                            new_config
+                        )  # Recurse with the new config
+                    return  # Once all 'tune' options for a key are processed, return
+                else:
+                    # Recurse into nested dictionaries
+                    results = [result for result in generate_configs(value)]
+                    if len(results) > 1:
+                        for result in results:
+                            new_config = deepcopy(config)
+                            new_config[key] = result
+                            yield from generate_configs(new_config)
+                        return
+
+    # If the current config or value is not a dict or no 'tune' elements are found, yield the config/value as is
+    yield config

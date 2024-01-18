@@ -14,6 +14,7 @@ import wandb
 from typing import List, Type, Dict
 
 from .models.basic_architectures import ConditionalDensityEstimator
+from .setup import load_model
 
 
 # from chatgpt
@@ -318,7 +319,6 @@ def train_model(
 
 
 def outer_train(
-    model_class: Type[nn.Module],
     train_data_module: TrainingDataModule,
     test_dataloader: DataLoader,
     config_id,
@@ -345,9 +345,7 @@ def outer_train(
         mode=wandb_mode,
     )
 
-    model = model_class(
-        train_data_module=train_data_module, **model_hyperparameters
-    ).to(device)
+    model = load_model(train_data_module, **model_hyperparameters).to(device)
 
     wandb.watch(model, log="all", log_freq=100)
 
@@ -388,7 +386,6 @@ def seed_all(seed):
 
 
 def cv_experiment(
-    model_class: Type[nn.Module],
     data_module: DataModule,
     config_id,
     data_seed: int,
@@ -406,7 +403,6 @@ def cv_experiment(
         seed_all(seeds[seed_idx])
         print(f"Running with seed {seeds[seed_idx]}")
         outer_train(
-            model_class,
             train_data_module,
             data_module.get_test_dataloader(128),
             config_id,
@@ -423,7 +419,6 @@ def cv_experiment(
 
 
 def seeded_experiment(
-    model_class: Type[nn.Module],
     data_module: DataModule,
     config_id,
     seeds: List[int],
@@ -438,7 +433,6 @@ def seeded_experiment(
         seed_all(seed)
         print(f"Running with seed {seed}")
         outer_train(
-            model_class,
             data_module,
             data_module.get_test_dataloader(128),
             config_id,
