@@ -54,7 +54,7 @@ def main(
     for idx, config in enumerate(configs):
         if len(configs) > 1:
             config["config_id"] = config["config_id"] + "_cnf" + str(idx)
-        print(f"Running config {idx}:\n", config)
+        print(f"Running config {idx}/{len(configs)}:\n", config)
 
         data_module = load_data_module(**config["data_hyperparameters"])
 
