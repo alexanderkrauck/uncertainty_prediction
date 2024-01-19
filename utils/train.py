@@ -38,24 +38,6 @@ class EarlyStopping:
                 self.early_stop = True
 
 
-def mdn_loss_fn(y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
-    distribution = torch.distributions.Normal(
-        mu, sigma + numeric_stability
-    )  # for numerical stability if predicted sigma is too close to 0
-    loss = (
-        torch.exp(distribution.log_prob(y.unsqueeze(-1))) + numeric_stability
-    )  # for numerical stability because outliers can cause this to be 0
-    loss = torch.sum(loss * weights, dim=1)
-    loss = -torch.log(loss)
-    if reduce == "mean":
-        loss = torch.mean(loss)
-    elif reduce == "sum":
-        loss = torch.sum(loss)
-    if loss.item() == np.inf or loss.item() == -np.inf:
-        print("inf loss")
-    return loss
-
-
 def hellinger_distance(
     distribution,
     x: Tensor,
@@ -281,10 +263,11 @@ def train_model(
             step += 1
             x, y = x.to(device), y.to(device)
 
+            # TODO: consider adding rule of thumb noise:
             if input_noise_x > 0.0:
-                x = x + torch.randn_like(x) * input_noise_x
+                x = x + torch.randn_like(x) * input_noise_x * train_loader.dataset.scaler_x[1].to(device)
             if input_noise_y > 0.0:
-                y = y + torch.randn_like(y) * input_noise_y
+                y = y + torch.randn_like(y) * input_noise_y * train_loader.dataset.scaler_y[1].to(device)
 
             optimizer.zero_grad()
             loss, train_metrics = model.training_pass(x, y, **loss_hyperparameters)
