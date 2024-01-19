@@ -11,7 +11,7 @@ from utils.data_module import TrainingDataModule, DataModule
 
 import wandb
 
-from typing import List, Type, Dict
+from typing import List, Type, Dict, Optional
 
 from .models.basic_architectures import ConditionalDensityEstimator
 from .setup import load_model
@@ -153,7 +153,7 @@ def train_model(
     batch_size: int,
     device: str,
     loss_hyperparameters: dict,
-    eval_metric_for_best_model: str = "val_loss",
+    eval_metric_for_best_model: str = "val_nll_loss",
     input_noise_x: float = 0.0,
     input_noise_y: float = 0.0,
     clip_gradient_norm: float = 5.0,
@@ -162,6 +162,8 @@ def train_model(
     eval_every_n: int = 1,
     eval_mode: str = "epoch",
     num_steps: int = None,
+    use_validation_set: bool = True,
+    verbose: bool = True,
 ):
     """Train a model using the given hyperparameters and return the best model and its validation metrics
 
@@ -201,6 +203,10 @@ def train_model(
         Whether to evaluate the model every n epochs or every n steps, by default "epoch". If "step", then eval_every_n is interpreted as the number of steps. If "step" then num_steps must be provided.
     num_steps : int, optional
         Number of steps to do. Required if eval_mode is "step". If provided and eval_mode is "epoch", then it stops after num_steps if it is hit before the number of epochs.
+    use_validation_set : bool
+        Whether to use a validation set or not, by default True
+    verbose : bool
+        Whether to print progress or not, by default True
     """
 
     if eval_mode == "step":
@@ -221,17 +227,23 @@ def train_model(
     best_val_metrics = None
     best_val_loss = np.inf
     best_params = None
-
-    bar = tqdm(range(epochs))
+    if verbose:
+        bar = tqdm(range(epochs))
+    else:
+        bar = range(epochs)
     step = 0
     early_stopping = EarlyStopping(early_stopping_patience, early_stopping_min_delta)
 
-    val_metrics = evaluate_model(
-        model, val_loader, device, loss_hyperparameters, distribution
-    )
-    wandb.log({"step": step, **val_metrics, "epoch": 0})
+    if use_validation_set:
+        val_metrics = evaluate_model(
+            model, val_loader, device, loss_hyperparameters, distribution
+        )
+        wandb.log({"step": step, **val_metrics, "epoch": 0})
 
     def log_evaluation(step, epoch=None):
+        if not use_validation_set:
+            return False  # We train until num_steps/epochs is reached
+
         nonlocal val_metrics, best_val_loss, best_val_metrics, best_params
 
         val_metrics = evaluate_model(
@@ -251,7 +263,8 @@ def train_model(
 
         early_stopping(val_metrics[eval_metric_for_best_model])
         if early_stopping.early_stop:
-            print("Early stopping")
+            if verbose:
+                print("Early stopping")
             return True  # Indicate that early stopping condition is met
 
         return False  # Continue training
@@ -265,9 +278,13 @@ def train_model(
 
             # TODO: consider adding rule of thumb noise:
             if input_noise_x > 0.0:
-                x = x + torch.randn_like(x) * input_noise_x * train_loader.dataset.scaler_x[1].to(device)
+                x = x + torch.randn_like(
+                    x
+                ) * input_noise_x * train_loader.dataset.scaler_x[1].to(device)
             if input_noise_y > 0.0:
-                y = y + torch.randn_like(y) * input_noise_y * train_loader.dataset.scaler_y[1].to(device)
+                y = y + torch.randn_like(
+                    y
+                ) * input_noise_y * train_loader.dataset.scaler_y[1].to(device)
 
             optimizer.zero_grad()
             loss, train_metrics = model.training_pass(x, y, **loss_hyperparameters)
@@ -296,14 +313,17 @@ def train_model(
                 break
         elif eval_mode == "epoch":
             wandb.log({"step": step, "epoch": epoch})
-        bar.set_description(str(val_metrics["val_loss"]))
-
-    return best_params, best_val_metrics
+        if use_validation_set and verbose:
+            bar.set_description(str(val_metrics[eval_metric_for_best_model]))
+    if use_validation_set:
+        return best_params, best_val_metrics
+    else:
+        return model.state_dict(), None
 
 
 def outer_train(
     train_data_module: TrainingDataModule,
-    test_dataloader: DataLoader,
+    test_dataloader: Optional[DataLoader],
     config_id,
     seed: int,
     config: dict,
@@ -312,6 +332,8 @@ def outer_train(
     device: str,
     wandb_mode: str,
     project_name: str,
+    use_validation_set: bool = True,
+    verbose: bool = True,
 ):
     group_name = f"config_{config_id}"
     run_name = f"config_{config_id}_seed_{seed}"
@@ -333,7 +355,12 @@ def outer_train(
     wandb.watch(model, log="all", log_freq=100)
 
     best_params, best_val_metrics = train_model(
-        model, train_data_module, **training_hyperparameters, device=device
+        model,
+        train_data_module,
+        **training_hyperparameters,
+        device=device,
+        use_validation_set=use_validation_set,
+        verbose=verbose,
     )
 
     best_params_path = wandb.run.dir + "/best_params.pt"
@@ -341,25 +368,30 @@ def outer_train(
     artifact = wandb.Artifact(name="best_model", type="model")
     artifact.add_file(best_params_path)
     wandb.log_artifact(artifact)
-
-    model.load_state_dict(best_params)
-    test_metrics = evaluate_model(
-        model,
-        test_dataloader,
-        device,
-        training_hyperparameters["loss_hyperparameters"],
-        train_data_module.distribution
-        if train_data_module.has_distribution()
-        else None,
-        hellinger_dist_first_n_batches=-1,
-        is_test=True,
-    )
-
-    best_val_metrics = {"best_" + key: value for key, value in best_val_metrics.items()}
-    wandb.log(test_metrics)
-    wandb.log(best_val_metrics)
+    if test_dataloader is not None:
+        model.load_state_dict(best_params)
+        test_metrics = evaluate_model(
+            model,
+            test_dataloader,
+            device,
+            training_hyperparameters["loss_hyperparameters"],
+            train_data_module.distribution
+            if train_data_module.has_distribution()
+            else None,
+            hellinger_dist_first_n_batches=-1,
+            is_test=True,
+        )
+        wandb.log(test_metrics)
+    if use_validation_set:
+        best_val_metrics = {
+            "best_" + key: value for key, value in best_val_metrics.items()
+        }
+        wandb.log(best_val_metrics)
 
     wandb.finish()
+    if test_dataloader is not None:
+        return test_metrics
+    return best_val_metrics
 
 
 def seed_all(seed):
@@ -379,15 +411,19 @@ def cv_experiment(
     device: str,
     wandb_mode: str,
     project_name: str,
+    use_test_set: bool = True,
+    verbose: bool = True,
 ):
     seed_idx = 0
 
+    metrics_list = []
     for train_data_module in data_module.iterable_cv_splits(len(seeds), data_seed):
         seed_all(seeds[seed_idx])
-        print(f"Running with seed {seeds[seed_idx]}")
-        outer_train(
+        if verbose: 
+            print(f"Running with seed {seeds[seed_idx]}")
+        metrics = outer_train(
             train_data_module,
-            data_module.get_test_dataloader(128),
+            data_module.get_test_dataloader(128) if use_test_set else None,
             config_id,
             seeds[seed_idx],
             config,
@@ -396,9 +432,12 @@ def cv_experiment(
             device,
             wandb_mode,
             project_name,
+            verbose = verbose,
         )
+        metrics_list.append(metrics)
 
         seed_idx += 1
+    return metrics_list
 
 
 def seeded_experiment(
@@ -411,11 +450,15 @@ def seeded_experiment(
     device: str,
     wandb_mode: str,
     project_name: str,
+    use_validation_set: bool = True,
+    verbose: bool = True,
 ):
+    test_metrics_list = []
     for seed in seeds:
         seed_all(seed)
-        print(f"Running with seed {seed}")
-        outer_train(
+        if verbose:
+            print(f"Running with seed {seed}")
+        test_metrics = outer_train(
             data_module,
             data_module.get_test_dataloader(128),
             config_id,
@@ -426,4 +469,8 @@ def seeded_experiment(
             device,
             wandb_mode,
             project_name,
+            use_validation_set=use_validation_set,
+            verbose = verbose,
         )
+        test_metrics_list.append(test_metrics)
+    return test_metrics_list

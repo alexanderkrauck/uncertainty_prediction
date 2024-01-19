@@ -70,17 +70,14 @@ class DataModule(ABC, TrainingDataModule):
     def __init__(self, pre_normalize_datasets: bool = False, **kwargs):
         self.pre_normalize_datasets = pre_normalize_datasets
 
-    @abstractmethod
-    def get_train_dataloader(self, batch_size: int) -> DataLoader:
-        pass
+    def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
+        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle)
 
-    @abstractmethod
-    def get_val_dataloader(self, batch_size: int) -> DataLoader:
-        pass
+    def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
+        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle)
 
-    @abstractmethod
-    def get_test_dataloader(self, batch_size: int) -> DataLoader:
-        pass
+    def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
+        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle)
 
     @abstractmethod
     def iterable_cv_splits(
@@ -128,15 +125,6 @@ class SyntheticDataModule(DataModule):
         self.y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",")
 
         self.create_datasets()
-
-    def get_test_dataloader(self, batch_size: int):
-        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=False)
-
-    def get_train_dataloader(self, batch_size: int):
-        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
-
-    def get_val_dataloader(self, batch_size: int):
-        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False)
 
     def iterable_cv_splits(self, n_splits: int, seed: int):
         # Ensure numpy array type for compatibility with KFold
@@ -221,21 +209,13 @@ class UCIDataModule(DataModule):
     def has_distribution(self) -> bool:
         return False
 
-    def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
-        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle)
-
-    def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle)
-
-    def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle)
 
     def iterable_cv_splits(
         self, n_splits: int, seed: int
     ) -> Iterable[TrainingDataModule]:
         # Ensure numpy array type for compatibility with KFold
-        x = np.array(self.x_train + self.x_val)
-        y = np.array(self.y_train + self.y_val)
+        x = np.concatenate((self.x_train, self.x_val), axis=0)
+        y = np.concatenate((self.y_train, self.y_val), axis=0)
 
         # Create a KFold object
         kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
@@ -352,14 +332,6 @@ class VoestDataModule(DataModule):
     def has_distribution(self) -> bool:
         return False
 
-    def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
-        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle)
-
-    def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle)
-
-    def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle)
 
     def iterable_cv_splits(
         self, n_splits: int, seed: int

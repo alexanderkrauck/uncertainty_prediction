@@ -6,7 +6,9 @@ from typing import Tuple, Optional
 from torch import Tensor
 import numpy as np
 
-from ..data_module import TrainingDataModule #TODO: not ideal class dependencies here. Idealy would have some sort of models module class that contains the data dependencies. But this is not a priority right now
+from ..data_module import (
+    TrainingDataModule,
+)  # TODO: not ideal class dependencies here. Idealy would have some sort of models module class that contains the data dependencies. But this is not a priority right now
 
 ACTIVATION_FUNCTION_MAP = {
     "relu": nn.ReLU(),
@@ -37,10 +39,10 @@ class MDN(ConditionalDensityEstimator):
         **kwargs,
     ):
         """
-        
+
         Parameters
         ----------
-        train_data_module : 
+        train_data_module :
             The train data module used to train the model. This is used to get the mean and std of the data to normalize the input and output.
         n_hidden : list
             List of hidden layer sizes.
@@ -91,9 +93,7 @@ class MDN(ConditionalDensityEstimator):
         if distribution_type in DISTRIBUTION_MAP:
             self.distribution_class = DISTRIBUTION_MAP[distribution_type.lower()]
         else:
-            raise ValueError(
-                f"Distribution type {distribution_type} not supported."
-            )
+            raise ValueError(f"Distribution type {distribution_type} not supported.")
         self.n_distributions = n_distributions
         self.mlp = MLP(
             n_inputs,
@@ -108,15 +108,19 @@ class MDN(ConditionalDensityEstimator):
         x = (x - self.mean_x) / self.std_x
 
         mlp_out = self.mlp(x)
-        logits, mu, log_sigma = torch.split(mlp_out, self.n_distributions, dim=1) 
+        logits, mu, log_sigma = torch.split(mlp_out, self.n_distributions, dim=1)
 
         if self.std_stability_mode == "tanh":
-            log_sigma = F.tanh(log_sigma) * self.tanh_std_stability #TODO !!!!!!!!!!!!!!! justify that. its intended to be a hack to prevent sigmas from getting too large
+            log_sigma = (
+                F.tanh(log_sigma) * self.tanh_std_stability
+            )  # TODO !!!!!!!!!!!!!!! justify that. its intended to be a hack to prevent sigmas from getting too large
             sigma = torch.exp(log_sigma)
         elif self.std_stability_mode == "softplus":
             sigma = F.softplus(log_sigma)
         else:
-            sigma = torch.exp(log_sigma) #this can lead to instability easily as sigmas can get extremely large
+            sigma = torch.exp(
+                log_sigma
+            )  # this can lead to instability easily as sigmas can get extremely large
 
         weights = F.softmax(logits, dim=1)
 
@@ -128,12 +132,18 @@ class MDN(ConditionalDensityEstimator):
         return return_dict
 
     def eval_output(
-        self, y, output, reduce="mean", normalised_output_domain: bool = False, reliability_loss_weight: float = 0.0, **kwargs
+        self,
+        y,
+        output,
+        reduce="mean",
+        normalised_output_domain: bool = False,
+        miscalibration_area_loss_weight: float = 0.0,
+        **kwargs,
     ):
         if normalised_output_domain:
             y = (y - self.mean_y) / self.std_y
 
-        mdn_loss = self.mdn_loss_fn(y, **output, reduce=reduce)
+        loss = self.nlll(y, **output, reduce=reduce)
 
         metric_dict = {}
         for key, value in output.items():
@@ -145,18 +155,23 @@ class MDN(ConditionalDensityEstimator):
                 np.std(val) if reduce == "mean" else np.std(val) * y.shape[0]
             )
 
-        if reliability_loss_weight > 0:
-            reliability_loss = self.reliabiltiy_loss_fn(y, **output, reduce=reduce)
-            loss = mdn_loss + reliability_loss_weight * reliability_loss
-            return loss, {**metric_dict, **{
-                "loss": loss.item(),
-                "mdn_loss": mdn_loss.item(),
-                "reliability_loss": reliability_loss.item(),
-            }}
-        return mdn_loss, {**metric_dict, **{
-            "loss": mdn_loss.item(),
-            "mdn_loss": mdn_loss.item(),
-        }}
+        if normalised_output_domain:
+            metric_dict["nll_loss_normalized"] = loss.item()
+        else:
+            metric_dict["nll_loss"] = loss.item()
+
+        if miscalibration_area_loss_weight > 0:
+            miscalibration_area = self.miscalibration_area_fn(
+                y, **output, reduce=reduce
+            )
+            loss = loss + miscalibration_area_loss_weight * miscalibration_area
+
+            metric_dict["misclibration_area"] = miscalibration_area.item()
+
+        if normalised_output_domain:# Because we don't want to add the loss if we are not in the normalised domain as it is not meaningful
+            metric_dict["loss"] = loss.item()
+
+        return loss, metric_dict
 
     def get_density(
         self,
@@ -178,7 +193,7 @@ class MDN(ConditionalDensityEstimator):
         density = torch.sum(densities * weights, dim=1)
         return density
 
-    def mdn_loss_fn(self, y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
+    def nlll(self, y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
         distribution = self.distribution_class(
             mu, sigma + numeric_stability
         )  # for numerical stability if predicted sigma is too close to 0
@@ -194,36 +209,45 @@ class MDN(ConditionalDensityEstimator):
             loss = torch.sum(loss)
         return loss
 
-    def reliabiltiy_loss_fn(
+    def miscalibration_area_fn(
         self,
         y: Tensor,
         weights: Tensor,
         mu: Tensor,
         sigma: Tensor,
-        numeric_stability: int = 1e-6,
         n_samples: int = 100,
+        grumble_tau: float = 0.1,
+        sigmoid_steepness: float = 50,
         reduce="mean",
     ):
         device = y.device
 
-        distribution = self.distribution_class(mu, sigma + numeric_stability) # this should be differentiable (ChatGPT) but maybe confirm it
-        drawn_samples = distribution.sample((n_samples,)).transpose(0, 1)
-        component_indices = torch.multinomial(weights, n_samples, replacement=True) #this is non differentiable
-        effective_samples = torch.gather(
-            drawn_samples, -1, component_indices.unsqueeze(-1)
-        ).squeeze(-1)
+        drawn_samples = (
+            torch.randn(*mu.shape, n_samples, device=device) * sigma.unsqueeze(-1)
+            + mu.unsqueeze(-1)
+        ).transpose(1, 2)
+
+        weights = weights.unsqueeze(1).expand(-1, n_samples, -1)
+        component_indices = torch.nn.functional.gumbel_softmax(
+            weights, tau=grumble_tau, hard=False
+        )
+
+        effective_samples = (component_indices * drawn_samples).sum(dim=-1)
         y = y.squeeze(-1)
 
         quantiles = torch.arange(5, 96, 10, device=device) / 100
 
         upper_bounds = torch.quantile(effective_samples, quantiles, dim=-1)
-        y_r = (y < upper_bounds).sum(dim=-1) / y.shape[0]
+        y_r = (
+            torch.sigmoid(sigmoid_steepness * (upper_bounds - y)).sum(dim=-1)
+            / y.shape[0]
+        )
 
-        reliability_loss = (
+        miscalibration_area = (
             (y_r - quantiles).abs().mean()
         )  # maybe use trapz shomehow instead of mean
 
         if reduce == "sum":
-            reliability_loss = reliability_loss * y.shape[0]
+            miscalibration_area = miscalibration_area * y.shape[0]
 
-        return reliability_loss
+        return miscalibration_area
