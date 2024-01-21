@@ -1,28 +1,16 @@
-from .basic_architectures import MLP, ConditionalDensityEstimator
+from .basic_architectures import MLP, ConditionalDensityEstimator, ACTIVATION_FUNCTION_MAP, DISTRIBUTION_MAP
 import torch
 from torch import nn
 import torch.nn.functional as F
 from typing import Tuple, Optional
 from torch import Tensor
 import numpy as np
+from .loss_functions import nlll, miscalibration_area_fn
 
 from ..data_module import (
     TrainingDataModule,
 )  # TODO: not ideal class dependencies here. Idealy would have some sort of models module class that contains the data dependencies. But this is not a priority right now
 
-ACTIVATION_FUNCTION_MAP = {
-    "relu": nn.ReLU(),
-    "tanh": nn.Tanh(),
-    "sigmoid": nn.Sigmoid(),
-    "leaky_relu": nn.LeakyReLU(),
-    "elu": nn.ELU(),
-    "selu": nn.SELU(),
-}
-
-DISTRIBUTION_MAP = {
-    "gaussian": torch.distributions.Normal,
-    "laplacian": torch.distributions.Laplace,
-}
 
 
 class MDN(ConditionalDensityEstimator):
@@ -138,12 +126,13 @@ class MDN(ConditionalDensityEstimator):
         reduce="mean",
         normalised_output_domain: bool = False,
         miscalibration_area_loss_weight: float = 0.0,
+        force_miscalibration_area_loss_calculation: bool = True,
         **kwargs,
     ):
         if normalised_output_domain:
             y = (y - self.mean_y) / self.std_y
 
-        loss = self.nlll(y, **output, reduce=reduce)
+        loss = nlll(self.distribution_class, y, **output, reduce=reduce, **kwargs)
 
         metric_dict = {}
         for key, value in output.items():
@@ -160,13 +149,14 @@ class MDN(ConditionalDensityEstimator):
         else:
             metric_dict["nll_loss"] = loss.item()
 
-        if miscalibration_area_loss_weight > 0:
-            miscalibration_area = self.miscalibration_area_fn(
-                y, **output, reduce=reduce
+        if miscalibration_area_loss_weight > 0 or (not normalised_output_domain and force_miscalibration_area_loss_calculation):
+            miscalibration_area = miscalibration_area_fn(
+                self.distribution_class, y, **output, reduce=reduce, **kwargs
             )
-            loss = loss + miscalibration_area_loss_weight * miscalibration_area
-
             metric_dict["misclibration_area"] = miscalibration_area.item()
+
+        if miscalibration_area_loss_weight > 0:
+            loss = loss + miscalibration_area_loss_weight * miscalibration_area
 
         if normalised_output_domain:# Because we don't want to add the loss if we are not in the normalised domain as it is not meaningful
             metric_dict["loss"] = loss.item()
@@ -177,77 +167,23 @@ class MDN(ConditionalDensityEstimator):
         self,
         x: Tensor,
         y: Tensor,
+        normalised_output_domain: bool = False,
         numeric_stability: float = 1e-6,
         weights: Optional[Tensor] = None,
         mu: Optional[Tensor] = None,
         sigma: Optional[Tensor] = None,
     ) -> Tensor:
         if weights is None or mu is None or sigma is None:
-            weights, mu, sigma = self(x)
+            output = self(x, y, normalised_output_domain=normalised_output_domain)
+            weights, mu, sigma = output["weights"], output["mu"], output["sigma"]
         distribution = self.distribution_class(
             mu, sigma + numeric_stability
         )  # for numerical stability if predicted sigma is too close to 0
+        if normalised_output_domain:
+            y = (y - self.mean_y) / self.std_y
+
         densities = (
             torch.exp(distribution.log_prob(y)) + numeric_stability
         )  # for numerical stability because outliers can cause this to be 0
         density = torch.sum(densities * weights, dim=1)
         return density
-
-    def nlll(self, y, weights, mu, sigma, reduce="mean", numeric_stability=1e-6):
-        distribution = self.distribution_class(
-            mu, sigma + numeric_stability
-        )  # for numerical stability if predicted sigma is too close to 0
-        log_prob = distribution.log_prob(y.reshape(-1, 1))
-        loss = (
-            torch.exp(log_prob) + numeric_stability
-        )  # for numerical stability because outliers can cause this to be 0
-        loss = torch.sum(loss * weights, dim=1)
-        loss = -torch.log(loss)
-        if reduce == "mean":
-            loss = torch.mean(loss)
-        elif reduce == "sum":
-            loss = torch.sum(loss)
-        return loss
-
-    def miscalibration_area_fn(
-        self,
-        y: Tensor,
-        weights: Tensor,
-        mu: Tensor,
-        sigma: Tensor,
-        n_samples: int = 100,
-        grumble_tau: float = 0.1,
-        sigmoid_steepness: float = 50,
-        reduce="mean",
-    ):
-        device = y.device
-
-        drawn_samples = (
-            torch.randn(*mu.shape, n_samples, device=device) * sigma.unsqueeze(-1)
-            + mu.unsqueeze(-1)
-        ).transpose(1, 2)
-
-        weights = weights.unsqueeze(1).expand(-1, n_samples, -1)
-        component_indices = torch.nn.functional.gumbel_softmax(
-            weights, tau=grumble_tau, hard=False
-        )
-
-        effective_samples = (component_indices * drawn_samples).sum(dim=-1)
-        y = y.squeeze(-1)
-
-        quantiles = torch.arange(5, 96, 10, device=device) / 100
-
-        upper_bounds = torch.quantile(effective_samples, quantiles, dim=-1)
-        y_r = (
-            torch.sigmoid(sigmoid_steepness * (upper_bounds - y)).sum(dim=-1)
-            / y.shape[0]
-        )
-
-        miscalibration_area = (
-            (y_r - quantiles).abs().mean()
-        )  # maybe use trapz shomehow instead of mean
-
-        if reduce == "sum":
-            miscalibration_area = miscalibration_area * y.shape[0]
-
-        return miscalibration_area

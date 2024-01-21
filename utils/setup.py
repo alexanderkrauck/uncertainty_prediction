@@ -1,18 +1,22 @@
 import os, subprocess
 from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule, DataModule, TrainingDataModule
-from utils.models import MDN, VAE, ConditionalDensityEstimator
+from utils.models import MDN, VAE, ConditionalDensityEstimator, GaussianKMN, NFDensityEstimator
 from copy import deepcopy
 
 def sync_wandb(project_name: str):
     for item in os.listdir(os.path.join("runs", project_name, "wandb")):
         if item.startswith("offline-run"):
-            subprocess.run(
-                [
-                    "wandb",
-                    "sync",
-                    os.path.join("runs", project_name, "wandb", item),
-                ])
-            
+            run_path = os.path.join("runs", project_name, "wandb", item)
+            sync_wand_run(run_path)
+        
+def sync_wand_run(run_path: str):
+    subprocess.run(
+        [
+            "wandb",
+            "sync",
+            run_path,
+        ]
+    )
         
 def load_data_module(data_type: str, **data_hyperparameters:dict) -> DataModule:
 
@@ -30,6 +34,10 @@ def load_model_class(model_class: str) -> ConditionalDensityEstimator:
     model_class = model_class.lower()
     if model_class == "mdn":
         return MDN
+    elif model_class == "kmn":
+        return GaussianKMN
+    elif model_class == "nf":
+        return NFDensityEstimator
     elif model_class == "vae":
         return VAE
     else:

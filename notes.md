@@ -33,3 +33,23 @@ The mean log-likelihood is a commonly used evaluation metric in probabilistic mo
 ## Idea: New metric sigma-y-overlap-score
 
 The evaluation metric for conditional density estimation (CDE) models treats each test data point $y_i$ as a probability distribution (e.g., a Gaussian with fixed variance centered around $y_i$) rather than as a fixed value. The model's predicted distribution for a given $x_i$ is then compared with this intrinsic distribution of $y_i$. The metric quantifies the degree of overlap between these two distributions by integrating the area of their intersection. This intersection area, indicative of the alignment between the model's predictions and the test data's probabilistic nature, is averaged over all test samples to provide a performance metric. While this method offers a nuanced view of the model's predictive accuracy, it necessitates careful consideration of the scaling of $y$ and the choice of hyperparameters for the intrinsic distribution to ensure consistency and comparability across different datasets.
+
+## KMN
+
+The kernel mixture network in its most general form works by the following steps:
+
+1. Determine $n$ kernel centers from the train data. That can be done by multiple different options like randomly, kmeans or something like that.
+2. Decide for $k$ different kernel types. The kernel types can be the same with different parameters too, like two Gaussian kernels with different scales. Those kernel hyperparameters can also be trainable if so desired.
+3. Construct a MLP with arbitrary activations and structure that takes $\mathbf{x}$ as input and outputs one weight for each of the kernels. In total we have $k \cdot n$ kernel functions that essentially work in a flat manner; It does not really matter which kernel function a kernel belongs to. So the MLP output needs to have shape $l \cdot n$.
+4. Now we just scale those kernels and treat them like distributions for the most part. So we basically have a density mixture now with estimated weights on the basis of $\mathbf{x}$.
+5. We can calculate the likelihood of the $y$ part of samples now.
+
+It is a convenient choice to just take Gaussian kernels as this greatly simplifies the required code.
+
+## Normalizing Flows vs. VAE: My thoughts
+
+Normalising flows are despite the intial thought similarity quite different from VAEs. The reason is that while variational autoencoders still try to maintain a sort of similar semantic structure in the latent space as in the original space the normalising flow does not actually. The normalising flow simply does everything in its power to transform the domain space to the simple distribution.
+
+In particular, in a VAE we do not actually predict the laten variable but instead a distribution over it and sample from it. Thereby we implicity enfore a structural similarity. In a Normalising flow wo don't. Actually, in a normalising flow a point that is on the very peak of the simple distribution with the highest likelihood could just as well map to a point in the domain space that is extremely unlikely; all that because the density of the distribution is transformed in almost arbitrary ways and thus the densities can be completely different. In a VAE that would not happen because in a VAE we actually inherntly assume that the domain data follows the latent distribution in one way or another. All that because of the sampling in the latent space.
+
+However, i need to do more research on this topic!

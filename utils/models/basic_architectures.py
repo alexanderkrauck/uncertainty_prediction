@@ -3,6 +3,19 @@ import torch
 from typing import List, Dict
 from abc import ABC, abstractmethod
 
+ACTIVATION_FUNCTION_MAP = {
+    "relu": nn.ReLU(),
+    "tanh": nn.Tanh(),
+    "sigmoid": nn.Sigmoid(),
+    "leaky_relu": nn.LeakyReLU(),
+    "elu": nn.ELU(),
+    "selu": nn.SELU(),
+}
+
+DISTRIBUTION_MAP = {
+    "gaussian": torch.distributions.Normal,
+    "laplacian": torch.distributions.Laplace,
+}
 
 class ConditionalDensityEstimator(ABC, torch.nn.Module):
     """
@@ -70,6 +83,7 @@ class ConditionalDensityEstimator(ABC, torch.nn.Module):
         self,
         x: torch.Tensor,
         y: torch.Tensor,
+        normalised_output_domain: bool = True,
         numeric_stability: float = 1e-6,
         **precomputed_variables
     ) -> torch.Tensor:
@@ -81,6 +95,7 @@ class ConditionalDensityEstimator(ABC, torch.nn.Module):
         self,
         x: torch.Tensor,
         y: torch.Tensor,
+        normalised_output_domain: bool = True,
         numeric_stability: float = 1e-6,
         **kwargs
     ) -> torch.Tensor:
@@ -88,7 +103,7 @@ class ConditionalDensityEstimator(ABC, torch.nn.Module):
         Returns the negative log-likelihood of the output distribution at the given points.
         """
 
-        probabilities = self.get_density(x, y, numeric_stability)
+        probabilities = self.get_density(x, y, normalised_output_domain, numeric_stability)
         nll = -torch.log(probabilities)
 
         return nll
