@@ -62,44 +62,33 @@ class InvertedPlanarFlow(Flow):
         return x, log_det_jacobian
 
 
-class RadialFlow(Flow):
+class InverseRadialFlow(Flow):
     def __init__(self, n_inputs: int):
         super().__init__(n_inputs)
         self.n_parameters = n_inputs + 2
         self.n_inputs = n_inputs
 
     def forward(self, x: Tensor, parameters: Tensor) -> Tuple[Tensor, Tensor]:
-        difference = x - parameters[:, : self.n_inputs]
-        r = torch.norm(difference, p=1, dim=1)
+        raise NotImplementedError("Do not require Forward pass for this application")
 
-        alpha = F.softplus(parameters[:, self.n_inputs])
-        beta = parameters[:, self.n_inputs + 1]
-
-        divisor = 1 / (alpha + r)
-        y = x + beta * difference * divisor
-
-        log_det_jac = (self.n_inputs - 1) * torch.log(
-            1 + alpha * beta * divisor
-        ) + torch.log(1 + alpha * beta * divisor - alpha * beta * r * (divisor**2))
-        return y, -log_det_jac
+        
 
     def inverse(self, y: Tensor, parameters: Tensor) -> Tuple[Tensor, Tensor]:
         # NOTE: Not analytically solvable but can be approximated.
 
-        beta = parameters[:, self.n_inputs + 1]
-        alpha = F.softplus(parameters[:, self.n_inputs])
-
         difference = y - parameters[:, : self.n_inputs]
         r = torch.norm(difference, p=1, dim=1)
 
-        divisor = 1 / (alpha + r)
+        alpha = F.softplus(parameters[:, self.n_inputs])
+        beta = torch.exp(parameters[:, self.n_inputs + 1]) - 1 #this will be enough to make the log parts positive
 
-        x_approx = y + (alpha * beta * divisor).unsqueeze(-1) * difference
+        divisor = 1 / (alpha + r)
+        x = y + (beta * alpha * divisor).unsqueeze(-1) * difference#Trippe & Turner alternative
+
         log_det_jac = (self.n_inputs - 1) * torch.log(
             1 + alpha * beta * divisor
         ) + torch.log(1 + alpha * beta * divisor - alpha * beta * r * (divisor**2))
-
-        return x_approx, log_det_jac
+        return x, log_det_jac
 
 
 class AffineFlow(Flow):
@@ -117,11 +106,11 @@ class AffineFlow(Flow):
             Parameters of the flow. Shape (batch_size, 2 * n_inputs)
         """
 
-        y = (
-            x * torch.exp(parameters[:, : self.n_inputs])
-            + parameters[:, self.n_inputs :]
-        )
-        log_det_jacobian = torch.sum(parameters[:, : self.n_inputs], dim=1)
+        a = parameters[:, : self.n_inputs]
+        b = parameters[:, self.n_inputs :]
+
+        y = x * torch.exp(a) + b
+        log_det_jacobian = torch.sum(a, dim=1)
 
         return y, log_det_jacobian
 
@@ -135,15 +124,16 @@ class AffineFlow(Flow):
             Parameters of the flow. Shape (batch_size, 2 * n_inputs)
         """
 
-        x = (y - parameters[:, self.n_inputs :]) * torch.exp(
-            -parameters[:, : self.n_inputs]
-        )
-        log_det_jacobian = -torch.sum(parameters[:, : self.n_inputs], dim=1)
+        a = parameters[:, : self.n_inputs]
+        b = parameters[:, self.n_inputs :]
+
+        x = (y - b) * torch.exp(-a)
+        log_det_jacobian = -torch.sum(a, dim=1)
 
         return x, log_det_jacobian
 
 
-FLOW_MAP = {"planar": InvertedPlanarFlow, "radial": RadialFlow, "affine": AffineFlow}
+FLOW_MAP = {"planar": InvertedPlanarFlow, "radial": InverseRadialFlow, "affine": AffineFlow}
 
 
 class NFDensityEstimator(ConditionalDensityEstimator):
@@ -255,6 +245,8 @@ class NFDensityEstimator(ConditionalDensityEstimator):
             Input tensor. Shape (batch_size, y_dim)
         """
 
+        device = y.device
+
         if flow_params is None:
             flow_params = self(x, y)["flow_params"]
 
@@ -265,9 +257,11 @@ class NFDensityEstimator(ConditionalDensityEstimator):
             y, log_det_jac = flow.inverse(y, param)
             log_det_jacobian = log_det_jac + log_det_jacobian
 
-        log_prob = torch.distributions.Normal(0, 1).log_prob(y)
+        log_prob = torch.distributions.MultivariateNormal(
+            torch.zeros(self.y_dim, device=device), torch.eye(self.y_dim, device=device)
+        ).log_prob(y)
 
-        log_prob_original = log_prob - log_det_jacobian
+        log_prob_original = log_prob + log_det_jacobian
         if not normalised_output_domain:
             log_prob_original = log_prob_original - torch.log(self.std_y)
 
@@ -302,7 +296,7 @@ class NFDensityEstimator(ConditionalDensityEstimator):
         log_prob = torch.distributions.MultivariateNormal(
             torch.zeros(self.y_dim, device=device), torch.eye(self.y_dim, device=device)
         ).log_prob(y)
-        log_prob_original = log_prob - log_det_jacobian
+        log_prob_original = log_prob + log_det_jacobian
 
         if not normalised_output_domain:
             log_prob_original = log_prob_original - torch.log(self.std_y)
