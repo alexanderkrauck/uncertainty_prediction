@@ -108,7 +108,7 @@ def evaluate_model(
             x, y = x.to(device), y.to(device)
             model_output = model(x, y)
             _, current_eval_metrics = model.eval_output(
-                y, model_output, "sum", **loss_hyperparameters
+                y, model_output, False, "sum", **loss_hyperparameters
             )
             if idx == 0:
                 eval_metrics = current_eval_metrics
