@@ -74,7 +74,6 @@ class InverseRadialFlow(Flow):
         
 
     def inverse(self, y: Tensor, parameters: Tensor) -> Tuple[Tensor, Tensor]:
-        # NOTE: Not analytically solvable but can be approximated.
 
         difference = y - parameters[:, : self.n_inputs]
         r = torch.norm(difference, p=1, dim=1)
