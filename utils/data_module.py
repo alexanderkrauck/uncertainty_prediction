@@ -416,3 +416,62 @@ class VoestDataModule(DataModule):
             # Return the original DataFrame if the column name doesn't exist
             print(f"Column '{column_name}' does not exist in the DataFrame.")
             return df
+
+class NYCTaxiDataModule(DataModule):
+
+    def initialize_data(
+        self,
+        data_path: str = "datasets/nyc_taxi_dataset/",
+        val_split: float = 0.15,
+        test_split: float = 0.15,
+        random_state: int = 42,
+        **kwargs,
+    ):
+        
+        from .data import nyc_dataset
+        nyc_dataset.DATA_DIR = data_path
+
+        self.x_total, self.y_total = nyc_dataset.NCYTaxiDropoffPredict().get_target_feature_split()
+
+        self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
+            self.x_total, self.y_total, test_size=val_split, random_state=random_state
+        )
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
+            self.x_train,
+            self.y_train,
+            test_size=test_split
+            * (
+                (1 / (1 - val_split)) - 1
+            ),  # because test_split is relative to total size
+            random_state=random_state,
+        )
+
+    def has_distribution(self) -> bool:
+        return False
+
+
+    def iterable_cv_splits(
+        self, n_splits: int, seed: int
+    ) -> Iterable[TrainingDataModule]:
+        # Ensure numpy array type for compatibility with KFold
+        x = np.concatenate((self.x_train, self.x_val), axis=0)
+        y = np.concatenate((self.y_train, self.y_val), axis=0)
+
+        # Create a KFold object
+        kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+
+        # Generator function to yield train and validation DataLoaders
+        def cv_generator():
+            for train_indices, val_indices in kfold.split(x):
+                # Create subsets for this fold
+                x_train_fold, y_train_fold = x[train_indices], y[train_indices]
+                x_val_fold, y_val_fold = x[val_indices], y[val_indices]
+
+                # Wrap them in TensorDataset and DataLoader
+                train_dataset = CustomDataset(x_train_fold, y_train_fold)
+                val_dataset = CustomDataset(x_val_fold, y_val_fold)
+
+                yield TrainingDataModule(train_dataset, val_dataset)
+
+        # Return the generator object
+        return cv_generator()

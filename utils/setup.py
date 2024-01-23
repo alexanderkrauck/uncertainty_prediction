@@ -1,5 +1,5 @@
 import os, subprocess
-from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule, DataModule, TrainingDataModule
+from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule, DataModule, TrainingDataModule, NYCTaxiDataModule
 from utils.models import MDN, VAE, ConditionalDensityEstimator, GaussianKMN, NFDensityEstimator
 from copy import deepcopy
 
@@ -27,6 +27,8 @@ def load_data_module(data_type: str, **data_hyperparameters:dict) -> DataModule:
         return VoestDataModule(**data_hyperparameters)
     elif data_type == "uci":
         return UCIDataModule(**data_hyperparameters)
+    elif data_type == "nyctaxi":
+        return NYCTaxiDataModule(**data_hyperparameters)
     else:
         raise ValueError(f"Data type {data_type} not supported yet.")
     
