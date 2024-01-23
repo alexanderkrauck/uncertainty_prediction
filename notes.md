@@ -53,3 +53,9 @@ Normalising flows are despite the intial thought similarity quite different from
 In particular, in a VAE we do not actually predict the laten variable but instead a distribution over it and sample from it. Thereby we implicity enfore a structural similarity. In a Normalising flow wo don't. Actually, in a normalising flow a point that is on the very peak of the simple distribution with the highest likelihood could just as well map to a point in the domain space that is extremely unlikely; all that because the density of the distribution is transformed in almost arbitrary ways and thus the densities can be completely different. In a VAE that would not happen because in a VAE we actually inherntly assume that the domain data follows the latent distribution in one way or another. All that because of the sampling in the latent space.
 
 However, i need to do more research on this topic!
+
+## Generating my own samples (synthetic)
+
+My idea is to create a Bayesian network (with continous random variables and possibly also discrete ones), do forward sampling to generate samples. Then I want to restrict myself to some variables as input or observatory variables and want to predict the distribution of one or multiple other variables based on this. I want to infer the true distributions by using probabilistic queries.
+
+Forward sampling is consistent with the true distribution (probabilistic modeling slides 04b page 13). I need to make probabilistic queries in order to get conditional probabilities analytically from a bayesian network.
