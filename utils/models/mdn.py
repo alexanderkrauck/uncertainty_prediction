@@ -17,12 +17,12 @@ class MDN(ConditionalDensityEstimator):
     def __init__(
         self,
         train_data_module: TrainingDataModule,
-        n_hidden: list,
-        n_distributions: int,
+        n_hidden: list = [32, 32],
+        n_distributions: int = 10,
         dropout_rate: float = 0.2,
         activation_function: str = "relu",
         distribution_type: str = "gaussian",
-        std_stability_mode: str = "tanh",
+        std_stability_mode: str = "softplus",
         tanh_std_stability: float = 3.0,
         **kwargs,
     ):
@@ -76,17 +76,20 @@ class MDN(ConditionalDensityEstimator):
         self.mean_y = nn.Parameter(self.mean_y, requires_grad=False)
         self.std_y = nn.Parameter(self.std_y, requires_grad=False)
 
-        n_inputs = train_data_module.train_dataset.x.shape[1]
+        self.x_size = train_data_module.train_dataset.x.shape[1]
+        self.y_size = train_data_module.train_dataset.y.shape[1]
+
         distribution_type = distribution_type.lower()
         if distribution_type in DISTRIBUTION_MAP:
             self.distribution_class = DISTRIBUTION_MAP[distribution_type.lower()]
         else:
             raise ValueError(f"Distribution type {distribution_type} not supported.")
         self.n_distributions = n_distributions
+        self.split_sizes = [self.n_distributions, self.n_distributions * self.y_size, self.n_distributions * self.y_size]
         self.mlp = MLP(
-            n_inputs,
+            self.x_size,
             n_hidden,
-            n_distributions * 3,
+            (n_distributions * self.y_size) * 2 + n_distributions,
             dropout_rate,
             activation_function,
             **kwargs,
@@ -96,7 +99,7 @@ class MDN(ConditionalDensityEstimator):
         x = (x - self.mean_x) / self.std_x
 
         mlp_out = self.mlp(x)
-        logits, mu, log_sigma = torch.split(mlp_out, self.n_distributions, dim=1)
+        logits_weights, mu, log_sigma = torch.split(mlp_out, self.split_sizes, dim=1)
 
         if self.std_stability_mode == "tanh":
             log_sigma = (
@@ -110,11 +113,14 @@ class MDN(ConditionalDensityEstimator):
                 log_sigma
             )  # this can lead to instability easily as sigmas can get extremely large
 
-        weights = F.softmax(logits, dim=1)
+        weights = F.softmax(logits_weights, dim=1)
+
+        mu = mu.reshape(-1, self.y_size, self.n_distributions)
+        sigma = sigma.reshape(-1, self.y_size, self.n_distributions)
 
         if not normalised_output_domain:
-            mu = self.std_y * mu + self.mean_y
-            sigma = self.std_y * sigma
+            mu = self.std_y.unsqueeze(-1) * mu + self.mean_y.unsqueeze(-1)
+            sigma = self.std_y.unsqueeze(-1) * sigma
 
         return_dict = {"weights": weights, "mu": mu, "sigma": sigma}
         return return_dict
@@ -168,7 +174,7 @@ class MDN(ConditionalDensityEstimator):
         x: Tensor,
         y: Tensor,
         normalised_output_domain: bool = False,
-        numeric_stability: float = 1e-6,
+        numeric_stability: float = 1e-8,
         weights: Optional[Tensor] = None,
         mu: Optional[Tensor] = None,
         sigma: Optional[Tensor] = None,
@@ -179,11 +185,17 @@ class MDN(ConditionalDensityEstimator):
         distribution = self.distribution_class(
             mu, sigma + numeric_stability
         )  # for numerical stability if predicted sigma is too close to 0
+        
         if normalised_output_domain:
             y = (y - self.mean_y) / self.std_y
 
         densities = (
-            torch.exp(distribution.log_prob(y)) + numeric_stability
+            torch.exp(distribution.log_prob(y.unsqueeze(-1))) + numeric_stability
         )  # for numerical stability because outliers can cause this to be 0
+        densities = densities.sum(1)
         density = torch.sum(densities * weights, dim=1)
+
+        #if not normalised_output_domain:
+        #    density = density * (1 / self.std_y).prod() #(we multiply by the jacobian determinant of the transformation from the normalised to the unnormalised domain)
+        
         return density

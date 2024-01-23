@@ -66,9 +66,13 @@ class TrainingDataModule:
 
 
 class DataModule(ABC, TrainingDataModule):
-    @abstractmethod
+
     def __init__(self, pre_normalize_datasets: bool = False, **kwargs):
         self.pre_normalize_datasets = pre_normalize_datasets
+
+        self.initialize_data(**kwargs)
+        self.fix_dimensions()
+        self.create_datasets()
 
     def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
         return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle)
@@ -86,6 +90,10 @@ class DataModule(ABC, TrainingDataModule):
         pass
 
     @abstractmethod
+    def initialize_data(self, **kwargs) -> None:
+        pass
+
+    @abstractmethod
     def has_distribution(self) -> bool:
         pass
 
@@ -99,20 +107,27 @@ class DataModule(ABC, TrainingDataModule):
 
     def normalize_datasets(self) -> None:
         x_scaler = StandardScaler().fit(self.x_train)
-        y_scaler = StandardScaler().fit(self.y_train.reshape(-1, 1))
+        y_scaler = StandardScaler().fit(self.y_train)
 
         self.x_train = x_scaler.transform(self.x_train)
         self.x_val = x_scaler.transform(self.x_val)
         self.x_test = x_scaler.transform(self.x_test)
 
-        self.y_train = y_scaler.transform(self.y_train.reshape(-1, 1)).reshape(-1)
-        self.y_val = y_scaler.transform(self.y_val.reshape(-1, 1)).reshape(-1)
-        self.y_test = y_scaler.transform(self.y_test.reshape(-1, 1)).reshape(-1)
+        self.y_train = y_scaler.transform(self.y_train)
+        self.y_val = y_scaler.transform(self.y_val)
+        self.y_test = y_scaler.transform(self.y_test)
+
+    def fix_dimensions(self) -> None:
+        self.x_train = self.x_train.reshape(self.x_train.shape[0], -1)
+        self.x_val = self.x_val.reshape(self.x_val.shape[0], -1)
+        self.x_test = self.x_test.reshape(self.x_test.shape[0], -1)
+        self.y_train = self.y_train.reshape(self.y_train.shape[0], -1)
+        self.y_val = self.y_val.reshape(self.y_val.shape[0], -1)
+        self.y_test = self.y_test.reshape(self.y_test.shape[0], -1)
 
 class SyntheticDataModule(DataModule):
-    def __init__(self, data_path: str, **kwargs):
-        super().__init__(**kwargs)
 
+    def initialize_data(self, data_path: str, **kwargs):
         self.data_path = data_path
         with open(data_path + ".pkl", "rb") as file:
             self.distribution = pickle.load(file)
@@ -123,8 +138,6 @@ class SyntheticDataModule(DataModule):
         self.y_test = np.loadtxt(data_path + "_y_test.csv", delimiter=",")
         self.x_val = np.loadtxt(data_path + "_x_val.csv", delimiter=",")
         self.y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",")
-
-        self.create_datasets()
 
     def iterable_cv_splits(self, n_splits: int, seed: int):
         # Ensure numpy array type for compatibility with KFold
@@ -155,16 +168,14 @@ class SyntheticDataModule(DataModule):
 
 
 class UCIDataModule(DataModule):
-    def __init__(
-        self,
+
+    def initialize_data(self, 
         dataset_name: str,
         val_split: float = 0.0,
         test_split: float = 0.0,
         random_state: int = 42,
         **kwargs,
     ):
-        super().__init__(**kwargs)
-
         self.x_total, self.y_total = UCIDataModule.load_full_ds(dataset_name)
 
         self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
@@ -179,8 +190,8 @@ class UCIDataModule(DataModule):
             ),  # because test_split is relative to total size
             random_state=random_state,
         )
+        
 
-        self.create_datasets()
 
     @staticmethod
     def load_full_ds(dataset_name: str, val_split: float = 0.0, random_state: int = 42):
@@ -238,7 +249,8 @@ class UCIDataModule(DataModule):
 
 
 class VoestDataModule(DataModule):
-    def __init__(
+
+    def initialize_data(
         self,
         data_path: str = "datasets/voest_datasets",
         original: bool = False,
@@ -248,8 +260,6 @@ class VoestDataModule(DataModule):
         random_state: int = 42,
         **kwargs,
     ):
-        super().__init__(**kwargs)
-
         self.data_path = data_path
         self.original = original
         if original:
@@ -326,8 +336,6 @@ class VoestDataModule(DataModule):
                 )
             ]
             self.y_test = self.y_total[int(n_rows * (1 - test_split)) :]
-
-        self.create_datasets()
 
     def has_distribution(self) -> bool:
         return False

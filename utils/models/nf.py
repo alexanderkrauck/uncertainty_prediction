@@ -172,10 +172,10 @@ class NFDensityEstimator(ConditionalDensityEstimator):
         self.mean_y = nn.Parameter(self.mean_y, requires_grad=False)
         self.std_y = nn.Parameter(self.std_y, requires_grad=False)
 
-        n_inputs = train_data_module.train_dataset.x.shape[1]
-        self.y_dim = train_data_module.train_dataset.y.shape[1]
+        self.x_size = train_data_module.train_dataset.x.shape[1]
+        self.y_size = train_data_module.train_dataset.y.shape[1]
 
-        flows = [FLOW_MAP[flow](self.y_dim) for flow in flows]
+        flows = [FLOW_MAP[flow](self.y_size) for flow in flows]
         self.n_flows_params = [flow.n_parameters for flow in flows]
         self.flows = nn.ModuleList(flows)
         self.n_flows = len(self.flows)
@@ -183,7 +183,7 @@ class NFDensityEstimator(ConditionalDensityEstimator):
         n_output = sum(self.n_flows_params)
 
         self.mlp = MLP(
-            n_inputs, n_hidden, n_output, dropout_rate, activation_function, **kwargs
+            self.x_size, n_hidden, n_output, dropout_rate, activation_function, **kwargs
         )
 
     def forward(self, x, y, normalised_output_domain: bool = False):
@@ -257,7 +257,7 @@ class NFDensityEstimator(ConditionalDensityEstimator):
             log_det_jacobian = log_det_jac + log_det_jacobian
 
         log_prob = torch.distributions.MultivariateNormal(
-            torch.zeros(self.y_dim, device=device), torch.eye(self.y_dim, device=device)
+            torch.zeros(self.y_size, device=device), torch.eye(self.y_size, device=device)
         ).log_prob(y)
 
         log_prob_original = log_prob + log_det_jacobian
@@ -293,12 +293,12 @@ class NFDensityEstimator(ConditionalDensityEstimator):
 
         # Calculate the log likelihood
         log_prob = torch.distributions.MultivariateNormal(
-            torch.zeros(self.y_dim, device=device), torch.eye(self.y_dim, device=device)
+            torch.zeros(self.y_size, device=device), torch.eye(self.y_size, device=device)
         ).log_prob(y)
         log_prob_original = log_prob + log_det_jacobian
 
         if not normalised_output_domain:
-            log_prob_original = log_prob_original - torch.log(self.std_y)
+            log_prob_original = log_prob_original - torch.log(self.std_y).sum()
 
         if reduce == "mean":
             nll_loss = -torch.mean(log_prob_original, dim=0)

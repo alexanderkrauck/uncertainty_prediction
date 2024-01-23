@@ -38,7 +38,7 @@ class EarlyStopping:
                 self.early_stop = True
 
 
-def hellinger_distance(
+def hellinger_distance( #TODO make y multidimensial-able
     distribution,
     x: Tensor,
     model: ConditionalDensityEstimator,
@@ -47,6 +47,11 @@ def hellinger_distance(
     numeric_stability=1e-6,
     num_steps=100,
 ):
+    
+    if model.y_size != 1:
+        return -1
+        
+        #TODO: raise NotImplementedError("Hellinger distance is only implemented for 1D y")
     y_space = torch.linspace(-10, 10, num_steps, device=x.device).view(-1, 1)
     hellinger_distances = []
 
@@ -59,10 +64,18 @@ def hellinger_distance(
 
         # Calculate estimated density
         if precomputed_variables:
-            to_pass_precomputed_variables = {
-                key: value[idx].unsqueeze(0).expand(num_steps, -1)
-                for key, value in precomputed_variables.items()
-            }
+            to_pass_precomputed_variables = {}
+            for key, value in precomputed_variables.items():
+                if isinstance(value, tuple):
+                    new_tuple = tuple(tup_element[idx].unsqueeze(0).expand(num_steps, *tup_element[idx].shape) for tup_element in value)
+                    to_pass_precomputed_variables[key] = new_tuple
+                elif isinstance(value, Tensor):
+                    to_pass_precomputed_variables[key] = value[idx].unsqueeze(0).expand(num_steps, *value[idx].shape)
+                else:
+                    raise ValueError(
+                        f"precomputed_variables must be a dict of tensors or tuples. {key} is not."
+                    )
+
             estimated_densities = model.get_density(
                 x_space, y_space, numeric_stability, **to_pass_precomputed_variables
             )
