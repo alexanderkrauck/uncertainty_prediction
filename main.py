@@ -21,6 +21,7 @@ def main(
     choose_n_configs: int = None,
     wandb_mode: str = "offline",
     project_name="debug_project",
+    nested_cv_results_file="nested_cv_results.log",
 ):
     """Main function for running deep learning experiments.
 
@@ -38,6 +39,8 @@ def main(
         Wandb mode. Either 'online', 'offline' or 'disabled'.
     project_name : str
         Name of the wandb project.
+    nested_cv_results_file : str
+        Name of the file where the nested cv results are saved.
     """
 
     wandb_mode = wandb_mode.lower()
@@ -54,11 +57,36 @@ def main(
     print("choose_n_configs:", choose_n_configs)
     print("project_name:", project_name)
 
-    # Load hyperparameters
+    for cf in config_file.split(","):
+        main_config_run(
+            config_file=cf,
+            log_directory=log_directory,
+            eval_mode=eval_mode,
+            choose_n_configs=choose_n_configs,
+            wandb_mode=wandb_mode,
+            project_name=project_name,
+            nested_cv_results_file=nested_cv_results_file,
+        )
+
+
+
+def main_config_run(    
+    config_file=None,
+    log_directory=None,
+    eval_mode="default",
+    choose_n_configs: int = None,
+    wandb_mode: str = "offline",
+    project_name="debug_project",
+    nested_cv_results_file="nested_cv_results.log"
+    ):
+
+        # Load hyperparameters
     with open(config_file, "r") as f:
         true_config = yaml.safe_load(f)
 
     eval_mode = eval_mode.lower()
+    if eval_mode == "nested_cv":
+        print("Saving nested cv results to", nested_cv_results_file)
     if eval_mode not in ["default", "cv", "nested_cv"]:
         raise ValueError(f"Evaluation mode {eval_mode} not supported yet.")
 
@@ -68,7 +96,7 @@ def main(
         data_configs = generate_configs(config=true_config["data_hyperparameters"])
 
         test_metrics_list = []
-        for idx, data_config in enumerate(data_configs):
+        for outer_idx, data_config in enumerate(data_configs):
             config_grid = deepcopy(true_config)
             config_grid["data_hyperparameters"] = data_config
 
@@ -108,6 +136,11 @@ def main(
                     best_config = config
                     best_epoch = int(mean_metrics["best_val_epoch"])
 
+            with open(nested_cv_results_file, "a") as f:
+                f.write(f"Best Config run {outer_idx}:\n")
+                f.write(str(best_config))
+                f.write(f"Best mean score: {best_eval_score}\n")
+
             best_config["training_hyperparameters"]["epochs"] = best_epoch # Because we don't know whats best if we don't use the validation set
             print(best_config)
             test_metrics = seeded_experiment(
@@ -131,8 +164,8 @@ def main(
             final_test_metrics[key] = np.mean([test_metrics[key] for test_metrics in test_metrics_list])
             final_test_metrics_std[key] = np.std([test_metrics[key] for test_metrics in test_metrics_list])
         print("The final test metrics are:")
-        with open("nested_cv_results.txt", "a") as f:
-            f.write(f"Results for {project_name}\n")
+        with open(nested_cv_results_file, "a") as f:
+            f.write(f"Results for {true_config['model_hyperparameters']['model_class']}\n")
             for key in final_test_metrics.keys():
                 print(f"{key}: {final_test_metrics[key]} +- {final_test_metrics_std[key]}")
                 f.write(f"{key}: {final_test_metrics[key]} +- {final_test_metrics_std[key]}\n")
@@ -206,7 +239,6 @@ def main(
                     continue
 
                 continue
-
     if wandb_mode == "offline":
         sync_wandb(project_name)
 
@@ -229,6 +261,9 @@ if __name__ == "__main__":
         "--choose_n_configs", type=int, help="Choose n configs randomly"
     )
     parser.add_argument("--project_name", type=str, help="Wandb project name")
+    parser.add_argument(
+        "--nested_cv_results_file", type=str, help="Nested cv results file"
+    )
 
     args = parser.parse_args()
     pass_args = {k: v for k, v in dict(args._get_kwargs()).items() if v is not None}

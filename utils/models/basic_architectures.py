@@ -17,6 +17,7 @@ DISTRIBUTION_MAP = {
     "laplacian": torch.distributions.Laplace,
 }
 
+
 class ConditionalDensityEstimator(ABC, torch.nn.Module):
     """
     Abstract base class for conditional density estimators.
@@ -103,7 +104,9 @@ class ConditionalDensityEstimator(ABC, torch.nn.Module):
         Returns the negative log-likelihood of the output distribution at the given points.
         """
 
-        probabilities = self.get_density(x, y, normalised_output_domain, numeric_stability)
+        probabilities = self.get_density(
+            x, y, normalised_output_domain, numeric_stability
+        )
         nll = -torch.log(probabilities)
 
         return nll
@@ -144,6 +147,22 @@ class MLP(nn.Module):
         )
         self.output_layer = nn.Linear(n_hidden[-1], n_output)
         self.activation_function = activation_function
+
+        self.initialize_weights()
+
+    def initialize_weights(self):
+        """
+        Initializes the weights of the network.
+        """
+
+        # By default, PyTorch uses Kaiming initialization for ReLU and its variants
+        # For sigmoid and tanh, we use Xavier initialization
+        if isinstance(self.activation_function, nn.Tanh) or isinstance(
+            self.activation_function, nn.Sigmoid
+        ):
+            for layer in self.hidden_layers:
+                nn.init.xavier_normal_(layer.weight)
+                nn.init.zeros_(layer.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """

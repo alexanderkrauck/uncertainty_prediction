@@ -1,9 +1,13 @@
-config_id: voest_grid_search_now_working_hopefully3
+config_id: uci_grid_search4
 seeds: [42,43,44]
 data_seed: 0
 
 training_hyperparameters:
   epochs: 150
+  num_steps: 10000
+  eval_every_n: 50
+  eval_mode: step
+
   batch_size: 
     tune: [64, 128, 256]
   optimizer_hyperparameters:
@@ -20,10 +24,13 @@ training_hyperparameters:
     tune: [0.0, 0.1, 0.2]
   loss_hyperparameters:
     reliability_loss_weight: 0.0
+    loss_calculation_in_normalised_domain: True
 
 data_hyperparameters:
-  data_type: voest
-  data_path: datasets/voest_datasets/
+  data_type: uci
+  dataset_name: protein_structure
+  val_split: 0.1
+  test_split: 0.1
   original: False
   
 
@@ -35,9 +42,8 @@ model_hyperparameters:
   dropout_rate: 
     tune: [0.0, 0.1, 0.2]
   activation_function: 
-    tune: [relu, leaky_relu, tanh, elu]
+    tune: [relu, leaky_relu, tanh, elu, selu]
   distribution_type: 
     tune: [gaussian, laplacian]
-  tanh_std_stability: 
-    tune: [3.0, 10.0]
+  std_stability_mode: softplus
   

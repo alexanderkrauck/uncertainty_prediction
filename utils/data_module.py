@@ -417,10 +417,12 @@ class VoestDataModule(DataModule):
             print(f"Column '{column_name}' does not exist in the DataFrame.")
             return df
 
-class NYCTaxiDataModule(DataModule):
+
+class RothfussDataModule(DataModule):
 
     def initialize_data(
         self,
+        dataset_name: str,
         data_path: str = "datasets/nyc_taxi_dataset/",
         val_split: float = 0.15,
         test_split: float = 0.15,
@@ -428,10 +430,22 @@ class NYCTaxiDataModule(DataModule):
         **kwargs,
     ):
         
-        from .data import nyc_dataset
-        nyc_dataset.DATA_DIR = data_path
+        from .data import rothfuss_dataset
+        rothfuss_dataset.DATA_DIR = data_path
+        os.makedirs(data_path, exist_ok=True)
 
-        self.x_total, self.y_total = nyc_dataset.NCYTaxiDropoffPredict().get_target_feature_split()
+        dataset_name = dataset_name.lower()
+        if dataset_name == "nyc_taxi":
+            self.x_total, self.y_total = rothfuss_dataset.NCYTaxiDropoffPredict().get_target_feature_split()
+        elif dataset_name == "energy":
+            self.x_total, self.y_total = rothfuss_dataset.Energy().get_target_feature_split()
+        elif dataset_name == "concrete":
+            self.x_total, self.y_total = rothfuss_dataset.Concrete().get_target_feature_split()
+        elif dataset_name == "boston_housing":
+            self.x_total, self.y_total = rothfuss_dataset.BostonHousing().get_target_feature_split()
+        else:
+            raise ValueError(f"Dataset {dataset_name} not supported yet.")
+            
 
         self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
             self.x_total, self.y_total, test_size=val_split, random_state=random_state

@@ -232,7 +232,7 @@ class GaussianKMN(ConditionalDensityEstimator):
         y,
         method="all",
         n_centers=100,
-        keep_edges=False,
+        keep_edges=True,
         parallelize=False,
         seed=42,
         **kwargs,

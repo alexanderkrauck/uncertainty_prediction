@@ -1,9 +1,9 @@
-config_id: improved_dummy_config4_no_dropout
+config_id: tanh_stability_test
 seeds: [0, 1, 2]
 data_seed: 0
 
 training_hyperparameters:
-  epochs: 50
+  epochs: 150
   batch_size: 128
   optimizer_hyperparameters:
     lr: 0.001
@@ -27,3 +27,4 @@ model_hyperparameters:
   dropout_rate: 0.0
   activation_function: relu
   distribution_type: gaussian
+  tanh_std_stability: null
