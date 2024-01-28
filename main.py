@@ -94,6 +94,8 @@ def main_config_run(
 
     if eval_mode == "nested_cv":
         data_configs = generate_configs(config=true_config["data_hyperparameters"])
+        with open(nested_cv_results_file, "a") as f:
+                f.write(f"\n Model Type: {true_config['model_hyperparameters']['model_class']} - Dataset: {true_config['data_hyperparameters']}\n")
 
         test_metrics_list = []
         for outer_idx, data_config in enumerate(data_configs):
@@ -137,9 +139,9 @@ def main_config_run(
                     best_epoch = int(mean_metrics["best_val_epoch"])
 
             with open(nested_cv_results_file, "a") as f:
-                f.write(f"Best Config run {outer_idx}:\n")
+                f.write(f"Best Config cv run {outer_idx}:\n")
                 f.write(str(best_config))
-                f.write(f"Best mean score: {best_eval_score}\n")
+                f.write(f"Best mean cv score: {best_eval_score}\n")
 
             best_config["training_hyperparameters"]["epochs"] = best_epoch # Because we don't know whats best if we don't use the validation set
             print(best_config)
@@ -158,17 +160,19 @@ def main_config_run(
             )
             test_metrics_list.extend(test_metrics)
 
-        final_test_metrics = {}
+        final_test_metrics_mean = {}
         final_test_metrics_std = {}
+        final_test_metrics_all = {}
         for key in test_metrics_list[0].keys():
-            final_test_metrics[key] = np.mean([test_metrics[key] for test_metrics in test_metrics_list])
-            final_test_metrics_std[key] = np.std([test_metrics[key] for test_metrics in test_metrics_list])
+            final_test_metrics_all[key] = [test_metrics[key] for test_metrics in test_metrics_list]
+            final_test_metrics_mean[key] = np.mean(final_test_metrics_all[key])
+            final_test_metrics_std[key] = np.std(final_test_metrics_all[key])
         print("The final test metrics are:")
         with open(nested_cv_results_file, "a") as f:
             f.write(f"Results for {true_config['model_hyperparameters']['model_class']}\n")
-            for key in final_test_metrics.keys():
-                print(f"{key}: {final_test_metrics[key]} +- {final_test_metrics_std[key]}")
-                f.write(f"{key}: {final_test_metrics[key]} +- {final_test_metrics_std[key]}\n")
+            for key in final_test_metrics_mean.keys():
+                print(f"{key}: {final_test_metrics_mean[key]} +- {final_test_metrics_std[key]} --- {final_test_metrics_all[key]}")
+                f.write(f"{key}: {final_test_metrics_mean[key]} +- {final_test_metrics_std[key]} --- {final_test_metrics_all[key]}\n")
 
 
 
