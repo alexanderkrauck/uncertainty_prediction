@@ -404,3 +404,4 @@ fabric.properties
 /.idea
 /.vscode
 /runs
+/debug
