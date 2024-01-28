@@ -1,59 +1,90 @@
-from torch.utils.data import Dataset, DataLoader
-from sklearn.model_selection import KFold
-from torch.utils.data import DataLoader
-import torch
+"""
+Utitlity functions for handling data.
 
-import pickle
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
+# Standard libraries
+import os
 import sys
+import pickle
+
+# Third-party libraries
 import numpy as np
 import pandas as pd
-import os
-
-from abc import ABC, abstractmethod
-from typing import Iterable
-
-from sklearn.model_selection import train_test_split
-
+import torch
+from torch.utils.data import Dataset, DataLoader
+from sklearn.model_selection import KFold, train_test_split
 from sklearn.preprocessing import StandardScaler
+from abc import ABC, abstractmethod
+from typing import Iterable, Optional
 
+# Local/Application Specific
 path_to_repo = os.path.abspath(".") + "/other_repos/Conditional_Density_Estimation/"
-
 if path_to_repo not in sys.path:
     sys.path.insert(0, path_to_repo)
-
-
 from cde.density_simulation import GaussianMixture  # type: ignore
 
 import alpaca.utils.datasets.config as alpaca_config
-
 alpaca_config.DATA_DIR = "./datasets/alpaca_datasets"
-from alpaca.ue import MCDUE
 from alpaca.utils.datasets.builder import build_dataset
-from alpaca.utils.ue_metrics import ndcg, uq_ll
 
-from sklearn.model_selection import KFold, train_test_split
+
+class SampleDensities:
+    def __init__(self, y_space:np.ndarray, densities: np.ndarray):
+        self.y_space = y_space
+        self.densities = densities
+
+    def __len__(self):
+        return len(self.densities)
+
+    def __getitem__(self, idx):
+        return self.densities[idx]
 
 
 class CustomDataset(Dataset):
-    def __init__(self, x, y):
+    def __init__(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        sample_densities: Optional[SampleDensities] = None,
+    ):
         self.x = torch.tensor(x, dtype=torch.float)
         self.y = torch.tensor(y, dtype=torch.float)
 
-        self.scaler_x = (torch.mean(self.x, dim=0), torch.std(self.x, dim=0))
-        self.scaler_y = (torch.mean(self.y, dim=0), torch.std(self.y, dim=0))
+        self.mean_x, self.std_x = torch.mean(self.x, dim=0), torch.std(self.x, dim=0)
+        self.mean_y, self.std_y = torch.mean(self.y, dim=0), torch.std(self.y, dim=0)
+
+        self.sample_densities = sample_densities
+
+    @property
+    def y_space(self):
+        return self.sample_densities.y_space if self.sample_densities is not None else None
 
     def __len__(self):
         return len(self.x)
 
     def __getitem__(self, idx):
+        if self.sample_densities is not None:
+            return self.x[idx], self.y[idx], self.sample_densities[idx]
         return self.x[idx], self.y[idx]
 
 
 class TrainingDataModule:
-    def __init__(self, train_dataset, val_dataset, distribution=None):
+    def __init__(self, train_dataset: CustomDataset, val_dataset: CustomDataset):
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
-        self.distribution = distribution
+
+    @property
+    def y_space(self):
+        return self.train_dataset.y_space
 
     def get_train_dataloader(self, batch_size: int):
         return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
@@ -62,11 +93,10 @@ class TrainingDataModule:
         return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=False)
 
     def has_distribution(self):
-        return self.distribution is not None
+        return self.train_dataset.sample_densities is not None
 
 
 class DataModule(ABC, TrainingDataModule):
-
     def __init__(self, pre_normalize_datasets: bool = False, **kwargs):
         self.pre_normalize_datasets = pre_normalize_datasets
 
@@ -101,9 +131,20 @@ class DataModule(ABC, TrainingDataModule):
         if self.pre_normalize_datasets:
             self.normalize_datasets()
 
-        self.train_dataset = CustomDataset(self.x_train, self.y_train)
-        self.val_dataset = CustomDataset(self.x_val, self.y_val)
-        self.test_dataset = CustomDataset(self.x_test, self.y_test)
+        if self.has_distribution():
+            self.train_dataset = CustomDataset(
+                self.x_train,
+                self.y_train,
+                self.densities_train,
+            )
+            self.val_dataset = CustomDataset(self.x_val, self.y_val, self.densities_val)
+            self.test_dataset = CustomDataset(
+                self.x_test, self.y_test, self.densities_test
+            )
+        else:
+            self.train_dataset = CustomDataset(self.x_train, self.y_train)
+            self.val_dataset = CustomDataset(self.x_val, self.y_val)
+            self.test_dataset = CustomDataset(self.x_test, self.y_test)
 
     def normalize_datasets(self) -> None:
         x_scaler = StandardScaler().fit(self.x_train)
@@ -125,9 +166,11 @@ class DataModule(ABC, TrainingDataModule):
         self.y_val = self.y_val.reshape(self.y_val.shape[0], -1)
         self.y_test = self.y_test.reshape(self.y_test.shape[0], -1)
 
-class SyntheticDataModule(DataModule):
 
-    def initialize_data(self, data_path: str, **kwargs):
+class SyntheticDataModule(DataModule):
+    def initialize_data(
+        self, data_path: str, n_density_steps=100, min_max_density_stds=0.5, **kwargs
+    ):
         self.data_path = data_path
         with open(data_path + ".pkl", "rb") as file:
             self.distribution = pickle.load(file)
@@ -138,6 +181,27 @@ class SyntheticDataModule(DataModule):
         self.y_test = np.loadtxt(data_path + "_y_test.csv", delimiter=",")
         self.x_val = np.loadtxt(data_path + "_x_val.csv", delimiter=",")
         self.y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",")
+
+        self.density_y_min = (
+            self.y_train.min() - min_max_density_stds * self.y_train.std()
+        )
+        self.density_y_max = (
+            self.y_train.max() + min_max_density_stds * self.y_train.std()
+        )
+        self.n_density_steps = n_density_steps
+
+        self.y_space = np.linspace(self.density_y_min, self.density_y_max, n_density_steps)
+        self.densities_train = self.get_sample_densities(self.x_train)
+        self.densities_val = self.get_sample_densities(self.x_val)
+        self.densities_test = self.get_sample_densities(self.x_test)
+    
+    def get_sample_densities(self, x: np.ndarray) -> SampleDensities:
+        y_space = self.y_space.reshape(-1, 1)
+
+        return SampleDensities(
+            self.y_space,
+            np.array([self.distribution.pdf(np.tile(inner_x, (self.n_density_steps, 1)), y_space) for inner_x in x]),
+        )
 
     def iterable_cv_splits(self, n_splits: int, seed: int):
         # Ensure numpy array type for compatibility with KFold
@@ -155,10 +219,10 @@ class SyntheticDataModule(DataModule):
                 x_val_fold, y_val_fold = x[val_indices], y[val_indices]
 
                 # Wrap them in TensorDataset and DataLoader
-                train_dataset = CustomDataset(x_train_fold, y_train_fold)
-                val_dataset = CustomDataset(x_val_fold, y_val_fold)
+                train_dataset = CustomDataset(x_train_fold, y_train_fold, self.get_sample_densities(x_train_fold))
+                val_dataset = CustomDataset(x_val_fold, y_val_fold, self.get_sample_densities(x_val_fold))
 
-                yield TrainingDataModule(train_dataset, val_dataset, self.distribution)
+                yield TrainingDataModule(train_dataset, val_dataset)
 
         # Return the generator object
         return cv_generator()
@@ -168,8 +232,8 @@ class SyntheticDataModule(DataModule):
 
 
 class UCIDataModule(DataModule):
-
-    def initialize_data(self, 
+    def initialize_data(
+        self,
         dataset_name: str,
         val_split: float = 0.0,
         test_split: float = 0.0,
@@ -190,8 +254,6 @@ class UCIDataModule(DataModule):
             ),  # because test_split is relative to total size
             random_state=random_state,
         )
-        
-
 
     @staticmethod
     def load_full_ds(dataset_name: str, val_split: float = 0.0, random_state: int = 42):
@@ -219,7 +281,6 @@ class UCIDataModule(DataModule):
 
     def has_distribution(self) -> bool:
         return False
-
 
     def iterable_cv_splits(
         self, n_splits: int, seed: int
@@ -249,7 +310,6 @@ class UCIDataModule(DataModule):
 
 
 class VoestDataModule(DataModule):
-
     def initialize_data(
         self,
         data_path: str = "datasets/voest_datasets",
@@ -340,7 +400,6 @@ class VoestDataModule(DataModule):
     def has_distribution(self) -> bool:
         return False
 
-
     def iterable_cv_splits(
         self, n_splits: int, seed: int
     ) -> Iterable[TrainingDataModule]:
@@ -419,7 +478,6 @@ class VoestDataModule(DataModule):
 
 
 class RothfussDataModule(DataModule):
-
     def initialize_data(
         self,
         dataset_name: str,
@@ -429,23 +487,34 @@ class RothfussDataModule(DataModule):
         random_state: int = 42,
         **kwargs,
     ):
-        
         from .data import rothfuss_dataset
+
         rothfuss_dataset.DATA_DIR = data_path
         os.makedirs(data_path, exist_ok=True)
 
         dataset_name = dataset_name.lower()
         if dataset_name == "nyc_taxi":
-            self.x_total, self.y_total = rothfuss_dataset.NCYTaxiDropoffPredict().get_target_feature_split()
+            (
+                self.x_total,
+                self.y_total,
+            ) = rothfuss_dataset.NCYTaxiDropoffPredict().get_target_feature_split()
         elif dataset_name == "energy":
-            self.x_total, self.y_total = rothfuss_dataset.Energy().get_target_feature_split()
+            (
+                self.x_total,
+                self.y_total,
+            ) = rothfuss_dataset.Energy().get_target_feature_split()
         elif dataset_name == "concrete":
-            self.x_total, self.y_total = rothfuss_dataset.Concrete().get_target_feature_split()
+            (
+                self.x_total,
+                self.y_total,
+            ) = rothfuss_dataset.Concrete().get_target_feature_split()
         elif dataset_name == "boston_housing":
-            self.x_total, self.y_total = rothfuss_dataset.BostonHousing().get_target_feature_split()
+            (
+                self.x_total,
+                self.y_total,
+            ) = rothfuss_dataset.BostonHousing().get_target_feature_split()
         else:
             raise ValueError(f"Dataset {dataset_name} not supported yet.")
-            
 
         self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
             self.x_total, self.y_total, test_size=val_split, random_state=random_state
@@ -462,7 +531,6 @@ class RothfussDataModule(DataModule):
 
     def has_distribution(self) -> bool:
         return False
-
 
     def iterable_cv_splits(
         self, n_splits: int, seed: int

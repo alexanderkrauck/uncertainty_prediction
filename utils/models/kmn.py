@@ -1,23 +1,34 @@
+"""
+This file contains the implementation of the Kernel Mixture Network (KMN)
+
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
+# Third-party libraries
+import torch
+import numpy as np
+import pandas as pd
+from torch import nn, Tensor
+import torch.nn.functional as F
+from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.metrics.pairwise import euclidean_distances, cosine_distances
+from typing import Tuple, Optional
+
+# Local/Application Specific
 from .basic_architectures import (
     MLP,
     ConditionalDensityEstimator,
     ACTIVATION_FUNCTION_MAP,
-    DISTRIBUTION_MAP,
 )
-import torch
-from torch import nn
-import torch.nn.functional as F
-from typing import Tuple, Optional
-from torch import Tensor
-import numpy as np
-import pandas as pd
-from sklearn.cluster import KMeans, AgglomerativeClustering
-from sklearn.metrics.pairwise import euclidean_distances, cosine_distances
 from .loss_functions import nlll, miscalibration_area_fn
-
-from ..data_module import (
-    TrainingDataModule,
-)  # TODO: not ideal class dependencies here. Idealy would have some sort of models module class that contains the data dependencies. But this is not a priority right now
+from ..data_module import TrainingDataModule  # TODO: not ideal class dependencies here. Ideally would have some sort of models module class that contains the data dependencies. But this is not a priority right now
 
 
 class GaussianKMN(ConditionalDensityEstimator):
@@ -41,7 +52,7 @@ class GaussianKMN(ConditionalDensityEstimator):
         n_hidden : list
             List of hidden layer sizes.
         initial_kernel_scales : list
-            List of initial scales to use for each kernel. The scales are expected w.r.t. a normalized domain.
+            List of initial scales to use for each kernel. The scales are expected w.r.t. a normalized domain. Also scales are required to be strictly greater than 0.
         center_selection_method : str
             Method of center selection to use. Can be "random" or "kmeans" TODO: add more center selection types
         dropout_rate : float, optional
@@ -60,8 +71,8 @@ class GaussianKMN(ConditionalDensityEstimator):
                 f"Activation function {activation_function} not supported."
             )
 
-        self.mean_x, self.std_x = train_data_module.train_dataset.scaler_x
-        self.mean_y, self.std_y = train_data_module.train_dataset.scaler_y
+        self.mean_x, self.std_x = train_data_module.train_dataset.mean_x, train_data_module.train_dataset.std_x
+        self.mean_y, self.std_y = train_data_module.train_dataset.mean_y, train_data_module.train_dataset.std_y
 
         self.mean_x = nn.Parameter(self.mean_x, requires_grad=False)
         self.std_x = nn.Parameter(self.std_x, requires_grad=False)
@@ -73,8 +84,10 @@ class GaussianKMN(ConditionalDensityEstimator):
 
         self.center_selection_method = center_selection_method
 
+        #Because we use softplus later and thus we have to use inverse softplus here (should be fine as long as we get valid inputs)
+        initial_kernel_scales = (torch.tensor(initial_kernel_scales).exp() - 1).log()
         self.scales = nn.Parameter(
-            torch.tensor(initial_kernel_scales), requires_grad=trainable_scales
+            initial_kernel_scales, requires_grad=trainable_scales
         )
         self.cluster_centers = nn.Parameter(
             torch.from_numpy(
@@ -321,7 +334,7 @@ class GaussianKMN(ConditionalDensityEstimator):
 
         # use 1-D k-means clustering
         elif method == "k_means":
-            model = KMeans(n_clusters=n_centers, random_state=seed)
+            model = KMeans(n_clusters=n_centers, random_state=seed, n_init="auto")
             model.fit(y)
             cluster_centers = model.cluster_centers_
 

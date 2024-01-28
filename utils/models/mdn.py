@@ -1,15 +1,29 @@
-from .basic_architectures import MLP, ConditionalDensityEstimator, ACTIVATION_FUNCTION_MAP, DISTRIBUTION_MAP
-import torch
-from torch import nn
-import torch.nn.functional as F
-from typing import Tuple, Optional
-from torch import Tensor
-import numpy as np
-from .loss_functions import nlll, miscalibration_area_fn
+"""
+This file contains the implementation of the Mixture Density Network (MDN) architecture.
 
-from ..data_module import (
-    TrainingDataModule,
-)  # TODO: not ideal class dependencies here. Idealy would have some sort of models module class that contains the data dependencies. But this is not a priority right now
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
+# Third-party libraries
+import torch
+import numpy as np
+from torch import nn, Tensor
+import torch.nn.functional as F
+
+# Typing
+from typing import Tuple, Optional
+
+# Local/Application Specific
+from .basic_architectures import MLP, ConditionalDensityEstimator, ACTIVATION_FUNCTION_MAP, DISTRIBUTION_MAP
+from .loss_functions import nlll, miscalibration_area_fn
+from ..data_module import TrainingDataModule  # TODO: not ideal class dependencies here. Ideally would have some sort of models module class that contains the data dependencies. But this is not a priority right now
 
 
 
@@ -57,8 +71,8 @@ class MDN(ConditionalDensityEstimator):
                 f"Activation function {activation_function} not supported."
             )
 
-        self.mean_x, self.std_x = train_data_module.train_dataset.scaler_x
-        self.mean_y, self.std_y = train_data_module.train_dataset.scaler_y
+        self.mean_x, self.std_x = train_data_module.train_dataset.mean_x, train_data_module.train_dataset.std_x
+        self.mean_y, self.std_y = train_data_module.train_dataset.mean_y, train_data_module.train_dataset.std_y
 
         self.tanh_std_stability = tanh_std_stability
         self.std_stability_mode = std_stability_mode.lower()

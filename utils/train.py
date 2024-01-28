@@ -1,20 +1,44 @@
-import torch
+"""
+Utitlity functions for training the models.
+
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
+# Standard libraries
 import os
-from torch import Tensor
-import torch.nn as nn
+
+# Third-party libraries
+import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 import numpy as np
-
-from utils.data_module import TrainingDataModule, DataModule
-
+from tqdm import tqdm
 import wandb
+from typing import List, Optional
 
-from typing import List, Type, Dict, Optional
-
+# Local/Application Specific
+from utils.data_module import TrainingDataModule, DataModule
 from .models.basic_architectures import ConditionalDensityEstimator
 from .setup import load_model
+from .evaluation_functions import (
+    HellingerDistance,
+    KLDivergence,
+    WassersteinDistance,
+    BaseEvaluationFunction
+)
+
+EVALUATION_FUNCTION_MAP = {
+    "hellinger_distance": HellingerDistance(),
+    "wasserstein_distance": KLDivergence(),
+    "kl_divergence": WassersteinDistance(),
+}
 
 
 # from chatgpt
@@ -38,88 +62,87 @@ class EarlyStopping:
                 self.early_stop = True
 
 
-def hellinger_distance( #TODO make y multidimensial-able
-    distribution,
-    x: Tensor,
-    model: ConditionalDensityEstimator,
-    precomputed_variables: Dict[str, Tensor] = None,
-    reduce="mean",
-    numeric_stability=1e-6,
-    num_steps=100,
-):
-    
-    if model.y_size != 1:
-        return -1
-        
-        #TODO: raise NotImplementedError("Hellinger distance is only implemented for 1D y")
-    y_space = torch.linspace(-10, 10, num_steps, device=x.device).view(-1, 1)
-    hellinger_distances = []
-
-    for idx in range(x.shape[0]):
-        # Calculate true density
-        x_space = x[idx].unsqueeze(0).expand(num_steps, -1)
-        true_densities = distribution.pdf(
-            x_space.detach().cpu().numpy(), y_space.detach().cpu().numpy()
-        )  # True density
-
-        # Calculate estimated density
-        if precomputed_variables:
-            to_pass_precomputed_variables = {}
-            for key, value in precomputed_variables.items():
-                if isinstance(value, tuple):
-                    new_tuple = tuple(tup_element[idx].unsqueeze(0).expand(num_steps, *tup_element[idx].shape) for tup_element in value)
-                    to_pass_precomputed_variables[key] = new_tuple
-                elif isinstance(value, Tensor):
-                    to_pass_precomputed_variables[key] = value[idx].unsqueeze(0).expand(num_steps, *value[idx].shape)
-                else:
-                    raise ValueError(
-                        f"precomputed_variables must be a dict of tensors or tuples. {key} is not."
-                    )
-
-            estimated_densities = model.get_density(
-                x_space, y_space, numeric_stability, **to_pass_precomputed_variables
-            )
-        else:
-            estimated_densities = model.get_density(x_space, y_space, numeric_stability)
-        # Calculate Hellinger distance component wise
-        # sqrt(p(x)) - sqrt(q(x)) and then square
-        diff_sq = (
-            torch.sqrt(
-                torch.tensor(true_densities, dtype=torch.float32, device=x.device)
-            )
-            - torch.sqrt(estimated_densities)
-        ) ** 2
-        h_distance = torch.sqrt(
-            torch.sum(diff_sq) / 2
-        )  # Integrate and multiply by 1/sqrt(2)
-
-        hellinger_distances.append(h_distance.item())
-
-    if reduce == "mean":
-        hellinger_distances = np.mean(hellinger_distances)
-    elif reduce == "sum":
-        hellinger_distances = np.sum(hellinger_distances)
-
-    return hellinger_distances
-
-
 def evaluate_model(
     model: ConditionalDensityEstimator,
     val_loader: DataLoader,
     device: str,
     loss_hyperparameters: dict,
-    distribution=None,
-    hellinger_dist_first_n_batches: int = 3,
+    y_space: Optional[torch.Tensor] = None,
+    evaluation_function_names: List[str] = [],
+    density_evaluation_function_first_n_batches: int = 3,
     is_test: bool = False,
+    **kwargs
 ):
+    """Evaluate a model on the validation set and return the metrics
+
+    Parameters
+    ----------
+    model : ConditionalDensityEstimator
+        Model to evaluate
+    val_loader : DataLoader
+        Dataloader containing the validation data
+    device : str
+        Device to use
+    loss_hyperparameters : dict
+        Hyperparameters for the loss function
+    y_space : Optional[torch.Tensor], optional
+        Tensor containing the y space, by default None. If provided then the val loader is expected to return (x, y, densities) tuples.
+    density_evaluation_function_first_n_batches : int, optional
+        Number of batches to use to calculate the Density Metrics, by default 3. Since it is a slow operation, it is only calculated for the first n batches as an approximate.
+    is_test : bool, optional
+        Whether this is a test evaluation or not, by default False
+
+    Returns
+    -------
+    dict
+        Dictionary of the metrics
+    """
+
     model.eval()
     hellinger_dist = 0
     first_n_batch_sizes = 0
     eval_metrics = {}
+
+    has_distribution = y_space is not None
+
+    if has_distribution:
+        y_space = torch.tensor(
+            y_space, device=device
+        ).view(-1, 1)
+
+    evaluation_function_names = [func.lower() for func in evaluation_function_names]
+    for func in evaluation_function_names:
+        if func not in EVALUATION_FUNCTION_MAP:
+            raise ValueError(f"Evaluation function {func} not supported.")
+        if not has_distribution and EVALUATION_FUNCTION_MAP[func].is_density_evaluation_function():
+            raise ValueError(
+                f"Evaluation function {func} requires densities, but the dataset does not contain densities."
+            )
+        
+    additional_eval_metrics = {func: 0 for func in evaluation_function_names}
+
     with torch.no_grad():
-        for idx, (x, y) in enumerate(val_loader):
-            x, y = x.to(device), y.to(device)
+        for idx, minibatch in enumerate(val_loader):
+            eval_input_dict = {}
+            if has_distribution:
+                x, y, densities = minibatch
+                x, y, densities = x.to(device), y.to(device), densities.to(device)
+                eval_input_dict["densities"] = densities
+            else:
+                x, y = minibatch
+                x, y = x.to(device), y.to(device)
+            
+            
+
             model_output = model(x, y)
+
+            eval_input_dict["x"] = x
+            eval_input_dict["y"] = y
+            eval_input_dict["model"] = model
+            eval_input_dict["model_output"] = model_output
+            if has_distribution:
+                eval_input_dict["y_space"] = y_space
+
             _, current_eval_metrics = model.eval_output(
                 y, model_output, False, "sum", **loss_hyperparameters
             )
@@ -129,31 +152,49 @@ def evaluate_model(
                 for key, value in current_eval_metrics.items():
                     eval_metrics[key] += value
 
-            if distribution and (
-                idx < hellinger_dist_first_n_batches
-                or hellinger_dist_first_n_batches == -1
-            ):
-                hellinger_dist += hellinger_distance(
-                    distribution, x, model, model_output, reduce="sum"
-                )
+            if idx < density_evaluation_function_first_n_batches or is_test or density_evaluation_function_first_n_batches == -1:
                 first_n_batch_sizes += x.shape[0]
+
+            for evaluation_function_name in evaluation_function_names:
+                evaluation_function = EVALUATION_FUNCTION_MAP[evaluation_function_name]
+                if evaluation_function.is_density_evaluation_function():
+                    if not has_distribution:
+                        continue
+                    if idx >= density_evaluation_function_first_n_batches and not is_test and density_evaluation_function_first_n_batches != -1:
+                        continue
+
+                
+                additional_eval_metrics[evaluation_function_name] += evaluation_function(
+                        reduce="sum",
+                        **eval_input_dict
+                    )
+
 
     for key, value in eval_metrics.items():
         eval_metrics[key] /= len(val_loader.dataset)
 
+    for evaluation_function_name in evaluation_function_names:
+        evaluation_function = EVALUATION_FUNCTION_MAP[evaluation_function_name]
+        if evaluation_function.is_density_evaluation_function():
+            additional_eval_metrics[evaluation_function_name] /= first_n_batch_sizes
+        else:
+            additional_eval_metrics[evaluation_function_name] /= len(val_loader.dataset)
+    eval_metrics.update(additional_eval_metrics)
+
     prefix = "test_" if is_test else "val_"
     return_dict = {prefix + key: value for key, value in eval_metrics.items()}
 
-    if distribution:
+    if has_distribution:
         hellinger_dist /= first_n_batch_sizes
         eval_metrics[prefix + "hellinger_dist"] = hellinger_dist
     return return_dict
 
 
-optimizer_map = {
+OPTIMIZER_MAP = {
     "adam": optim.Adam,
     "sgd": optim.SGD,
     "rmsprop": optim.RMSprop,
+    "adamw": optim.AdamW,
 }
 
 
@@ -177,6 +218,7 @@ def train_model(
     num_steps: int = None,
     use_validation_set: bool = True,
     verbose: bool = True,
+    **kwargs
 ):
     """Train a model using the given hyperparameters and return the best model and its validation metrics
 
@@ -220,22 +262,26 @@ def train_model(
         Whether to use a validation set or not, by default True
     verbose : bool
         Whether to print progress or not, by default True
+
+    Returns
+    -------
+    Tuple[dict, dict]
+        Tuple of the best model parameters and the validation metrics of the best model, if use_validation_set is True.
+    or
+    Tuple[dict, None]
+        Tuple of the best model parameters and None if use_validation_set is False.
     """
 
     if eval_mode == "step":
         if num_steps is None:
             raise ValueError("num_steps must be provided if eval_mode is step")
 
-    optimizer = optimizer_map[optimizer.lower()](
+    optimizer = OPTIMIZER_MAP[optimizer.lower()](
         model.parameters(), **optimizer_hyperparameters
     )
 
     train_loader = train_data_module.get_train_dataloader(batch_size)
     val_loader = train_data_module.get_val_dataloader(batch_size)
-    if train_data_module.has_distribution():
-        distribution = train_data_module.distribution
-    else:
-        distribution = None
 
     best_val_metrics = None
     best_val_loss = np.inf
@@ -249,7 +295,7 @@ def train_model(
 
     if use_validation_set:
         val_metrics = evaluate_model(
-            model, val_loader, device, loss_hyperparameters, distribution
+            model, val_loader, device, loss_hyperparameters, train_data_module.y_space, **kwargs
         )
         wandb.log({"step": step, **val_metrics, "epoch": 0})
 
@@ -260,7 +306,7 @@ def train_model(
         nonlocal val_metrics, best_val_loss, best_val_metrics, best_params
 
         val_metrics = evaluate_model(
-            model, val_loader, device, loss_hyperparameters, distribution
+            model, val_loader, device, loss_hyperparameters, train_data_module.y_space, **kwargs
         )
         log_data = {"step": step, **val_metrics}
         if epoch is not None:
@@ -293,11 +339,11 @@ def train_model(
             if input_noise_x > 0.0:
                 x = x + torch.randn_like(
                     x
-                ) * input_noise_x * train_loader.dataset.scaler_x[1].to(device)
+                ) * input_noise_x * train_loader.dataset.std_x.to(device)
             if input_noise_y > 0.0:
                 y = y + torch.randn_like(
                     y
-                ) * input_noise_y * train_loader.dataset.scaler_y[1].to(device)
+                ) * input_noise_y * train_loader.dataset.std_y.to(device)
 
             optimizer.zero_grad()
             loss, train_metrics = model.training_pass(x, y, **loss_hyperparameters)
@@ -348,6 +394,42 @@ def outer_train(
     use_validation_set: bool = True,
     verbose: bool = True,
 ):
+    """
+    Run a single training run with the given hyperparameters and seed. Also initializes wandb logging and does test evaluation if test_dataloader is provided.
+
+    Parameters
+    ----------
+    train_data_module : TrainingDataModule
+        DataModule containing the data (training and validation)
+    test_dataloader : Optional[DataLoader]
+        Dataloader for the test set.
+    config_id : str
+        Id of the config
+    seed : int
+        Seed to use for minibatch shuffling and weight initialization
+    config : dict
+        Config to use (for logging)
+    model_hyperparameters : dict
+        Hyperparameters for the model
+    training_hyperparameters : dict
+        Hyperparameters for the training
+    device : str
+        Device to use
+    wandb_mode : str
+        Mode to use for wandb
+    project_name : str
+        Name of the project
+    use_validation_set : bool, optional
+        Whether to use the validation set or not, by default True
+    verbose : bool, optional
+        Whether to print progress to console or not, by default True
+
+    Returns
+    -------
+    dict
+        Test metrics if test_dataloader is provided, else the best validation metrics.
+    """
+
     group_name = f"config_{config_id}"
     run_name = f"config_{config_id}_seed_{seed}"
 
@@ -387,12 +469,9 @@ def outer_train(
             model,
             test_dataloader,
             device,
-            training_hyperparameters["loss_hyperparameters"],
-            train_data_module.distribution
-            if train_data_module.has_distribution()
-            else None,
-            hellinger_dist_first_n_batches=-1,
+            y_space = train_data_module.y_space,
             is_test=True,
+            **training_hyperparameters
         )
         wandb.log(test_metrics)
     if use_validation_set:
@@ -427,12 +506,47 @@ def cv_experiment(
     use_test_set: bool = True,
     verbose: bool = True,
 ):
+    """
+    Run a cross validation experiment with the given hyperparameters and seeds.
+
+    Parameters
+    ----------
+    data_module : DataModule
+        DataModule containing the data
+    config_id : int
+        Id of the config
+    data_seed : int
+        Seed to use to split the data into folds
+    seeds : List[int]
+        List of seeds to use for each fold (for minibatch shuffling and weight initialization)
+    config : dict
+        Config to use
+    model_hyperparameters : dict
+        Hyperparameters for the model
+    training_hyperparameters : dict
+        Hyperparameters for the training
+    device : str
+        Device to use
+    wandb_mode : str
+        Mode to use for wandb
+    project_name : str
+        Name of the project
+    use_test_set : bool, optional
+        Whether to use the test set or not, by default True
+    verbose : bool, optional
+        Whether to print progress to console or not, by default True
+
+    Returns
+    -------
+    List[dict]
+        List of the test metrics or best validation metrics (if use_test_set is false) for each fold
+    """
     seed_idx = 0
 
     metrics_list = []
     for train_data_module in data_module.iterable_cv_splits(len(seeds), data_seed):
         seed_all(seeds[seed_idx])
-        if verbose: 
+        if verbose:
             print(f"Running with seed {seeds[seed_idx]}")
         metrics = outer_train(
             train_data_module,
@@ -445,7 +559,7 @@ def cv_experiment(
             device,
             wandb_mode,
             project_name,
-            verbose = verbose,
+            verbose=verbose,
         )
         metrics_list.append(metrics)
 
@@ -466,6 +580,40 @@ def seeded_experiment(
     use_validation_set: bool = True,
     verbose: bool = True,
 ):
+    """
+    Run an experiment multiple times with different seeds but same data splits and hyperparameters.
+
+    Parameters
+    ----------
+    data_module : DataModule
+        DataModule containing the data
+    config_id : int
+        Id of the config
+    seeds : List[int]
+        List of seeds to use for each run (for minibatch shuffling and weight initialization)
+    config : dict
+        Config to use
+    model_hyperparameters : dict
+        Hyperparameters for the model
+    training_hyperparameters : dict
+        Hyperparameters for the training
+    device : str
+        Device to use
+    wandb_mode : str
+        Mode to use for wandb
+    project_name : str
+        Name of the project
+    use_validation_set : bool, optional
+        Whether to use the validation set or not, by default True
+    verbose : bool, optional
+        Whether to print progress to console or not, by default True
+
+    Returns
+    -------
+    List[dict]
+        List of the test metrics for each run.
+    """
+
     test_metrics_list = []
     for seed in seeds:
         seed_all(seed)
@@ -483,7 +631,7 @@ def seeded_experiment(
             wandb_mode,
             project_name,
             use_validation_set=use_validation_set,
-            verbose = verbose,
+            verbose=verbose,
         )
         test_metrics_list.append(test_metrics)
     return test_metrics_list

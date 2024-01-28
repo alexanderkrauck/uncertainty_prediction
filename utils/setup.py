@@ -1,7 +1,31 @@
-import os, subprocess
-from utils.data_module import SyntheticDataModule, VoestDataModule, UCIDataModule, DataModule, TrainingDataModule, RothfussDataModule
-from utils.models import MDN, VAE, ConditionalDensityEstimator, GaussianKMN, NFDensityEstimator
+"""
+Utitlity functions for setting up the project.
+
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
+# Standard libraries
+import os
+import subprocess
 from copy import deepcopy
+
+# Local/Application Specific
+from utils.data_module import (
+    SyntheticDataModule, VoestDataModule, UCIDataModule, 
+    DataModule, TrainingDataModule, RothfussDataModule
+)
+from utils.models import (
+    MDN, VAEConditionalDensityEstimator, ConditionalDensityEstimator, 
+    GaussianKMN, NFDensityEstimator
+)
+
 
 def sync_wandb(project_name: str):
     for item in os.listdir(os.path.join("runs", project_name, "wandb")):
@@ -41,7 +65,7 @@ def load_model_class(model_class: str) -> ConditionalDensityEstimator:
     elif model_class == "nf":
         return NFDensityEstimator
     elif model_class == "vae":
-        return VAE
+        return VAEConditionalDensityEstimator
     else:
         raise ValueError(f"Model class {model_class} not supported yet.")
     

@@ -1,16 +1,29 @@
+"""
+This file contains the implementation of the Normalizing Flow (NF) architecture for Conditional Density Estimation.
+See https://arxiv.org/abs/1802.04908 for the paper by Trippe & Turner.
+
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
+# Third-party libraries
 import torch
 from torch import nn, Tensor
 import torch.nn.functional as F
-from .basic_architectures import (
-    MLP,
-    ConditionalDensityEstimator,
-    ACTIVATION_FUNCTION_MAP,
-    DISTRIBUTION_MAP,
-)
 
+# Typing and standard library
 from typing import Tuple, Optional, List
-
 from abc import ABC, abstractmethod
+
+# Local/Application Specific
+from .basic_architectures import MLP, ConditionalDensityEstimator, ACTIVATION_FUNCTION_MAP
+from ..data_module import TrainingDataModule
 
 
 class Flow(ABC, nn.Module):
@@ -138,7 +151,7 @@ FLOW_MAP = {"planar": InvertedPlanarFlow, "radial": InverseRadialFlow, "affine":
 class NFDensityEstimator(ConditionalDensityEstimator):
     def __init__(
         self,
-        train_data_module,
+        train_data_module: TrainingDataModule,
         n_hidden: int,
         n_flows: int = 5,
         flows: Optional[List[str]] = None,
@@ -164,8 +177,8 @@ class NFDensityEstimator(ConditionalDensityEstimator):
             if flow not in FLOW_MAP:
                 raise ValueError(f"Flow {flow} not supported")
 
-        self.mean_x, self.std_x = train_data_module.train_dataset.scaler_x
-        self.mean_y, self.std_y = train_data_module.train_dataset.scaler_y
+        self.mean_x, self.std_x = train_data_module.train_dataset.mean_x, train_data_module.train_dataset.std_x
+        self.mean_y, self.std_y = train_data_module.train_dataset.mean_y, train_data_module.train_dataset.std_y
 
         self.mean_x = nn.Parameter(self.mean_x, requires_grad=False)
         self.std_x = nn.Parameter(self.std_x, requires_grad=False)

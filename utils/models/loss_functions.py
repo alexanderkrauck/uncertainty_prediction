@@ -40,7 +40,7 @@ def nlll(distribution_class: Type[torch.distributions.Distribution], y, weights,
         loss = torch.sum(loss)
     return loss
 
-def miscalibration_area_fn(
+def miscalibration_area_fn( #NOTE: Actually this is "mean absulute calibration error"
     distribution_class,
     y: Tensor,
     weights: Tensor,

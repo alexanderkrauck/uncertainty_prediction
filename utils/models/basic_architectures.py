@@ -1,7 +1,24 @@
-from torch import nn, Tensor
-import torch
-from typing import List, Dict
+"""
+This file contains the basic architectures used in the conditional density estimators.
+
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
+# Standard libraries
 from abc import ABC, abstractmethod
+from typing import List, Dict
+
+# Third-party libraries
+import torch
+from torch import nn, Tensor
+
 
 ACTIVATION_FUNCTION_MAP = {
     "relu": nn.ReLU(),
