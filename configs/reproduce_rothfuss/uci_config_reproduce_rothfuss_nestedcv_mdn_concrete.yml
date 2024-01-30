@@ -3,6 +3,7 @@ seeds: [42,43,44,45,46]
 data_seed: 0
 
 training_hyperparameters:
+  early_stopping_patience: 15
   epochs: 150
   batch_size: 
     tune: [128, 256, 64, 512]
@@ -13,9 +14,9 @@ training_hyperparameters:
     weight_decay: 0.0
   optimizer: adam
   input_noise_x: 
-    tune: [0.02, 0.05, 0.1, 0.15]
+    tune: [0.02, 0.1, 0.2, 0.3]
   input_noise_y: 
-    tune: [0.02, 0.05, 0.1, 0.15]
+    tune: [0.02, 0.1, 0.2, 0.3]
   loss_hyperparameters:
     reliability_loss_weight: 0.0
     loss_calculation_in_normalised_domain: True
@@ -36,7 +37,7 @@ model_hyperparameters:
   model_class: mdn
   n_hidden: [32, 32]
   n_distributions: 
-    tune: [5, 10, 20]
+    tune: [5, 10, 20, 50]
   dropout_rate: 
     tune: [0.0, 0.2]
   activation_function: tanh
