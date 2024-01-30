@@ -52,6 +52,31 @@ def miscalibration_area_fn( #NOTE: Actually this is "mean absulute calibration e
     reduce="mean",
     **kwargs,
 ):
+    """ Calculates an approximation to the mean absolute calibration error that is differentiable and can be used as a loss function or a regularizer.
+
+    Parameters
+    ----------
+    distribution_class : Type[torch.distributions.Distribution]
+        Distribution class from torch.distributions
+    y : Tensor
+        Target values of shape (batch_size, y_size)
+    weights : Tensor
+        Weights of shape (batch_size, n_distributions)
+    mu : Tensor
+        Means of shape (batch_size, y_size, n_distributions)
+    sigma : Tensor
+        Standard deviations of shape (batch_size, y_size, n_distributions)
+    n_samples : int, optional
+        Number of samples to draw from the distribution. Higher numbers give a more accurate approximation, by default 100
+    grumble_tau : float, optional
+        Tau parameter for the Gumbel softmax, by default 0.1
+    sigmoid_steepness : float, optional
+        Steepness of the sigmoid, by default 50
+    reduce : str, optional
+        Reduction method, by default "mean". Can be "mean" or "sum"
+    """
+
+
     device = y.device
 
     drawn_samples = distribution_class(mu, sigma + 1e-6).rsample((n_samples,)).transpose(0, 1)

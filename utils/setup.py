@@ -23,7 +23,7 @@ from utils.data_module import (
 )
 from utils.models import (
     MDN, VAEConditionalDensityEstimator, ConditionalDensityEstimator, 
-    GaussianKMN, NFDensityEstimator
+    GaussianKMN, NFDensityEstimator, MSEModel
 )
 
 
@@ -66,6 +66,8 @@ def load_model_class(model_class: str) -> ConditionalDensityEstimator:
         return NFDensityEstimator
     elif model_class == "vae":
         return VAEConditionalDensityEstimator
+    elif model_class == "mse":
+        return MSEModel
     else:
         raise ValueError(f"Model class {model_class} not supported yet.")
     

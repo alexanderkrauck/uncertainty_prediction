@@ -16,6 +16,7 @@ import os
 
 # Third-party libraries
 import torch
+from torch.utils.tensorboard import SummaryWriter
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
@@ -31,8 +32,9 @@ from .evaluation_functions import (
     HellingerDistance,
     KLDivergence,
     WassersteinDistance,
-    BaseEvaluationFunction
+    BaseEvaluationFunction,
 )
+from .utils import flatten_dict, make_lists_strings_in_dict
 
 EVALUATION_FUNCTION_MAP = {
     "hellinger_distance": HellingerDistance(),
@@ -71,7 +73,7 @@ def evaluate_model(
     evaluation_function_names: List[str] = [],
     density_evaluation_function_first_n_batches: int = 3,
     is_test: bool = False,
-    **kwargs
+    **kwargs,
 ):
     """Evaluate a model on the validation set and return the metrics
 
@@ -106,19 +108,20 @@ def evaluate_model(
     has_distribution = y_space is not None
 
     if has_distribution:
-        y_space = torch.tensor(
-            y_space, device=device
-        ).view(-1, 1)
+        y_space = torch.tensor(y_space, device=device).view(-1, 1)
 
     evaluation_function_names = [func.lower() for func in evaluation_function_names]
     for func in evaluation_function_names:
         if func not in EVALUATION_FUNCTION_MAP:
             raise ValueError(f"Evaluation function {func} not supported.")
-        if not has_distribution and EVALUATION_FUNCTION_MAP[func].is_density_evaluation_function():
+        if (
+            not has_distribution
+            and EVALUATION_FUNCTION_MAP[func].is_density_evaluation_function()
+        ):
             raise ValueError(
                 f"Evaluation function {func} requires densities, but the dataset does not contain densities."
             )
-        
+
     additional_eval_metrics = {func: 0 for func in evaluation_function_names}
 
     with torch.no_grad():
@@ -131,8 +134,6 @@ def evaluate_model(
             else:
                 x, y = minibatch
                 x, y = x.to(device), y.to(device)
-            
-            
 
             model_output = model(x, y)
 
@@ -152,7 +153,11 @@ def evaluate_model(
                 for key, value in current_eval_metrics.items():
                     eval_metrics[key] += value
 
-            if idx < density_evaluation_function_first_n_batches or is_test or density_evaluation_function_first_n_batches == -1:
+            if (
+                idx < density_evaluation_function_first_n_batches
+                or is_test
+                or density_evaluation_function_first_n_batches == -1
+            ):
                 first_n_batch_sizes += x.shape[0]
 
             for evaluation_function_name in evaluation_function_names:
@@ -160,15 +165,16 @@ def evaluate_model(
                 if evaluation_function.is_density_evaluation_function():
                     if not has_distribution:
                         continue
-                    if idx >= density_evaluation_function_first_n_batches and not is_test and density_evaluation_function_first_n_batches != -1:
+                    if (
+                        idx >= density_evaluation_function_first_n_batches
+                        and not is_test
+                        and density_evaluation_function_first_n_batches != -1
+                    ):
                         continue
 
-                
-                additional_eval_metrics[evaluation_function_name] += evaluation_function(
-                        reduce="sum",
-                        **eval_input_dict
-                    )
-
+                additional_eval_metrics[
+                    evaluation_function_name
+                ] += evaluation_function(reduce="sum", **eval_input_dict)
 
     for key, value in eval_metrics.items():
         eval_metrics[key] /= len(val_loader.dataset)
@@ -207,6 +213,7 @@ def train_model(
     batch_size: int,
     device: str,
     loss_hyperparameters: dict,
+    summary_writer: SummaryWriter,
     eval_metric_for_best_model: str = "val_nll_loss",
     input_noise_x: float = 0.0,
     input_noise_y: float = 0.0,
@@ -218,7 +225,7 @@ def train_model(
     num_steps: int = None,
     use_validation_set: bool = True,
     verbose: bool = True,
-    **kwargs
+    **kwargs,
 ):
     """Train a model using the given hyperparameters and return the best model and its validation metrics
 
@@ -240,6 +247,8 @@ def train_model(
         Device to use
     loss_hyperparameters : dict
         Hyperparameters for the loss function
+    summary_writer : SummaryWriter
+        SummaryWriter to use for tensorboard logging
     eval_metric_for_best_model : str, optional
         Metric to use for early stopping, by default "val_loss"
     input_noise_x : float, optional
@@ -295,9 +304,16 @@ def train_model(
 
     if use_validation_set:
         val_metrics = evaluate_model(
-            model, val_loader, device, loss_hyperparameters, train_data_module.y_space, **kwargs
+            model,
+            val_loader,
+            device,
+            loss_hyperparameters,
+            train_data_module.y_space,
+            **kwargs,
         )
         wandb.log({"step": step, **val_metrics, "epoch": 0})
+        for key, value in val_metrics.items():
+            summary_writer.add_scalar(key, value, 0)
 
     def log_evaluation(step, epoch=None):
         if not use_validation_set:
@@ -306,13 +322,20 @@ def train_model(
         nonlocal val_metrics, best_val_loss, best_val_metrics, best_params
 
         val_metrics = evaluate_model(
-            model, val_loader, device, loss_hyperparameters, train_data_module.y_space, **kwargs
+            model,
+            val_loader,
+            device,
+            loss_hyperparameters,
+            train_data_module.y_space,
+            **kwargs,
         )
         log_data = {"step": step, **val_metrics}
         if epoch is not None:
             log_data["epoch"] = epoch
 
         wandb.log(log_data)
+        for key, value in log_data.items():
+            summary_writer.add_scalar(key, value, step)
 
         if val_metrics[eval_metric_for_best_model] < best_val_loss:
             best_val_loss = val_metrics[eval_metric_for_best_model]
@@ -348,6 +371,9 @@ def train_model(
             optimizer.zero_grad()
             loss, train_metrics = model.training_pass(x, y, **loss_hyperparameters)
             wandb.log({**train_metrics, "step": step})
+            for key, value in train_metrics.items():
+                summary_writer.add_scalar(key, value, step)
+
             loss.backward()
 
             torch.nn.utils.clip_grad_norm_(
@@ -372,8 +398,9 @@ def train_model(
                 break
         elif eval_mode == "epoch":
             wandb.log({"step": step, "epoch": epoch})
+            summary_writer.add_scalar("epoch", epoch, step)
         if use_validation_set and verbose:
-            bar.set_description(str(val_metrics[eval_metric_for_best_model]))
+            bar.set_description(f"{eval_metric_for_best_model}: {str(val_metrics[eval_metric_for_best_model])}")
     if use_validation_set:
         return best_params, best_val_metrics
     else:
@@ -444,6 +471,9 @@ def outer_train(
         dir=os.path.join("runs", project_name),
         mode=wandb_mode,
     )
+    summary_writer = SummaryWriter(
+        os.path.join("runs", project_name, group_name)
+    )
 
     model = load_model(train_data_module, **model_hyperparameters).to(device)
 
@@ -456,29 +486,35 @@ def outer_train(
         device=device,
         use_validation_set=use_validation_set,
         verbose=verbose,
+        summary_writer=summary_writer,
     )
-
-    best_params_path = wandb.run.dir + "/best_params.pt"
-    torch.save(best_params, best_params_path)
-    artifact = wandb.Artifact(name="best_model", type="model")
-    artifact.add_file(best_params_path)
-    wandb.log_artifact(artifact)
+    
+    if wandb_mode != "disabled":
+        best_params_path = wandb.run.dir + "/best_params.pt"
+        torch.save(best_params, best_params_path)
+        artifact = wandb.Artifact(name="best_model", type="model")
+        artifact.add_file(best_params_path)
+        wandb.log_artifact(artifact)
+    metrics_dict = {}
     if test_dataloader is not None:
         model.load_state_dict(best_params)
         test_metrics = evaluate_model(
             model,
             test_dataloader,
             device,
-            y_space = train_data_module.y_space,
+            y_space=train_data_module.y_space,
             is_test=True,
-            **training_hyperparameters
+            **training_hyperparameters,
         )
-        wandb.log(test_metrics)
+        metrics_dict.update(test_metrics)
     if use_validation_set:
         best_val_metrics = {
             "best_" + key: value for key, value in best_val_metrics.items()
         }
-        wandb.log(best_val_metrics)
+        metrics_dict.update(best_val_metrics)
+
+    wandb.log(metrics_dict)
+    summary_writer.add_hparams(make_lists_strings_in_dict(flatten_dict(config)), metrics_dict)
 
     wandb.finish()
     if test_dataloader is not None:
