@@ -3,6 +3,7 @@
 import argparse
 import yaml
 import random
+import os
 
 from utils.setup import sync_wandb, load_data_module, generate_configs
 from utils.train import cv_experiment, seeded_experiment
@@ -57,7 +58,18 @@ def main(
     print("choose_n_configs:", choose_n_configs)
     print("project_name:", project_name)
 
-    for cf in config_file.split(","):
+    config_files = config_file.split(",")
+
+    if len(config_files) == 1 and os.path.isdir(config_file):
+        config_files = [
+            os.path.join(config_file, f)
+            for f in os.listdir(config_file)
+            if f.endswith(".yml")
+        ]
+        print("Found the following config files:")
+        print(config_files)
+
+    for cf in config_files:
         main_config_run(
             config_file=cf,
             log_directory=log_directory,
