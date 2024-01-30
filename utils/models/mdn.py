@@ -21,10 +21,16 @@ import torch.nn.functional as F
 from typing import Tuple, Optional
 
 # Local/Application Specific
-from .basic_architectures import MLP, ConditionalDensityEstimator, ACTIVATION_FUNCTION_MAP, DISTRIBUTION_MAP
+from .basic_architectures import (
+    MLP,
+    ConditionalDensityEstimator,
+    ACTIVATION_FUNCTION_MAP,
+    DISTRIBUTION_MAP,
+)
 from .loss_functions import nlll, miscalibration_area_fn
-from ..data_module import TrainingDataModule  # TODO: not ideal class dependencies here. Ideally would have some sort of models module class that contains the data dependencies. But this is not a priority right now
-
+from ..data_module import (
+    TrainingDataModule,
+)  # TODO: not ideal class dependencies here. Ideally would have some sort of models module class that contains the data dependencies. But this is not a priority right now
 
 
 class MDN(ConditionalDensityEstimator):
@@ -71,8 +77,14 @@ class MDN(ConditionalDensityEstimator):
                 f"Activation function {activation_function} not supported."
             )
 
-        self.mean_x, self.std_x = train_data_module.train_dataset.mean_x, train_data_module.train_dataset.std_x
-        self.mean_y, self.std_y = train_data_module.train_dataset.mean_y, train_data_module.train_dataset.std_y
+        self.mean_x, self.std_x = (
+            train_data_module.train_dataset.mean_x,
+            train_data_module.train_dataset.std_x,
+        )
+        self.mean_y, self.std_y = (
+            train_data_module.train_dataset.mean_y,
+            train_data_module.train_dataset.std_y,
+        )
 
         self.tanh_std_stability = tanh_std_stability
         self.std_stability_mode = std_stability_mode.lower()
@@ -99,7 +111,11 @@ class MDN(ConditionalDensityEstimator):
         else:
             raise ValueError(f"Distribution type {distribution_type} not supported.")
         self.n_distributions = n_distributions
-        self.split_sizes = [self.n_distributions, self.n_distributions * self.y_size, self.n_distributions * self.y_size]
+        self.split_sizes = [
+            self.n_distributions,
+            self.n_distributions * self.y_size,
+            self.n_distributions * self.y_size,
+        ]
         self.mlp = MLP(
             self.x_size,
             n_hidden,
@@ -146,7 +162,8 @@ class MDN(ConditionalDensityEstimator):
         normalised_output_domain: bool = False,
         reduce="mean",
         miscalibration_area_loss_weight: float = 0.0,
-        force_miscalibration_area_loss_calculation: bool = True,
+        weights_entropy_loss_weight: float = 0.0,
+        force_alternative_loss_calculations: bool = True,
         **kwargs,
     ):
         if normalised_output_domain:
@@ -170,16 +187,35 @@ class MDN(ConditionalDensityEstimator):
         else:
             metric_dict["nll_loss"] = loss.item()
 
-        if miscalibration_area_loss_weight > 0 or (not normalised_output_domain and force_miscalibration_area_loss_calculation):
+        if weights_entropy_loss_weight > 0 or (
+            not normalised_output_domain and force_alternative_loss_calculations
+        ):
+            weights_entropy = (
+                torch.distributions.categorical.Categorical(probs=output["weights"])
+                .entropy()
+                .mean()
+            )
+            metric_dict["weights_entropy"] = weights_entropy.item()
+
+        if miscalibration_area_loss_weight > 0 or (
+            not normalised_output_domain and force_alternative_loss_calculations
+        ):
             miscalibration_area = miscalibration_area_fn(
                 self.distribution_class, y, **output, reduce=reduce, **kwargs
             )
             metric_dict["misclibration_area"] = miscalibration_area.item()
 
+        if weights_entropy_loss_weight > 0:
+            loss = (
+                loss - weights_entropy_loss_weight * weights_entropy
+            )  # because we want to regularize for high entropy
+
         if miscalibration_area_loss_weight > 0:
             loss = loss + miscalibration_area_loss_weight * miscalibration_area
 
-        if normalised_output_domain:# Because we don't want to add the loss if we are not in the normalised domain as it is not meaningful
+        if (
+            normalised_output_domain
+        ):  # Because we don't want to add the loss if we are not in the normalised domain as it is not meaningful
             metric_dict["loss"] = loss.item()
 
         return loss, metric_dict
@@ -200,7 +236,7 @@ class MDN(ConditionalDensityEstimator):
         distribution = self.distribution_class(
             mu, sigma + numeric_stability
         )  # for numerical stability if predicted sigma is too close to 0
-        
+
         if normalised_output_domain:
             y = (y - self.mean_y) / self.std_y
 
@@ -210,7 +246,7 @@ class MDN(ConditionalDensityEstimator):
         densities = densities.sum(1)
         density = torch.sum(densities * weights, dim=1)
 
-        #if not normalised_output_domain:
+        # if not normalised_output_domain:
         #    density = density * (1 / self.std_y).prod() #(we multiply by the jacobian determinant of the transformation from the normalised to the unnormalised domain)
-        
+
         return density

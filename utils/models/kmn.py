@@ -143,6 +143,8 @@ class GaussianKMN(ConditionalDensityEstimator):
         normalised_output_domain: bool = False,
         reduce="mean",
         miscalibration_area_loss_weight: float = 0.0,
+        weights_entropy_loss_weight: float = 0.0,
+        force_alternative_loss_calculations: bool = True,
         **kwargs,
     ):
         if normalised_output_domain:
@@ -173,7 +175,19 @@ class GaussianKMN(ConditionalDensityEstimator):
         else:
             metric_dict["nll_loss"] = loss.item()
 
-        if miscalibration_area_loss_weight > 0:
+        if weights_entropy_loss_weight > 0 or (
+            not normalised_output_domain and force_alternative_loss_calculations
+        ):
+            weights_entropy = (
+                torch.distributions.categorical.Categorical(probs=output["weights"])
+                .entropy()
+                .mean()
+            )
+            metric_dict["weights_entropy"] = weights_entropy.item()
+
+        if miscalibration_area_loss_weight > 0 or (
+            not normalised_output_domain and force_alternative_loss_calculations
+        ):
             miscalibration_area = miscalibration_area_fn(
                 torch.distributions.Normal,
                 y,
@@ -182,9 +196,16 @@ class GaussianKMN(ConditionalDensityEstimator):
                 reduce=reduce,
                 **kwargs,
             )
-            loss = loss + miscalibration_area_loss_weight * miscalibration_area
 
             metric_dict["misclibration_area"] = miscalibration_area.item()
+
+        if weights_entropy_loss_weight > 0:
+            loss = (
+                loss - weights_entropy_loss_weight * weights_entropy
+            )  # because we want to regularize for high entropy
+
+        if miscalibration_area_loss_weight > 0:
+            loss = loss + miscalibration_area_loss_weight * miscalibration_area
 
         if (
             normalised_output_domain
