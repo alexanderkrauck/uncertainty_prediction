@@ -205,8 +205,6 @@ class SyntheticDataModule(DataModule):
         self, data_path: str, **kwargs
     ):
         self.data_path = data_path
-        with open(data_path + ".pkl", "rb") as file:
-            self.distribution = pickle.load(file)
 
         self.x_train = np.loadtxt(data_path + "_x_train.csv", delimiter=",", dtype=np.float32)
         self.y_train = np.loadtxt(data_path + "_y_train.csv", delimiter=",", dtype=np.float32)
