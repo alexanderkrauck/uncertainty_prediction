@@ -33,12 +33,13 @@ if path_to_repo not in sys.path:
 from cde.density_simulation import GaussianMixture  # type: ignore
 
 import alpaca.utils.datasets.config as alpaca_config
+
 alpaca_config.DATA_DIR = "./datasets/alpaca_datasets"
 from alpaca.utils.datasets.builder import build_dataset
 
 
 class SampleDensities:
-    def __init__(self, y_space:np.ndarray, densities: np.ndarray):
+    def __init__(self, y_space: np.ndarray, densities: np.ndarray):
         self.y_space = y_space
         self.densities = densities
 
@@ -66,7 +67,9 @@ class CustomDataset(Dataset):
 
     @property
     def y_space(self):
-        return self.sample_densities.y_space if self.sample_densities is not None else None
+        return (
+            self.sample_densities.y_space if self.sample_densities is not None else None
+        )
 
     def __len__(self):
         return len(self.x)
@@ -190,17 +193,26 @@ class SyntheticDataModule(DataModule):
         )
         self.n_density_steps = n_density_steps
 
-        self.y_space = np.linspace(self.density_y_min, self.density_y_max, n_density_steps)
+        self.y_space = np.linspace(
+            self.density_y_min, self.density_y_max, n_density_steps
+        )
         self.densities_train = self.get_sample_densities(self.x_train)
         self.densities_val = self.get_sample_densities(self.x_val)
         self.densities_test = self.get_sample_densities(self.x_test)
-    
+
     def get_sample_densities(self, x: np.ndarray) -> SampleDensities:
         y_space = self.y_space.reshape(-1, 1)
 
         return SampleDensities(
             self.y_space,
-            np.array([self.distribution.pdf(np.tile(inner_x, (self.n_density_steps, 1)), y_space) for inner_x in x]),
+            np.array(
+                [
+                    self.distribution.pdf(
+                        np.tile(inner_x, (self.n_density_steps, 1)), y_space
+                    )
+                    for inner_x in x
+                ]
+            ),
         )
 
     def iterable_cv_splits(self, n_splits: int, seed: int):
@@ -219,8 +231,12 @@ class SyntheticDataModule(DataModule):
                 x_val_fold, y_val_fold = x[val_indices], y[val_indices]
 
                 # Wrap them in TensorDataset and DataLoader
-                train_dataset = CustomDataset(x_train_fold, y_train_fold, self.get_sample_densities(x_train_fold))
-                val_dataset = CustomDataset(x_val_fold, y_val_fold, self.get_sample_densities(x_val_fold))
+                train_dataset = CustomDataset(
+                    x_train_fold, y_train_fold, self.get_sample_densities(x_train_fold)
+                )
+                val_dataset = CustomDataset(
+                    x_val_fold, y_val_fold, self.get_sample_densities(x_val_fold)
+                )
 
                 yield TrainingDataModule(train_dataset, val_dataset)
 
@@ -249,9 +265,7 @@ class UCIDataModule(DataModule):
             self.x_train,
             self.y_train,
             test_size=test_split
-            * (
-                (1 / (1 - val_split)) - 1
-            ),  # because test_split is relative to total size
+            * (1 / (1 - val_split)),  # because test_split is relative to total size
             random_state=random_state,
         )
 
@@ -375,27 +389,22 @@ class VoestDataModule(DataModule):
             self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
                 self.x_train,
                 self.y_train,
-                test_size=0.2 * ((1 / (1 - test_split)) - 1),
+                test_size=val_split * (1 / (1 - test_split)),
                 random_state=random_state,
             )
         else:
             n_rows = self.x_total.shape[0]
 
-            self.x_train = self.x_total[: int(n_rows * (1 - val_split - test_split))]
-            self.x_val = self.x_total[
-                int(n_rows * (1 - val_split - test_split)) : int(
-                    n_rows * (1 - test_split)
-                )
-            ]
-            self.x_test = self.x_total[int(n_rows * (1 - test_split)) :]
+            train_rows = int(n_rows * (1 - val_split - test_split))
+            test_rows = int(n_rows * (1 - test_split))
 
-            self.y_train = self.y_total[: int(n_rows * (1 - val_split - test_split))]
-            self.y_val = self.y_total[
-                int(n_rows * (1 - val_split - test_split)) : int(
-                    n_rows * (1 - test_split)
-                )
-            ]
-            self.y_test = self.y_total[int(n_rows * (1 - test_split)) :]
+            self.x_train = self.x_total[:train_rows]
+            self.x_val = self.x_total[train_rows:test_rows]
+            self.x_test = self.x_total[test_rows:]
+
+            self.y_train = self.y_total[:train_rows]
+            self.y_val = self.y_total[train_rows:test_rows]
+            self.y_test = self.y_total[test_rows:]
 
     def has_distribution(self) -> bool:
         return False
@@ -523,9 +532,7 @@ class RothfussDataModule(DataModule):
             self.x_train,
             self.y_train,
             test_size=test_split
-            * (
-                (1 / (1 - val_split)) - 1
-            ),  # because test_split is relative to total size
+            * (1 / (1 - val_split)),  # because test_split is relative to total size
             random_state=random_state,
         )
 
