@@ -48,6 +48,10 @@ class SampleDensities:
 
     def __getitem__(self, idx):
         return self.densities[idx]
+    
+    def rescale(self, mean: float, std: float):
+        self.y_space = (self.y_space - mean) / std
+        self.densities = self.densities * std # Change of variables formula
 
 
 class CustomDataset(Dataset):
@@ -161,6 +165,15 @@ class DataModule(ABC, TrainingDataModule):
         self.y_val = y_scaler.transform(self.y_val)
         self.y_test = y_scaler.transform(self.y_test)
 
+        if self.has_distribution():
+            mean = y_scaler.mean_.flatten()[0]
+            std = y_scaler.scale_.flatten()[0]
+
+            self.densities_train.rescale(mean, std)
+            self.densities_val.rescale(mean, std)
+            self.densities_test.rescale(mean, std)
+
+
     def fix_dimensions(self) -> None:
         self.x_train = self.x_train.reshape(self.x_train.shape[0], -1)
         self.x_val = self.x_val.reshape(self.x_val.shape[0], -1)
@@ -171,49 +184,40 @@ class DataModule(ABC, TrainingDataModule):
 
 
 class SyntheticDataModule(DataModule):
+
+    def __init__(self, data_path:str, pre_normalize_datasets: bool = False, **kwargs):
+        self.pre_normalize_datasets = pre_normalize_datasets
+
+        self.initialize_data(data_path = data_path, **kwargs)
+        self.fix_dimensions()
+
+        if self.y_train.shape[1] == 1:
+            y_space = np.loadtxt(data_path + "_grid.csv", delimiter=",", dtype=np.float32)
+
+            self.densities_train = SampleDensities(y_space, np.loadtxt(data_path + "_densities_train.csv", delimiter=",", dtype=np.float32))
+            self.densities_val = SampleDensities(y_space, np.loadtxt(data_path + "_densities_val.csv", delimiter=",", dtype=np.float32))
+            self.densities_test = SampleDensities(y_space, np.loadtxt(data_path + "_densities_test.csv", delimiter=",", dtype=np.float32))
+
+
+        self.create_datasets()
+
     def initialize_data(
-        self, data_path: str, n_density_steps=100, min_max_density_stds=0.5, **kwargs
+        self, data_path: str, **kwargs
     ):
         self.data_path = data_path
         with open(data_path + ".pkl", "rb") as file:
             self.distribution = pickle.load(file)
 
-        self.x_train = np.loadtxt(data_path + "_x_train.csv", delimiter=",")
-        self.y_train = np.loadtxt(data_path + "_y_train.csv", delimiter=",")
-        self.x_test = np.loadtxt(data_path + "_x_test.csv", delimiter=",")
-        self.y_test = np.loadtxt(data_path + "_y_test.csv", delimiter=",")
-        self.x_val = np.loadtxt(data_path + "_x_val.csv", delimiter=",")
-        self.y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",")
+        self.x_train = np.loadtxt(data_path + "_x_train.csv", delimiter=",", dtype=np.float32)
+        self.y_train = np.loadtxt(data_path + "_y_train.csv", delimiter=",", dtype=np.float32)
+        self.x_test = np.loadtxt(data_path + "_x_test.csv", delimiter=",", dtype=np.float32)
+        self.y_test = np.loadtxt(data_path + "_y_test.csv", delimiter=",", dtype=np.float32)
+        self.x_val = np.loadtxt(data_path + "_x_val.csv", delimiter=",", dtype=np.float32)
+        self.y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",", dtype=np.float32)
 
-        self.density_y_min = (
-            self.y_train.min() - min_max_density_stds * self.y_train.std()
-        )
-        self.density_y_max = (
-            self.y_train.max() + min_max_density_stds * self.y_train.std()
-        )
-        self.n_density_steps = n_density_steps
+        self.fix_dimensions()
 
-        self.y_space = np.linspace(
-            self.density_y_min, self.density_y_max, n_density_steps
-        )
-        self.densities_train = self.get_sample_densities(self.x_train)
-        self.densities_val = self.get_sample_densities(self.x_val)
-        self.densities_test = self.get_sample_densities(self.x_test)
 
-    def get_sample_densities(self, x: np.ndarray) -> SampleDensities:
-        y_space = self.y_space.reshape(-1, 1)
-
-        return SampleDensities(
-            self.y_space,
-            np.array(
-                [
-                    self.distribution.pdf(
-                        np.tile(inner_x, (self.n_density_steps, 1)), y_space
-                    )
-                    for inner_x in x
-                ]
-            ),
-        )
 
     def iterable_cv_splits(self, n_splits: int, seed: int):
         # Ensure numpy array type for compatibility with KFold
@@ -244,7 +248,7 @@ class SyntheticDataModule(DataModule):
         return cv_generator()
 
     def has_distribution(self):
-        return True
+        return True if self.y_train.shape[1] == 1 else False
 
 
 class UCIDataModule(DataModule):

@@ -44,6 +44,7 @@ def make_to_pass_precomputed_variables(
             raise ValueError(
                 f"precomputed_variables must be a dict of tensors or tuples. {key} is not."
             )
+    return to_pass_precomputed_variables
 
 class BaseEvaluationFunction(ABC):
 
@@ -70,6 +71,7 @@ class HellingerDistance(BaseEvaluationFunction):
         return True
 
     def __call__(  # TODO make y multidimensial-able
+        self,
         y_space: Tensor,
         densities: Tensor,
         x_batch: Tensor,
@@ -107,6 +109,7 @@ class HellingerDistance(BaseEvaluationFunction):
             return -1
 
         hellinger_distances = []
+        step_size = (y_space[1] - y_space[0]).abs()
 
         for idx in range(x_batch.shape[0]):
             # Calculate true density
@@ -126,9 +129,13 @@ class HellingerDistance(BaseEvaluationFunction):
                 estimated_densities = model.get_density(x_space, y_space, False)
             # Calculate Hellinger distance component wise
             # sqrt(p(x)) - sqrt(q(x)) and then square
+            #step_size = y_space[1] - y_space[0]
+            true_densities *= step_size
+            estimated_densities *= step_size
+
             diff_sq = (
                 torch.sqrt(
-                    torch.tensor(true_densities, dtype=torch.float32, device=x_batch.device)
+                    true_densities
                 )
                 - torch.sqrt(estimated_densities)
             ) ** 2
@@ -152,6 +159,7 @@ class KLDivergence(BaseEvaluationFunction):
         return True
 
     def __call__(
+        self,
         y_space: torch.Tensor,
         densities: torch.Tensor,
         x_batch: torch.Tensor,
@@ -188,6 +196,7 @@ class KLDivergence(BaseEvaluationFunction):
             return -1
 
         num_steps = y_space.shape[0]
+        step_size = (y_space[1] - y_space[0]).abs()
         kl_divergences = []
 
         for idx in range(x_batch.shape[0]):
@@ -206,8 +215,13 @@ class KLDivergence(BaseEvaluationFunction):
 
             # Avoid division by zero and log of zero by adding a small constant
             epsilon = 1e-12
+            
+            
             true_densities = true_densities + epsilon
             estimated_densities = estimated_densities + epsilon
+            
+            true_densities *= step_size
+            estimated_densities *= step_size
 
             # KL Divergence calculation
             kl_div = torch.sum(
@@ -229,6 +243,7 @@ class WassersteinDistance(BaseEvaluationFunction):
         return True
 
     def __call__(
+        self,
         y_space: torch.Tensor,
         densities: torch.Tensor,
         x_batch: torch.Tensor,
@@ -265,6 +280,7 @@ class WassersteinDistance(BaseEvaluationFunction):
         """
 
         num_steps = y_space.shape[0]
+        step_size = (y_space[1] - y_space[0]).abs()
         wasserstein_distances = []
 
         for idx in range(x_batch.shape[0]):
@@ -280,6 +296,9 @@ class WassersteinDistance(BaseEvaluationFunction):
                 )
             else:
                 estimated_densities = model.get_density(x_space, y_space, False)
+
+            true_densities *= step_size
+            estimated_densities *= step_size
 
             # Calculate cumulative sums
             true_cumulative = torch.cumsum(true_densities, dim=0)

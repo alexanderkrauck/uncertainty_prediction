@@ -101,7 +101,6 @@ def evaluate_model(
     """
 
     model.eval()
-    hellinger_dist = 0
     first_n_batch_sizes = 0
     eval_metrics = {}
 
@@ -128,24 +127,25 @@ def evaluate_model(
         for idx, minibatch in enumerate(val_loader):
             eval_input_dict = {}
             if has_distribution:
-                x, y, densities = minibatch
-                x, y, densities = x.to(device), y.to(device), densities.to(device)
+                x_batch, y_batch, densities = minibatch
+                x_batch, y_batch, densities = x_batch.to(device), y_batch.to(device), densities.to(device)
                 eval_input_dict["densities"] = densities
             else:
-                x, y = minibatch
-                x, y = x.to(device), y.to(device)
+                x_batch, y_batch = minibatch
+                x_batch, y_batch = x_batch.to(device), y_batch.to(device)
 
-            model_output = model(x, y)
+            model_output = model(x_batch, y_batch)
 
-            eval_input_dict["x"] = x
-            eval_input_dict["y"] = y
+            eval_input_dict["x_batch"] = x_batch
+            eval_input_dict["y_batch"] = y_batch
             eval_input_dict["model"] = model
-            eval_input_dict["model_output"] = model_output
+            eval_input_dict["precomputed_variables"] = model_output
+            eval_input_dict["reduce"] = "sum"
             if has_distribution:
                 eval_input_dict["y_space"] = y_space
 
             _, current_eval_metrics = model.eval_output(
-                y, model_output, False, "sum", **loss_hyperparameters
+                y_batch, model_output, False, "sum", **loss_hyperparameters
             )
             if idx == 0:
                 eval_metrics = current_eval_metrics
@@ -158,7 +158,7 @@ def evaluate_model(
                 or is_test
                 or density_evaluation_function_first_n_batches == -1
             ):
-                first_n_batch_sizes += x.shape[0]
+                first_n_batch_sizes += x_batch.shape[0]
 
             for evaluation_function_name in evaluation_function_names:
                 evaluation_function = EVALUATION_FUNCTION_MAP[evaluation_function_name]
@@ -171,10 +171,9 @@ def evaluate_model(
                         and density_evaluation_function_first_n_batches != -1
                     ):
                         continue
-
                 additional_eval_metrics[
                     evaluation_function_name
-                ] += evaluation_function(reduce="sum", **eval_input_dict)
+                ] += evaluation_function(**eval_input_dict)
 
     for key, value in eval_metrics.items():
         eval_metrics[key] /= len(val_loader.dataset)
@@ -190,9 +189,6 @@ def evaluate_model(
     prefix = "test_" if is_test else "val_"
     return_dict = {prefix + key: value for key, value in eval_metrics.items()}
 
-    if has_distribution:
-        hellinger_dist /= first_n_batch_sizes
-        eval_metrics[prefix + "hellinger_dist"] = hellinger_dist
     return return_dict
 
 
@@ -292,6 +288,8 @@ def train_model(
     train_loader = train_data_module.get_train_dataloader(batch_size)
     val_loader = train_data_module.get_val_dataloader(batch_size)
 
+    has_distribution = train_data_module.has_distribution()
+
     best_val_metrics = None
     best_val_loss = np.inf
     best_params = None
@@ -354,8 +352,13 @@ def train_model(
     outer_break = False
     for epoch in bar:
         model.train()
-        for batch_idx, (x, y) in enumerate(train_loader):
+            
+        for batch_idx, minibatch in enumerate(train_loader):
             step += 1
+            if has_distribution:
+                x, y, _ = minibatch
+            else:
+                x, y = minibatch
             x, y = x.to(device), y.to(device)
 
             # TODO: consider adding rule of thumb noise:

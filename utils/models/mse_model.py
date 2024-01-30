@@ -200,6 +200,22 @@ class MSEModel(ConditionalDensityEstimator):
         numeric_stability: float = 1e-8,
         mu: Optional[Tensor] = None,
     ) -> Tensor:
+        """
+        Parameters
+        ----------
+        x : Tensor
+            Input of shape (batch_size, x_size)
+        y : Tensor
+            Output of shape (batch_size, y_size)
+        normalised_output_domain : bool, optional
+            Whether the output is in the normalised domain, by default False
+        numeric_stability : float, optional
+            Small number to add to the density to avoid numerical instability, by default 1e-8
+        mu : Optional[Tensor], optional
+            mu of shape (batch_size, y_size), by default None
+        """
+
+
         if mu is None:
             output = self(x, y, normalised_output_domain=normalised_output_domain)
             mu, = output["mu"]
@@ -212,9 +228,8 @@ class MSEModel(ConditionalDensityEstimator):
             y = (y - self.mean_y) / self.std_y
 
         densities = (
-            torch.exp(distribution.log_prob(y.unsqueeze(-1))) + numeric_stability
+            torch.exp(distribution.log_prob(y)) + numeric_stability
         )  # for numerical stability because outliers can cause this to be 0
-        densities = densities.sum(1)
         density = torch.sum(densities, dim=1)
 
         # if not normalised_output_domain:
