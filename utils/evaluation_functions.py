@@ -111,6 +111,8 @@ class HellingerDistance(BaseEvaluationFunction):
         hellinger_distances = []
         step_size = (y_space[1] - y_space[0]).abs()
 
+        densities = densities * step_size
+
         for idx in range(x_batch.shape[0]):
             # Calculate true density
             x_space = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
@@ -130,7 +132,6 @@ class HellingerDistance(BaseEvaluationFunction):
             # Calculate Hellinger distance component wise
             # sqrt(p(x)) - sqrt(q(x)) and then square
             #step_size = y_space[1] - y_space[0]
-            true_densities *= step_size
             estimated_densities *= step_size
 
             diff_sq = (
@@ -199,6 +200,8 @@ class KLDivergence(BaseEvaluationFunction):
         step_size = (y_space[1] - y_space[0]).abs()
         kl_divergences = []
 
+        densities = densities * step_size + 1e-12
+
         for idx in range(x_batch.shape[0]):
             x_space = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
             true_densities = densities[idx]  # True density P
@@ -214,13 +217,9 @@ class KLDivergence(BaseEvaluationFunction):
                 estimated_densities = model.get_density(x_space, y_space, False)
 
             # Avoid division by zero and log of zero by adding a small constant
-            epsilon = 1e-12
             
             
-            true_densities = true_densities + epsilon
-            estimated_densities = estimated_densities + epsilon
-            
-            true_densities *= step_size
+            estimated_densities = estimated_densities + 1e-12
             estimated_densities *= step_size
 
             # KL Divergence calculation
@@ -250,7 +249,7 @@ class WassersteinDistance(BaseEvaluationFunction):
         model: ConditionalDensityEstimator,
         precomputed_variables: Dict[str, torch.Tensor] = None,
         reduce="mean",
-        wasserstein_p: float = 1.0,
+        wasserstein_p: float = 2.0,
         **kwargs,
     ) -> float:
         """
@@ -283,6 +282,8 @@ class WassersteinDistance(BaseEvaluationFunction):
         step_size = (y_space[1] - y_space[0]).abs()
         wasserstein_distances = []
 
+        densities = densities * step_size
+
         for idx in range(x_batch.shape[0]):
             x_space = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
             true_densities = densities[idx]  # True density
@@ -297,7 +298,6 @@ class WassersteinDistance(BaseEvaluationFunction):
             else:
                 estimated_densities = model.get_density(x_space, y_space, False)
 
-            true_densities *= step_size
             estimated_densities *= step_size
 
             # Calculate cumulative sums
