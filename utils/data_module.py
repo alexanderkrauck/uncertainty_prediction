@@ -13,8 +13,6 @@ __date__ = "2024-02-01"
 
 # Standard libraries
 import os
-import sys
-import pickle
 
 # Third-party libraries
 import numpy as np
@@ -27,11 +25,6 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Optional
 
 # Local/Application Specific
-path_to_repo = os.path.abspath(".") + "/other_repos/Conditional_Density_Estimation/"
-if path_to_repo not in sys.path:
-    sys.path.insert(0, path_to_repo)
-from cde.density_simulation import GaussianMixture  # type: ignore
-
 import alpaca.utils.datasets.config as alpaca_config
 
 alpaca_config.DATA_DIR = "./datasets/alpaca_datasets"
