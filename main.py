@@ -4,6 +4,7 @@ import argparse
 import yaml
 import random
 import os
+import traceback
 
 from utils.setup import sync_wandb, load_data_module, generate_configs
 from utils.train import cv_experiment, seeded_experiment
@@ -241,6 +242,7 @@ def main_config_run(
                 run_experiments()
             except ValueError as e:
                 print(e)
+                traceback.print_exc()
                 print("Redoing this config with anomaly detection on:")
                 print(config)
                 torch.autograd.set_detect_anomaly(
@@ -251,6 +253,7 @@ def main_config_run(
                     run_experiments()
                 except Exception as e:
                     print(e)
+                    traceback.print_exc()
                     print("Now skipping this config.")
                     continue
 
