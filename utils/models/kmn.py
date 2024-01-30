@@ -169,6 +169,7 @@ class GaussianKMN(ConditionalDensityEstimator):
 
         if normalised_output_domain:
             metric_dict["nll_loss_normalized"] = loss.item()
+            metric_dict["nll_loss"] = (loss + torch.log(self.std_y).sum()).item()
         else:
             metric_dict["nll_loss"] = loss.item()
 

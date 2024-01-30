@@ -160,6 +160,7 @@ class MSEModel(ConditionalDensityEstimator):
 
         if normalised_output_domain:
             metric_dict["mse_loss_normalized"] = loss.item()
+            metric_dict["mse_loss"] = (loss * self.std_y**2).item()
         else:
             metric_dict["mse_loss"] = loss.item()
 
