@@ -485,7 +485,7 @@ class RothfussDataModule(DataModule):
     def initialize_data(
         self,
         dataset_name: str,
-        data_path: str = "datasets/nyc_taxi_dataset/",
+        data_path: str = "datasets/rothfuss_datasets/",
         val_split: float = 0.15,
         test_split: float = 0.15,
         random_state: int = 42,
