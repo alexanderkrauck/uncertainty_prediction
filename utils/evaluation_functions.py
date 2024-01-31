@@ -20,6 +20,12 @@ import torch
 from torch import Tensor
 import numpy as np
 from typing import Dict
+from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.use("Agg")
 
 # Local/Application Specific
 from .models.basic_architectures import ConditionalDensityEstimator
@@ -46,8 +52,8 @@ def make_to_pass_precomputed_variables(
             )
     return to_pass_precomputed_variables
 
-class BaseEvaluationFunction(ABC):
 
+class BaseEvaluationFunction(ABC):
     @abstractmethod
     def is_density_evaluation_function(self) -> bool:
         pass
@@ -65,8 +71,8 @@ class BaseEvaluationFunction(ABC):
     ) -> float:
         pass
 
-class HellingerDistance(BaseEvaluationFunction):
 
+class HellingerDistance(BaseEvaluationFunction):
     def is_density_evaluation_function(self):
         return True
 
@@ -131,14 +137,11 @@ class HellingerDistance(BaseEvaluationFunction):
                 estimated_densities = model.get_density(x_space, y_space, False)
             # Calculate Hellinger distance component wise
             # sqrt(p(x)) - sqrt(q(x)) and then square
-            #step_size = y_space[1] - y_space[0]
+            # step_size = y_space[1] - y_space[0]
             estimated_densities *= step_size
 
             diff_sq = (
-                torch.sqrt(
-                    true_densities
-                )
-                - torch.sqrt(estimated_densities)
+                torch.sqrt(true_densities) - torch.sqrt(estimated_densities)
             ) ** 2
             h_distance = torch.sqrt(
                 torch.sum(diff_sq) / 2
@@ -155,17 +158,16 @@ class HellingerDistance(BaseEvaluationFunction):
 
 
 class KLDivergence(BaseEvaluationFunction):
-
     def is_density_evaluation_function(self):
         return True
 
     def __call__(
         self,
-        y_space: torch.Tensor,
-        densities: torch.Tensor,
-        x_batch: torch.Tensor,
+        y_space: Tensor,
+        densities: Tensor,
+        x_batch: Tensor,
         model: ConditionalDensityEstimator,
-        precomputed_variables: Dict[str, torch.Tensor] = None,
+        precomputed_variables: Dict[str, Tensor] = None,
         reduce="mean",
         **kwargs,
     ) -> float:
@@ -217,8 +219,7 @@ class KLDivergence(BaseEvaluationFunction):
                 estimated_densities = model.get_density(x_space, y_space, False)
 
             # Avoid division by zero and log of zero by adding a small constant
-            
-            
+
             estimated_densities = estimated_densities + 1e-12
             estimated_densities *= step_size
 
@@ -236,8 +237,8 @@ class KLDivergence(BaseEvaluationFunction):
 
         return kl_divergences
 
-class WassersteinDistance(BaseEvaluationFunction):
 
+class WassersteinDistance(BaseEvaluationFunction):
     def is_density_evaluation_function(self):
         return True
 
@@ -318,15 +319,91 @@ class WassersteinDistance(BaseEvaluationFunction):
 
         return wasserstein_distances
 
-class MiscalibrationArea(BaseEvaluationFunction):
 
+class MiscalibrationArea(BaseEvaluationFunction):
     def is_density_evaluation_function(self):
         return False
-    
+
     def __call__(
-            x_batch: torch.Tensor,
-            y_batch: torch.Tensor,
-            model: ConditionalDensityEstimator,
-            **kwargs):
+        x_batch: torch.Tensor,
+        y_batch: torch.Tensor,
+        model: ConditionalDensityEstimator,
+        **kwargs,
+    ):
         raise NotImplementedError("MiscalibrationArea is not implemented yet.")
-        
+
+
+def log_plot(
+    summary_writer: SummaryWriter,
+    model: ConditionalDensityEstimator,
+    data_loader: DataLoader,
+    y_space: Tensor,
+    num_samples: int = 2,
+    device: str = "cpu",
+    show_other_metrics: bool = True,
+):
+    num_steps = y_space.shape[0]
+
+    model.eval()
+
+    y_space = torch.tensor(y_space, device=device).view(-1, 1)
+    data_loader = DataLoader(data_loader.dataset, batch_size=num_samples, shuffle=False)
+
+    with torch.no_grad():
+        minibatch = next(iter(data_loader))
+        x_batch, y_batch, densities = minibatch
+        x_batch = x_batch.to(device)
+        y_batch = y_batch.to(device)
+        densities = densities.to(device)
+
+        if show_other_metrics:
+            hellinger_dist = HellingerDistance()(
+                y_space, densities, x_batch, model, reduce=None
+            )
+            wasserstein_dist = WassersteinDistance()(
+                y_space, densities, x_batch, model, reduce=None
+            )
+            kl_divergence = KLDivergence()(
+                y_space, densities, x_batch, model, reduce=None
+            )
+
+        for idx in range(x_batch.shape[0]):
+            x = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
+
+            model.eval()
+
+            estimated_density = model.get_density(x, y_space, False)
+
+            plt.figure(figsize=(10, 10))
+            plt.plot(
+                y_space.cpu().numpy(),
+                densities[idx].cpu().numpy(),
+                label="True Densities",
+            )
+            plt.plot(
+                y_space.cpu().numpy(),
+                estimated_density.cpu().numpy(),
+                label="Estimated Densities",
+            )
+            plt.axvline(
+                y_batch[idx].cpu().numpy(),
+                color="black",
+                linestyle="--",
+                label="True y",
+            )
+            plt.legend()
+            plt.title(f"Sample {idx}")
+            if show_other_metrics:
+                plt.figtext(
+                    0.75,
+                    0.5,
+                    "Hellinger Distance: {:.4f}\nWasserstein Distance: {:.4f}\nKL Divergence: {:.4f}".format(
+                        hellinger_dist[idx], wasserstein_dist[idx], kl_divergence[idx]
+                    ),
+                    fontsize=12,
+                    ha="center",
+                    va="center",
+                    wrap=True,
+                )
+            # plt.show()
+            summary_writer.add_figure(f"Sample {idx}", plt.gcf())

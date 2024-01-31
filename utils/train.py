@@ -33,6 +33,7 @@ from .evaluation_functions import (
     KLDivergence,
     WassersteinDistance,
     BaseEvaluationFunction,
+    log_plot
 )
 from .utils import flatten_dict, make_lists_strings_in_dict
 
@@ -69,7 +70,7 @@ def evaluate_model(
     val_loader: DataLoader,
     device: str,
     loss_hyperparameters: dict,
-    y_space: Optional[torch.Tensor] = None,
+    y_space: Optional[np.ndarray] = None,
     evaluation_function_names: List[str] = [],
     density_evaluation_function_first_n_batches: int = 3,
     is_test: bool = False,
@@ -87,7 +88,7 @@ def evaluate_model(
         Device to use
     loss_hyperparameters : dict
         Hyperparameters for the loss function
-    y_space : Optional[torch.Tensor], optional
+    y_space : Optional[np.ndarray], optional
         Tensor containing the y space, by default None. If provided then the val loader is expected to return (x, y, densities) tuples.
     density_evaluation_function_first_n_batches : int, optional
         Number of batches to use to calculate the Density Metrics, by default 3. Since it is a slow operation, it is only calculated for the first n batches as an approximate.
@@ -510,6 +511,8 @@ def outer_train(
             **training_hyperparameters,
         )
         metrics_dict.update(test_metrics)
+        if train_data_module.has_distribution():
+            log_plot(summary_writer, model, test_dataloader, train_data_module.y_space, 5, device)
     if use_validation_set:
         best_val_metrics = {
             "best_" + key: value for key, value in best_val_metrics.items()
