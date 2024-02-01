@@ -6,7 +6,7 @@ training_hyperparameters:
   early_stopping_patience: 15
   epochs: 150
   batch_size: 
-    tune: [128, 256, 64, 512]
+    tune: [128, 256, 64]
   optimizer_hyperparameters:
     lr: 2.0e-3
     betas: [0.9, 0.999]
@@ -24,7 +24,7 @@ training_hyperparameters:
 
 data_hyperparameters:
   data_type: rothfuss
-  dataset_name: boston_housing
+  dataset_name: energy
   data_path: datasets/rothfuss_datasets/
   val_split: 0.1
   test_split: 0.2
