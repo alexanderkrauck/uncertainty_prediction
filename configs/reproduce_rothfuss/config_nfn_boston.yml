@@ -40,4 +40,4 @@ model_hyperparameters:
     tune: [5, 10, 20, 50]
   dropout_rate: 
     tune: [0.0, 0.2]
-  activation_function: leaky_relu
+  activation_function: tanh

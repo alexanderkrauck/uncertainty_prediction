@@ -1,5 +1,5 @@
 config_id: reproduce_rothfuss5
-seeds: [42,43,44,45,46]
+seeds: [42, 43, 44, 45, 46]
 data_seed: 0
 
 training_hyperparameters:
@@ -23,15 +23,12 @@ training_hyperparameters:
   eval_metric_for_best_model: val_nll_loss
 
 data_hyperparameters:
-  data_type: rothfuss
-  dataset_name: concrete
-  data_path: datasets/rothfuss_datasets/
-  val_split: 0.1
-  test_split: 0.2
+  data_type: voest
+  data_path: datasets/voest_datasets/
   original: False
-  random_state: 
-    tune: [1337, 1338, 1339]
-  
+  val_split: 0.15
+  test_split: 0.2
+  random_state: 1337  
 
 model_hyperparameters:
   model_class: kmn
@@ -44,6 +41,7 @@ model_hyperparameters:
   center_selection_method: k_means
   trainable_scales: True
   initial_kernel_scales: [0.7, 0.3]
-  n_centers: 50
+  n_centers: 
+    tune: [10, 20, 50, 100]
   keep_edges: True
   
