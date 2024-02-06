@@ -183,7 +183,12 @@ class MDN(ConditionalDensityEstimator):
 
         if normalised_output_domain:
             metric_dict["nll_loss_normalized"] = loss.item()
-            metric_dict["nll_loss"] = (loss + torch.log(self.std_y).sum()).item()
+            if reduce == "mean":
+                metric_dict["nll_loss"] = (loss + torch.log(self.std_y).sum()).item()
+            else:
+                metric_dict["nll_loss"] = (
+                    (loss + torch.log(self.std_y).sum()) * y.shape[0]
+                ).item()
         else:
             metric_dict["nll_loss"] = loss.item()
 
@@ -193,8 +198,11 @@ class MDN(ConditionalDensityEstimator):
             weights_entropy = (
                 torch.distributions.categorical.Categorical(probs=output["weights"])
                 .entropy()
-                .mean()
             )
+            if reduce == "mean":
+                weights_entropy = weights_entropy.mean()
+            else:
+                weights_entropy = weights_entropy.sum()
             metric_dict["weights_entropy"] = weights_entropy.item()
 
         if miscalibration_area_loss_weight > 0 or (
