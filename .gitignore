@@ -405,3 +405,4 @@ fabric.properties
 /.vscode
 /runs
 /debug
+!/important_logs/*.log
