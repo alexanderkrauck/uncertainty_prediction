@@ -59,3 +59,14 @@ However, i need to do more research on this topic!
 My idea is to create a Bayesian network (with continous random variables and possibly also discrete ones), do forward sampling to generate samples. Then I want to restrict myself to some variables as input or observatory variables and want to predict the distribution of one or multiple other variables based on this. I want to infer the true distributions by using probabilistic queries.
 
 Forward sampling is consistent with the true distribution (probabilistic modeling slides 04b page 13). I need to make probabilistic queries in order to get conditional probabilities analytically from a bayesian network.
+
+## Rothfuss notes
+
+self._add_softmax_entropy_regularization()
+self._add_l1_l2_regularization(core_network)
+
+might be full batch training that they are doin
+
+## Idea for better optimization
+
+An idea might be instead of rewarding the true y of CDE to punish other answers similar to how it is done in classification tasks.
