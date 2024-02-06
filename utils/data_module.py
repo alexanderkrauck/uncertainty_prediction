@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import KFold, train_test_split, TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional
@@ -331,6 +331,8 @@ class VoestDataModule(DataModule):
     ):
         self.data_path = data_path
         self.original = original
+        self.val_split = val_split
+        self.test_split = test_split
         if original:
             meta_cols = 4
             filename = "Export_Nov22_Oktl23_Rohdaten_Kontr.csv"
@@ -408,15 +410,16 @@ class VoestDataModule(DataModule):
         self, n_splits: int, seed: int
     ) -> Iterable[TrainingDataModule]:
         # Ensure numpy array type for compatibility with KFold
-        x = np.array(self.x_train + self.x_val)
-        y = np.array(self.y_train + self.y_val)
+        x = np.concatenate((self.x_train, self.x_val), axis=0)
+        y = np.concatenate((self.y_train, self.y_val), axis=0)
 
         # Create a KFold object
-        kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+        tss = TimeSeriesSplit(n_splits=n_splits, test_size=int((len(x) * self.val_split) // n_splits))
+        #kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
         # Generator function to yield train and validation DataLoaders
         def cv_generator():
-            for train_indices, val_indices in kfold.split(x):
+            for train_indices, val_indices in tss.split(x):
                 # Create subsets for this fold
                 x_train_fold, y_train_fold = x[train_indices], y[train_indices]
                 x_val_fold, y_val_fold = x[val_indices], y[val_indices]
