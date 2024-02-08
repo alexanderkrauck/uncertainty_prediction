@@ -94,19 +94,11 @@ class MSEModel(ConditionalDensityEstimator):
 
         uses_validation_data = train_data_module.val_dataset is not None
         if uses_validation_data:
-            self.mse_calibration_samples_x = torch.tensor(
-                train_data_module.val_dataset.x
-            )
-            self.mse_calibration_samples_y = torch.tensor(
-                train_data_module.val_dataset.y
-            )
+            self.mse_calibration_samples_x = train_data_module.val_dataset.x.clone()
+            self.mse_calibration_samples_y = train_data_module.val_dataset.y.clone()
         else:
-            self.mse_calibration_samples_x = torch.tensor(
-                train_data_module.train_dataset.x
-            )
-            self.mse_calibration_samples_y = torch.tensor(
-                train_data_module.train_dataset.y
-            )
+            self.mse_calibration_samples_x = train_data_module.train_dataset.x.clone()
+            self.mse_calibration_samples_y = train_data_module.train_dataset.y.clone()
 
         self.calibrate_mse_std()
 
@@ -116,7 +108,8 @@ class MSEModel(ConditionalDensityEstimator):
         mu = self.mlp(x)
 
         if not normalised_output_domain:
-            mu = self.std_y.unsqueeze(-1) * mu + self.mean_y.unsqueeze(-1)
+            mu = self.std_y * mu + self.mean_y
+            #mu = self.std_y.unsqueeze(-1) * mu + self.mean_y.unsqueeze(-1)
 
         return_dict = {"mu": mu}
         return return_dict
@@ -160,7 +153,7 @@ class MSEModel(ConditionalDensityEstimator):
 
         if normalised_output_domain:
             metric_dict["mse_loss_normalized"] = loss.item()
-            metric_dict["mse_loss"] = (loss * self.std_y**2).item()
+            metric_dict["mse_loss"] = (loss * self.std_y.norm(2) **2).item()
         else:
             metric_dict["mse_loss"] = loss.item()
 
