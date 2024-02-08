@@ -40,11 +40,13 @@ class SampleDensities:
         return len(self.densities)
 
     def __getitem__(self, idx):
+        if not isinstance(idx, int):
+            return SampleDensities(self.y_space, self.densities[idx])
         return self.densities[idx]
-    
+
     def rescale(self, mean: float, std: float):
         self.y_space = (self.y_space - mean) / std
-        self.densities = self.densities * std # Change of variables formula
+        self.densities = self.densities * std  # Change of variables formula
 
 
 class CustomDataset(Dataset):
@@ -166,7 +168,6 @@ class DataModule(ABC, TrainingDataModule):
             self.densities_val.rescale(mean, std)
             self.densities_test.rescale(mean, std)
 
-
     def fix_dimensions(self) -> None:
         self.x_train = self.x_train.reshape(self.x_train.shape[0], -1)
         self.x_val = self.x_val.reshape(self.x_val.shape[0], -1)
@@ -178,42 +179,70 @@ class DataModule(ABC, TrainingDataModule):
 
 class SyntheticDataModule(DataModule):
 
-    def __init__(self, data_path:str, pre_normalize_datasets: bool = False, **kwargs):
+    def __init__(self, data_path: str, pre_normalize_datasets: bool = False, **kwargs):
         self.pre_normalize_datasets = pre_normalize_datasets
 
-        self.initialize_data(data_path = data_path, **kwargs)
+        self.initialize_data(data_path=data_path, **kwargs)
         self.fix_dimensions()
 
         if self.y_train.shape[1] == 1:
-            y_space = np.loadtxt(data_path + "_grid.csv", delimiter=",", dtype=np.float32)
+            y_space = np.loadtxt(
+                data_path + "_grid.csv", delimiter=",", dtype=np.float32
+            )
 
-            self.densities_train = SampleDensities(y_space, np.loadtxt(data_path + "_densities_train.csv", delimiter=",", dtype=np.float32))
-            self.densities_val = SampleDensities(y_space, np.loadtxt(data_path + "_densities_val.csv", delimiter=",", dtype=np.float32))
-            self.densities_test = SampleDensities(y_space, np.loadtxt(data_path + "_densities_test.csv", delimiter=",", dtype=np.float32))
-
+            self.densities_train = SampleDensities(
+                y_space,
+                np.loadtxt(
+                    data_path + "_densities_train.csv", delimiter=",", dtype=np.float32
+                ),
+            )
+            self.densities_val = SampleDensities(
+                y_space,
+                np.loadtxt(
+                    data_path + "_densities_val.csv", delimiter=",", dtype=np.float32
+                ),
+            )
+            self.densities_test = SampleDensities(
+                y_space,
+                np.loadtxt(
+                    data_path + "_densities_test.csv", delimiter=",", dtype=np.float32
+                ),
+            )
 
         self.create_datasets()
 
-    def initialize_data(
-        self, data_path: str, **kwargs
-    ):
+    def initialize_data(self, data_path: str, **kwargs):
         self.data_path = data_path
 
-        self.x_train = np.loadtxt(data_path + "_x_train.csv", delimiter=",", dtype=np.float32)
-        self.y_train = np.loadtxt(data_path + "_y_train.csv", delimiter=",", dtype=np.float32)
-        self.x_test = np.loadtxt(data_path + "_x_test.csv", delimiter=",", dtype=np.float32)
-        self.y_test = np.loadtxt(data_path + "_y_test.csv", delimiter=",", dtype=np.float32)
-        self.x_val = np.loadtxt(data_path + "_x_val.csv", delimiter=",", dtype=np.float32)
-        self.y_val = np.loadtxt(data_path + "_y_val.csv", delimiter=",", dtype=np.float32)
-
-        self.fix_dimensions()
-
-
+        self.x_train = np.loadtxt(
+            data_path + "_x_train.csv", delimiter=",", dtype=np.float32
+        )
+        self.y_train = np.loadtxt(
+            data_path + "_y_train.csv", delimiter=",", dtype=np.float32
+        )
+        self.x_test = np.loadtxt(
+            data_path + "_x_test.csv", delimiter=",", dtype=np.float32
+        )
+        self.y_test = np.loadtxt(
+            data_path + "_y_test.csv", delimiter=",", dtype=np.float32
+        )
+        self.x_val = np.loadtxt(
+            data_path + "_x_val.csv", delimiter=",", dtype=np.float32
+        )
+        self.y_val = np.loadtxt(
+            data_path + "_y_val.csv", delimiter=",", dtype=np.float32
+        )
 
     def iterable_cv_splits(self, n_splits: int, seed: int):
         # Ensure numpy array type for compatibility with KFold
-        x = np.array(self.x_train)
-        y = np.array(self.y_train)
+        x = np.concatenate((self.x_train, self.x_val), axis=0)
+        y = np.concatenate((self.y_train, self.y_val), axis=0)
+        densities = SampleDensities(
+            self.densities_train.y_space,
+            np.concatenate(
+                (self.densities_train.densities, self.densities_val.densities), axis=0
+            ),
+        )
 
         # Create a KFold object
         kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
@@ -224,14 +253,14 @@ class SyntheticDataModule(DataModule):
                 # Create subsets for this fold
                 x_train_fold, y_train_fold = x[train_indices], y[train_indices]
                 x_val_fold, y_val_fold = x[val_indices], y[val_indices]
+                densities_train_fold = densities[train_indices]
+                densities_val_fold = densities[val_indices]
 
                 # Wrap them in TensorDataset and DataLoader
                 train_dataset = CustomDataset(
-                    x_train_fold, y_train_fold, self.get_sample_densities(x_train_fold)
+                    x_train_fold, y_train_fold, densities_train_fold
                 )
-                val_dataset = CustomDataset(
-                    x_val_fold, y_val_fold, self.get_sample_densities(x_val_fold)
-                )
+                val_dataset = CustomDataset(x_val_fold, y_val_fold, densities_val_fold)
 
                 yield TrainingDataModule(train_dataset, val_dataset)
 
@@ -414,8 +443,10 @@ class VoestDataModule(DataModule):
         y = np.concatenate((self.y_train, self.y_val), axis=0)
 
         # Create a KFold object
-        tss = TimeSeriesSplit(n_splits=n_splits, test_size=int((len(x) * self.val_split) // n_splits))
-        #kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+        tss = TimeSeriesSplit(
+            n_splits=n_splits, test_size=int((len(x) * self.val_split) // n_splits)
+        )
+        # kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
         # Generator function to yield train and validation DataLoaders
         def cv_generator():
