@@ -230,9 +230,20 @@ class NFDensityEstimator(ConditionalDensityEstimator):
         metric_dict = {}
         if normalised_output_domain:
             metric_dict["nll_loss_normalized"] = loss.item()
-            metric_dict["nll_loss"] = (loss + torch.log(self.std_y).sum()).item()
+            if reduce == "mean":
+                metric_dict["nll_loss"] = (loss + torch.log(self.std_y).sum()).item()
+            else:
+                metric_dict["nll_loss"] = (
+                    (loss + torch.log(self.std_y).sum() * y.shape[0]) 
+                ).item()
         else:
             metric_dict["nll_loss"] = loss.item()
+            if reduce == "mean":
+                metric_dict["nll_loss_normalized"] = (loss - torch.log(self.std_y).sum()).item()
+            else:
+                metric_dict["nll_loss_normalized"] = (
+                    (loss - torch.log(self.std_y).sum() * y.shape[0]) 
+                ).item()
 
         if (
             normalised_output_domain

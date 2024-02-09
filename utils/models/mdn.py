@@ -187,10 +187,16 @@ class MDN(ConditionalDensityEstimator):
                 metric_dict["nll_loss"] = (loss + torch.log(self.std_y).sum()).item()
             else:
                 metric_dict["nll_loss"] = (
-                    (loss + torch.log(self.std_y).sum()) * y.shape[0]
+                    (loss + torch.log(self.std_y).sum() * y.shape[0]) 
                 ).item()
         else:
             metric_dict["nll_loss"] = loss.item()
+            if reduce == "mean":
+                metric_dict["nll_loss_normalized"] = (loss - torch.log(self.std_y).sum()).item()
+            else:
+                metric_dict["nll_loss_normalized"] = (
+                    (loss - torch.log(self.std_y).sum() * y.shape[0]) 
+                ).item()
 
         if weights_entropy_loss_weight > 0 or (
             not normalised_output_domain and force_alternative_loss_calculations
