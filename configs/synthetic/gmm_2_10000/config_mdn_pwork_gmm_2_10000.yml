@@ -1,0 +1,41 @@
+config_id: reproduce_rothfuss5
+seeds: [42,43,44,45,46]
+data_seed: 0
+
+training_hyperparameters:
+training_hyperparameters:
+  early_stopping_patience: 3
+  epochs: 150
+  batch_size: 
+    tune: [128, 64]
+  optimizer_hyperparameters:
+    lr: 2.0e-3
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+    weight_decay: 0.0
+  optimizer: adam
+  input_noise_x: 
+    tune: [0.02, 0.1, 0.2, 0.3]
+  input_noise_y: 
+    tune: [0.02, 0.1]
+  loss_hyperparameters:
+    reliability_loss_weight: 0.0
+    loss_calculation_in_normalised_domain: True
+  eval_metric_for_best_model: val_nll_loss
+  evaluation_function_names: [hellinger_distance, wasserstein_distance, kl_divergence]
+
+data_hyperparameters:
+  data_type: synthetic
+  data_path: datasets/simulated_data/gmm_2_10000/gmm_2_10000
+  random_state: 1337  
+
+model_hyperparameters:
+  model_class: mdn
+  n_hidden: [32, 32]
+  n_distributions: 
+    tune: [5, 10, 20, 50]
+  dropout_rate: 0.0
+  activation_function: tanh
+  distribution_type: gaussian
+  std_stability_mode: softplus
+  
