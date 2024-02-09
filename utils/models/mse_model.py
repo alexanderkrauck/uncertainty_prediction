@@ -212,7 +212,7 @@ class MSEModel(ConditionalDensityEstimator):
 
         if mu is None:
             output = self(x, y, normalised_output_domain=normalised_output_domain)
-            mu, = output["mu"]
+            mu = output["mu"]
 
         distribution = torch.distributions.Normal(
             mu, torch.ones_like(mu) * self.std_y
