@@ -107,13 +107,13 @@ class DataModule(ABC, TrainingDataModule):
         self.create_datasets()
 
     def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
-        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle)
+        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
 
     def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle)
+        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
 
     def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle)
+        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
 
     @abstractmethod
     def iterable_cv_splits(
@@ -356,6 +356,7 @@ class VoestDataModule(DataModule):
         test_split: float = 0.15,
         split_random: bool = False,
         random_state: int = 42,
+        remove_quantiles: float = 0.00,
         **kwargs,
     ):
         self.data_path = data_path
@@ -404,6 +405,11 @@ class VoestDataModule(DataModule):
         self.x_total = self.x_total[
             :, ~std_exclude
         ]  # remove columns that are constant as they do not contribute to the model at all
+
+        if remove_quantiles > 0: # remove extreme outliers
+            mask = (self.y_total < np.quantile(self.y_total, 1 - remove_quantiles)) & (self.y_total > np.quantile(self.y_total, remove_quantiles))
+            self.y_total = self.y_total[mask]
+            self.x_total = self.x_total[mask]
 
         if split_random:
             self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
