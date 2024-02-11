@@ -1,3 +1,16 @@
+"""
+Loss functions for the mixture density networks.
+
+Copyright (c) 2024 Alexander Krauck
+
+This code is distributed under the MIT license. See LICENSE.txt file in the 
+project root for full license information.
+"""
+
+__author__ = "Alexander Krauck"
+__email__ = "alexander.krauck@gmail.com"
+__date__ = "2024-02-01"
+
 import torch
 from torch import Tensor
 import torch.nn.functional as F

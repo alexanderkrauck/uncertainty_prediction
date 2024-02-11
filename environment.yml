@@ -1,4 +1,4 @@
-name: uncertainty_prediction
+name: cde_reg
 channels:
   - pytorch
   - nvidia
@@ -317,4 +317,3 @@ dependencies:
       - xarray==2024.1.0
       - xarray-einstats==0.7.0
       - xlrd==2.0.1
-prefix: /home/alexander/miniconda3/envs/uncertainty_prediction
