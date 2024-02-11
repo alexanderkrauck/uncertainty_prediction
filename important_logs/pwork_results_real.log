@@ -208,3 +208,39 @@ test_nll_loss: -5.032725854073288 +- 0.04535129428327383 --- [-5.095507147549272
 test_misclibration_area: 0.05706436157862028 +- 0.0008847798554538922 --- [0.056947634257059704, 0.05791349044029621, 0.05638443976864107, 0.05804540633202076, 0.05660601939516387, 0.058088520894582, 0.057073954878182245, 0.059382615716144005, 0.05651031048044093, 0.056668529624881774, 0.05646194165376113, 0.05695719530676556, 0.05581360754521116, 0.05667880938566666, 0.05643294800048706]
 
  Model Type: kmn - Dataset: {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 15, 'epochs': 150, 'batch_size': 128, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss'}, 'data_hyperparameters': {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'kmn', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus', 'center_selection_method': 'k_means', 'trainable_scales': True, 'initial_kernel_scales': [0.7, 0.3], 'n_centers': 100, 'keep_edges': True}}Best mean cv score: 4.816807237444848
+Results for kmn
+test_mean_weights: 0.00499999989491501 +- 1.3347436350619209e-11 --- [0.004999999888241291, 0.004999999888241291, 0.004999999921609882, 0.004999999888241291, 0.004999999888241291]
+test_std_weights: 0.051032664353318616 +- 0.002494003848711921 --- [0.0506362937401232, 0.04893262906089957, 0.04787164304726102, 0.05437989559121029, 0.053342860327098986]
+test_nll_loss: 5.296038923430393 +- 0.03064309738603027 --- [5.30910213142112, 5.258004028234889, 5.2609079519796405, 5.321768997865093, 5.33041150765122]
+test_weights_entropy: 0.9742383865345767 +- 0.10605316454417935 --- [0.9845312312068099, 1.0495767090185444, 1.1152399286012535, 0.8114653046102771, 0.9103787592359988]
+test_misclibration_area: 0.19953219793491883 +- 0.0006768099047043315 --- [0.19832066081469504, 0.20030512612878734, 0.19947980262751008, 0.1995520563038852, 0.20000334379971654]
+
+ Model Type: mdn - Dataset: {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 15, 'epochs': 150, 'batch_size': 256, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss'}, 'data_hyperparameters': {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mdn', 'n_hidden': [32, 32], 'n_distributions': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus'}}Best mean cv score: 4.621822375872867
+Results for mdn
+test_mean_weights: 0.019999999552965164 +- 0.0 --- [0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164]
+test_std_weights: 0.1037666254929098 +- 0.006377404246776505 --- [0.10104918770851833, 0.10453358763389607, 0.09997195062977689, 0.09757055169827793, 0.11570784979407983]
+test_mean_mu: 57.78961851111986 +- 16.18881340838907 --- [74.15893075274286, 49.7627042584189, 48.86084719338227, 79.27369694639704, 36.89191340465826]
+test_std_mu: 322.0971233494454 +- 47.4347563045567 --- [327.10293754647046, 331.0833705082567, 322.86199757260323, 240.43877568601977, 388.99853543387667]
+test_mean_sigma: 135.040016142069 +- 28.804048944333616 --- [138.50450133636667, 127.59383906050108, 142.81792618128867, 88.34672626257777, 177.9370878696108]
+test_std_sigma: 178.45940776549995 +- 42.01637628535858 --- [158.8863586489849, 200.56604374858196, 172.3471350593113, 117.35475891839381, 243.1427424522277]
+test_nll_loss: 5.402542636623076 +- 0.08283373036038573 --- [5.520641244150193, 5.27550879999672, 5.352823155738825, 5.427994207938791, 5.43574577529085]
+test_weights_entropy: 0.9403848762058393 +- 0.1430643442446927 --- [1.0027254514380548, 0.8847254000984763, 1.016687595802558, 1.1063627794291107, 0.6914231542609971]
+test_misclibration_area: 0.15065152714851437 +- 0.01185511057520262 --- [0.13327242675738538, 0.15326899280908476, 0.14780534166318707, 0.14871496383421398, 0.17019591067870068]
+
+ Model Type: mse - Dataset: {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 15, 'epochs': 150, 'batch_size': 128, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.3, 'input_noise_y': 0.1, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss'}, 'data_hyperparameters': {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mse', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 7.039657809993072
+Results for mse
+test_mse_loss: 73524.11587604969 +- 8077.851727766955 --- [68078.77154478656, 75627.90970958713, 70117.38657277817, 65544.72604749825, 88251.78550559832]
+test_nll_loss: 7.090044794423001 +- 0.021909399833736902 --- [7.078326129846593, 7.090109562590207, 7.07720372364853, 7.072309925674642, 7.132274630355034]
+test_misclibration_area: 0.15945981388078692 +- 0.013763926369767093 --- [0.16100264896956085, 0.16123092509884362, 0.1600930037074693, 0.1790908784112203, 0.1358816132168406]
+
+ Model Type: nf - Dataset: {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss'}, 'data_hyperparameters': {'data_type': 'voest', 'data_path': 'datasets/voest_datasets/', 'original': False, 'val_split': 0.15, 'test_split': 0.2, 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'nf', 'n_hidden': [32, 32], 'n_flows': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 4.898461205427955
+Results for nf
+test_nll_loss: 6.422440118062238 +- 0.19881604205954204 --- [6.36327898627482, 6.511144447193185, 6.737522218676194, 6.367623356791791, 6.132631581375197]

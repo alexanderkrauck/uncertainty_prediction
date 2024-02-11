@@ -1,0 +1,210 @@
+ Model Type: kmn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'kmn', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus', 'center_selection_method': 'k_means', 'trainable_scales': True, 'initial_kernel_scales': [0.7, 0.3], 'n_centers': 100, 'keep_edges': True}}Best mean cv score: 2.623823006947835
+Results for kmn
+test_mean_weights: 0.004999999888241291 +- 0.0 --- [0.004999999888241291, 0.004999999888241291, 0.004999999888241291, 0.004999999888241291, 0.004999999888241291]
+test_std_weights: 0.025537411943078042 +- 0.0008528080240569847 --- [0.025603040233254434, 0.026933411806821822, 0.024389208257198335, 0.02498333603143692, 0.025778063386678696]
+test_nll_loss: 2.7357630767822263 +- 0.03218568486045152 --- [2.738514633178711, 2.7266636657714844, 2.7952804565429688, 2.717345428466797, 2.701011199951172]
+test_weights_entropy: 2.8173764495849607 +- 0.04576075855164905 --- [2.8107563781738283, 2.7617153930664062, 2.8999683380126955, 2.8194802093505857, 2.794961929321289]
+test_misclibration_area: 0.038778898954391475 +- 0.003160692940709522 --- [0.03742434859275818, 0.040421684980392454, 0.03774464726448059, 0.034457846879959106, 0.043845967054367066]
+test_hellinger_distance: 0.4127149207442999 +- 0.004181607154788805 --- [0.41414040349423886, 0.41247820273041724, 0.41922741547226905, 0.40628806613385676, 0.4114405158907175]
+test_wasserstein_distance: 0.7040997832864523 +- 0.011971691937554846 --- [0.7121403517574072, 0.7013513631373643, 0.7215386874228716, 0.686333603411913, 0.6991349107027054]
+test_kl_divergence: 1.5277408601641658 +- 0.013823562478401056 --- [1.5344198320806026, 1.522231180369854, 1.550967646688223, 1.5108833561837673, 1.5202022854983808]
+
+ Model Type: mdn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mdn', 'n_hidden': [32, 32], 'n_distributions': 20, 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus'}}Best mean cv score: 2.697977739969889
+Results for mdn
+test_mean_weights: 0.05000000074505806 +- 0.0 --- [0.05000000074505806, 0.05000000074505806, 0.05000000074505806, 0.05000000074505806, 0.05000000074505806]
+test_std_weights: 0.0735986436009407 +- 0.0029800970442760526 --- [0.07746447026729583, 0.06989299535751342, 0.07643054127693176, 0.070831278860569, 0.0733739322423935]
+test_mean_mu: 0.39680914151668545 +- 0.07606622411440442 --- [0.432350891828537, 0.2557377105951309, 0.4253058958053589, 0.4799735987186432, 0.39067761063575746]
+test_std_mu: 3.8761855907440186 +- 0.16857170359946724 --- [4.054494609832764, 3.660454397201538, 3.7019855880737307, 3.907799549102783, 4.056193809509278]
+test_mean_sigma: 3.5567910499572752 +- 0.11887470842568418 --- [3.599115447998047, 3.6008173847198486, 3.3269788455963134, 3.584806442260742, 3.672237129211426]
+test_std_sigma: 2.3387460460662846 +- 0.11240652737712689 --- [2.4899498653411865, 2.287850456237793, 2.169101667404175, 2.3162292671203613, 2.4305989742279053]
+test_nll_loss: 2.797623107910156 +- 0.016820283203378014 --- [2.8036450958251953, 2.7926071166992186, 2.7851612091064455, 2.8271446228027344, 2.7795574951171873]
+test_weights_entropy: 2.2337938079833983 +- 0.04078351338730461 --- [2.1744275665283204, 2.299954833984375, 2.233342514038086, 2.244666976928711, 2.2165771484375]
+test_misclibration_area: 0.03990171074867248 +- 0.002209810076813122 --- [0.0411307156085968, 0.03704028248786926, 0.0409499979019165, 0.04278690099716186, 0.03760065674781799]
+test_hellinger_distance: 0.43424953962862495 +- 0.004034464369447759 --- [0.4283425096422434, 0.43337779842317103, 0.43225861616432665, 0.4373471361398697, 0.4399216377735138]
+test_wasserstein_distance: 0.7837482032477856 +- 0.007035013670783885 --- [0.7749630454182624, 0.7889085374772549, 0.7765716162323951, 0.7932605020701885, 0.7850373150408267]
+test_kl_divergence: 1.6253549094498159 +- 0.016225261862764122 --- [1.6030856743454933, 1.6250858481228352, 1.6185699506103992, 1.653137933164835, 1.6268951410055161]
+
+
+ Model Type: mse - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.3, 'input_noise_y': 0.1, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mse', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 2.9363231023152667
+Results for mse
+test_mse_loss: 21.859157958984376 +- 0.20958581162156356 --- [21.68040954589844, 21.69768310546875, 22.257452392578124, 21.804810791015626, 21.855433959960937]
+test_nll_loss: 2.9612662506103513 +- 0.00475352903793745 --- [2.957212219238281, 2.9576039123535156, 2.9702998352050782, 2.9600335693359376, 2.9611817169189454]
+test_misclibration_area: 0.04046265983581543 +- 0.002922924620771306 --- [0.043163728713989255, 0.03931216239929199, 0.03852040529251099, 0.03676948070526123, 0.04454752206802368]
+test_hellinger_distance: 0.4845357719659805 +- 0.0004701765525584174 --- [0.4840367919206619, 0.484454315751791, 0.48542360961437225, 0.48446636319160463, 0.48429777935147283]
+test_wasserstein_distance: 0.9633876081705093 +- 0.002485692240377144 --- [0.9596005348861217, 0.9621044495701789, 0.966872603148222, 0.9650471843779087, 0.9633132688701153]
+test_kl_divergence: 1.7435295127630233 +- 0.004847902792780541 --- [1.7351253502070905, 1.7438833653926848, 1.747427696734667, 1.7489922949671746, 1.7422188565135002]
+
+ Model Type: nf - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 128, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.1, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_1000/gmm_2_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'nf', 'n_hidden': [32, 32], 'n_flows': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 2.8272821299235025
+Results for nf
+test_nll_loss: 2.8872678527832027 +- 0.012649981924321239 --- [2.8999376678466797, 2.8997786712646483, 2.889848480224609, 2.8801348876953123, 2.8666395568847656]
+test_nll_loss_normalized: 309.8711318359375 +- 1.3834666414585362 --- [310.71845703125, 311.4924853515625, 310.164560546875, 309.56767578125, 307.41248046875]
+test_hellinger_distance: 0.46477959029376503 +- 0.003852104427640808 --- [0.4636251838505268, 0.4653698885440826, 0.47191535055637357, 0.46148845583200454, 0.46149907268583773]
+test_wasserstein_distance: 0.8909905000180005 +- 0.008323708995185738 --- [0.8907382120192051, 0.891372247338295, 0.906067569553852, 0.8846666868776083, 0.8821077843010425]
+test_kl_divergence: 1.6919423491358756 +- 0.020188537380537056 --- [1.6907696759700774, 1.6839447651803494, 1.7302144683897496, 1.6838850454986096, 1.6708977906405926]
+
+ Model Type: kmn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.3, 'input_noise_y': 0.1, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'kmn', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus', 'center_selection_method': 'k_means', 'trainable_scales': True, 'initial_kernel_scales': [0.7, 0.3], 'n_centers': 100, 'keep_edges': True}}Best mean cv score: 1.8074096171061196
+Results for kmn
+test_mean_weights: 0.004999999888241291 +- 0.0 --- [0.004999999888241291, 0.004999999888241291, 0.004999999888241291, 0.004999999888241291, 0.004999999888241291]
+test_std_weights: 0.04811820447444916 +- 0.0008554196176618875 --- [0.0476176056265831, 0.04963663369417191, 0.048388355821371076, 0.04779048636555672, 0.047157940864562986]
+test_nll_loss: 1.9806442413330079 +- 0.020411159220229416 --- [1.9682718658447265, 1.9819454956054687, 2.015882034301758, 1.9545146942138671, 1.9826071166992187]
+test_nll_loss_normalized: 210.6583251953125 +- 2.1579436440029682 --- [209.3629638671875, 210.808505859375, 214.6196826171875, 208.2690869140625, 210.23138671875]
+test_weights_entropy: 1.4903899841308594 +- 0.04394500273363154 --- [1.533644332885742, 1.4114509582519532, 1.47487361907959, 1.5169847106933594, 1.5149962997436524]
+test_misclibration_area: 0.03659125947952271 +- 0.003139105484089238 --- [0.03985794425010681, 0.03825785517692566, 0.03130866765975952, 0.03874762654304505, 0.03478420376777649]
+test_hellinger_distance: 0.3385985244140029 +- 0.007919587258906706 --- [0.3396775921061635, 0.3461457372829318, 0.3452111750096083, 0.33789407305419444, 0.32406404461711646]
+test_wasserstein_distance: 0.45544595136331206 +- 0.01942494823502144 --- [0.4515744453500334, 0.47515647721720966, 0.47351864421944784, 0.455541859224723, 0.4214383308051461]
+test_kl_divergence: 0.9223268406018615 +- 0.030345775758646686 --- [0.9307871150970459, 0.9507065995037556, 0.9497305231913924, 0.9115679673105478, 0.8688419979065657]
+
+ Model Type: mdn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.3, 'input_noise_y': 0.1, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mdn', 'n_hidden': [32, 32], 'n_distributions': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus'}}Best mean cv score: 2.040226732889811
+Results for mdn
+test_mean_weights: 0.019999999552965164 +- 0.0 --- [0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164]
+test_std_weights: 0.07093485993146896 +- 0.0016033714555974345 --- [0.0726029035449028, 0.0714812359213829, 0.07228265732526779, 0.07005148500204086, 0.06825601786375046]
+test_mean_mu: -0.4716161646842957 +- 0.1434373236816109 --- [-0.30901642799377443, -0.5770503783226013, -0.2922062873840332, -0.5391869187355042, -0.6406208109855652]
+test_std_mu: 3.097122106552124 +- 0.08237163087339884 --- [3.2421626663208007, 2.994815540313721, 3.1167683696746824, 3.059208641052246, 3.07265531539917]
+test_mean_sigma: 3.251560758590698 +- 0.014243086287488417 --- [3.244710559844971, 3.2568503475189208, 3.2744007301330567, 3.2507025051116942, 3.231139650344849]
+test_std_sigma: 1.8908824129104613 +- 0.05097962500693053 --- [1.8288735103607179, 1.8351701307296753, 1.9325787258148193, 1.9022755384445191, 1.9555141592025758]
+test_nll_loss: 2.1518984069824216 +- 0.0451910421997521 --- [2.1628326416015624, 2.1964061737060545, 2.0657493591308596, 2.1568228149414064, 2.1776810455322266]
+test_nll_loss_normalized: 228.881158203125 +- 5.5128321700917695 --- [229.989892578125, 233.3436328125, 218.316015625, 229.54486328125, 233.21138671875]
+test_weights_entropy: 2.117233154296875 +- 0.060082900916356735 --- [2.0372705078125, 2.0878559875488283, 2.099332580566406, 2.146376953125, 2.2153297424316407]
+test_misclibration_area: 0.03331828856468201 +- 0.006428817535843421 --- [0.02581836819648743, 0.04159838676452637, 0.026103965044021606, 0.03440298438072205, 0.03866773843765259]
+test_hellinger_distance: 0.43724550721049305 +- 0.0035260874795377956 --- [0.43947420626878736, 0.4355334523320198, 0.4333973313868046, 0.43479361444711684, 0.4430289316177368]
+test_wasserstein_distance: 0.6931943629085002 +- 0.012490784412984847 --- [0.7042550168479497, 0.6976883854279314, 0.6704360394657647, 0.6899523343627685, 0.703640038438087]
+test_kl_divergence: 1.3600571998134254 +- 0.015137844775861593 --- [1.3560590751469135, 1.347681066915393, 1.3472362860664726, 1.3885483669489622, 1.3607612039893866]
+
+ Model Type: mse - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.2, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mse', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 2.593949114481608
+Results for mse
+test_mse_loss: 7.195180419921876 +- 0.3710864886519791 --- [7.2634326171875, 6.474939575195313, 7.3526220703125, 7.537439270019531, 7.347468566894531]
+test_nll_loss: 2.6260523834228513 +- 0.008482473284268866 --- [2.6276124572753905, 2.6095887756347658, 2.6296513366699217, 2.6338758850097657, 2.6295334625244142]
+test_misclibration_area: 0.09265037059783936 +- 0.005063714024323708 --- [0.09226595401763917, 0.10102917909622193, 0.09192161560058594, 0.09294997930526733, 0.08508512496948242]
+test_hellinger_distance: 0.6011617892384529 +- 0.002011156445709578 --- [0.6014291459321975, 0.59832425147295, 0.6023511958122253, 0.6040581563115119, 0.5996461966633797]
+test_wasserstein_distance: 1.1697465871057369 +- 0.009487444819600463 --- [1.170504531302059, 1.1539112593611125, 1.173768971600303, 1.1830663867673286, 1.1674817864978808]
+test_kl_divergence: 1.8361764688491822 +- 0.02544749494603006 --- [1.8404968988895416, 1.7973697742819785, 1.8438053318858147, 1.8750451949238778, 1.824165144264698]
+
+ Model Type: nf - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.2, 'input_noise_y': 0.1, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_1000/gmm_10_1000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'nf', 'n_hidden': [32, 32], 'n_flows': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 2.234699789683024
+Results for nf
+test_nll_loss: 2.3944674072265624 +- 0.02990293753512954 --- [2.3725894927978515, 2.425694885253906, 2.4154786682128906, 2.411804428100586, 2.3467695617675783]
+test_nll_loss_normalized: 254.392541015625 +- 3.4485545400673523 --- [251.45064453125, 259.2211181640625, 255.248818359375, 256.41205078125, 249.6300732421875]
+test_hellinger_distance: 0.49815568467229604 +- 0.0075615961994455055 --- [0.5064567494392395, 0.4897562292218208, 0.49230769142508507, 0.5080046090111137, 0.4942531442642212]
+test_wasserstein_distance: 0.9287312772448388 +- 0.0234716484883934 --- [0.9217116090275781, 0.9211160511985735, 0.9350938398175975, 0.9687326495297793, 0.8970022366506657]
+test_kl_divergence: 1.7165388566255573 +- 0.037266944987144765 --- [1.7491485907882451, 1.6773390101641417, 1.694176348745823, 1.772396891862154, 1.689633441567421]
+
+ Model Type: kmn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.2, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'kmn', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus', 'center_selection_method': 'k_means', 'trainable_scales': True, 'initial_kernel_scales': [0.7, 0.3], 'n_centers': 100, 'keep_edges': True}}Best mean cv score: 1.5761072352727254
+Results for kmn
+test_mean_weights: 0.004999999918043613 +- 3.769728733077789e-11 --- [0.004999999947845936, 0.004999999888241291, 0.004999999947845936, 0.004999999947845936, 0.004999999858438969]
+test_std_weights: 0.05623462804555893 +- 0.000559522939736902 --- [0.05613790252804756, 0.05600487577915192, 0.05602062338590622, 0.05569513812661171, 0.05731460040807724]
+test_nll_loss: 1.5650929458618164 +- 0.010806805244508815 --- [1.569665184020996, 1.5498843460083007, 1.5678812637329103, 1.5569099922180176, 1.5811239433288575]
+test_nll_loss_normalized: 195.87364169921875 +- 1.3827924420390734 --- [196.51990625, 193.98852197265626, 196.2150380859375, 194.73020703125, 197.91453515625]
+test_weights_entropy: 0.8022465633392335 +- 0.03347854987554111 --- [0.8003406848907471, 0.8046183204650879, 0.801393970489502, 0.8553266258239746, 0.7495532150268555]
+test_misclibration_area: 0.06393816537857054 +- 0.0009821099855846392 --- [0.06392713141441345, 0.06424905133247376, 0.06552422571182251, 0.062530446767807, 0.06345997166633606]
+test_hellinger_distance: 0.22013863150849938 +- 0.005510428264971106 --- [0.2194046147726476, 0.2113967061014846, 0.22092420117091388, 0.22021265565231443, 0.2287549798451364]
+test_wasserstein_distance: 0.21195462126715933 +- 0.010189135228095838 --- [0.2080789923020318, 0.19596071576611085, 0.21730686281618264, 0.2116553419517546, 0.2267711934997168]
+test_kl_divergence: 0.5691197863196954 +- 0.017830902189064277 --- [0.5632412648387253, 0.5401774574322626, 0.5757805625246838, 0.5714391023339703, 0.594960544468835]
+
+ Model Type: mdn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.2, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mdn', 'n_hidden': [32, 32], 'n_distributions': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus'}}Best mean cv score: 1.5906330025990805
+Results for mdn
+test_mean_weights: 0.019999999552965164 +- 0.0 --- [0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164]
+test_std_weights: 0.11507346585988998 +- 0.0009582541037159748 --- [0.11351218783855438, 0.11532974410057067, 0.1153558498620987, 0.11472298061847687, 0.1164465668797493]
+test_mean_mu: -0.3084279128789902 +- 0.09282677684657768 --- [-0.3035789902210236, -0.2587014694213867, -0.23702945554256438, -0.254036420583725, -0.48879322862625124]
+test_std_mu: 2.9665579418182375 +- 0.17007876720899678 --- [3.024848030090332, 2.7681186618804934, 2.762578773498535, 3.115836294174194, 3.1614079494476317]
+test_mean_sigma: 2.9711432132720947 +- 0.09582145303065986 --- [2.89405916595459, 2.9862885437011717, 3.1355241413116457, 2.9810331954956055, 2.858811019897461]
+test_std_sigma: 1.8136752365112305 +- 0.04701903392775237 --- [1.7656773614883423, 1.7596086254119874, 1.866688941001892, 1.8683130073547363, 1.8080882472991944]
+test_nll_loss: 1.5881148063659667 +- 0.02071806652120286 --- [1.613048007965088, 1.5801395683288575, 1.556673210144043, 1.6089113388061524, 1.5818019065856934]
+test_nll_loss_normalized: 198.68771552734376 +- 2.6205699615115963 --- [201.8455185546875, 197.68902490234376, 194.70394921875, 201.307783203125, 197.8923017578125]
+test_weights_entropy: 0.7120120132446288 +- 0.02547950394698419 --- [0.7527092247009277, 0.7081457653045654, 0.6942183666229248, 0.7256988620758057, 0.6792878475189209]
+test_misclibration_area: 0.032339100730419165 +- 0.0019490555624904367 --- [0.032358908891677855, 0.03488045173883438, 0.029140970647335052, 0.03163183557987213, 0.03368333679437637]
+test_hellinger_distance: 0.24138307944983245 +- 0.005961907714106527 --- [0.24508919592481107, 0.2354617266682908, 0.2336832478856668, 0.2495407937169075, 0.24314043305348604]
+test_wasserstein_distance: 0.24979935485129837 +- 0.015239842051945252 --- [0.24885410690748716, 0.23525777812654128, 0.23112844063589127, 0.2639683805645001, 0.2697880680220719]
+test_kl_divergence: 0.6795239996250718 +- 0.012908883658348662 --- [0.6885067273173481, 0.6690926264151931, 0.6602691890317947, 0.6952900219205767, 0.6844614334404469]
+
+ Model Type: mse - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.1, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mse', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 2.544771811167399
+Results for mse
+test_mse_loss: 3.375634085083008 +- 0.04619523393965927 --- [3.284513198852539, 3.405373291015625, 3.401355255126953, 3.403085861206055, 3.383842819213867]
+test_nll_loss: 2.549488278198242 +- 0.0010295068928049325 --- [2.5474575500488283, 2.5501510162353513, 2.550061508178711, 2.5501000518798826, 2.5496712646484374]
+test_misclibration_area: 0.13473706483840941 +- 0.0016968689645078232 --- [0.1364804048538208, 0.13467698860168456, 0.13347600889205932, 0.13232657623291016, 0.13672534561157226]
+test_hellinger_distance: 0.6038192144781351 +- 0.0002692229721064395 --- [0.603347089022398, 0.6038341358006001, 0.6038483212143183, 0.6041862322241068, 0.6038802941292525]
+test_wasserstein_distance: 1.1643143427061404 +- 0.001107582053645916 --- [1.1622905253843656, 1.16397596099276, 1.1653031235414133, 1.1650365833121017, 1.164965520300061]
+test_kl_divergence: 1.6906021721959115 +- 0.004554811827782028 --- [1.6825258536338805, 1.693572350949049, 1.692474379092455, 1.6954555217325686, 1.6889827555716037]
+
+ Model Type: nf - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 128, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.1, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_10_10000/gmm_10_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'nf', 'n_hidden': [32, 32], 'n_flows': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 1.8159387982686361
+Results for nf
+test_nll_loss: 1.8320106628417971 +- 0.020930207570219704 --- [1.842819236755371, 1.791356330871582, 1.8435988540649415, 1.8333995361328126, 1.8488793563842774]
+test_nll_loss_normalized: 229.47220449218747 +- 2.6649007589382294 --- [231.02998193359375, 224.319486328125, 230.86673046875, 229.5318134765625, 231.61301025390625]
+test_hellinger_distance: 0.35125393627882007 +- 0.01045126020574083 --- [0.3607773284129798, 0.3312098602540791, 0.35404792546108366, 0.35228647660091517, 0.3579480906650424]
+test_wasserstein_distance: 0.48558783924281945 +- 0.02577510599435699 --- [0.5065124486616541, 0.43800179549198504, 0.4918712381930854, 0.482131411896298, 0.5094223019710747]
+test_kl_divergence: 0.9925556515730918 +- 0.034201198193228886 --- [1.020944996688515, 0.9291023151054978, 0.9982331334128975, 0.9906309688277543, 1.023866843830794]
+
+ Model Type: kmn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'kmn', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus', 'center_selection_method': 'k_means', 'trainable_scales': True, 'initial_kernel_scales': [0.7, 0.3], 'n_centers': 100, 'keep_edges': True}}Best mean cv score: 2.3690810362497965
+Results for kmn
+test_mean_weights: 0.00499999990016222 +- 2.384185800174965e-11 --- [0.004999999888241291, 0.004999999888241291, 0.004999999947845936, 0.004999999888241291, 0.004999999888241291]
+test_std_weights: 0.03445355042219163 +- 0.0012844030917997734 --- [0.03672134801745415, 0.03446548816561699, 0.03366508802771568, 0.03453610101342201, 0.03287972688674927]
+test_nll_loss: 2.375495838928223 +- 0.011498094011185508 --- [2.374815673828125, 2.3677996368408203, 2.3943171997070314, 2.3800851745605467, 2.36046150970459]
+test_nll_loss_normalized: 0.8294530380249023 +- 0.011498094011185506 --- [0.8287728729248047, 0.8217568359375, 0.8482743988037109, 0.8340423736572266, 0.8144187088012695]
+test_weights_entropy: 2.054156074523926 +- 0.06905032105705905 --- [1.939653533935547, 2.0646854553222656, 2.0804063568115234, 2.034244499206543, 2.15179052734375]
+test_misclibration_area: 0.03889421651363373 +- 0.0009396736017922366 --- [0.04048119068145752, 0.038098930835723875, 0.03941916167736054, 0.03798928606510162, 0.03848251330852508]
+test_hellinger_distance: 0.29281766524612907 +- 0.005309429111536555 --- [0.2910791561305523, 0.288119267154485, 0.3023035684078932, 0.2945506418980658, 0.2880356926396489]
+test_wasserstein_distance: 0.35568522812034936 +- 0.012297643145566023 --- [0.35468948499206454, 0.34005046929605304, 0.37378771901968866, 0.36448703722842035, 0.3454114300655201]
+test_kl_divergence: 0.9476965368166566 +- 0.027320493575699746 --- [0.9277143823690712, 0.9240237365029752, 0.9998076092675329, 0.9467120901457965, 0.9402248657979071]
+
+ Model Type: mdn - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 128, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mdn', 'n_hidden': [32, 32], 'n_distributions': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh', 'distribution_type': 'gaussian', 'std_stability_mode': 'softplus'}}Best mean cv score: 2.481072193145752
+Results for mdn
+test_mean_weights: 0.019999999552965164 +- 0.0 --- [0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164, 0.019999999552965164]
+test_std_weights: 0.059970551764965054 +- 0.0030143342810245942 --- [0.05825783112645149, 0.06183158707618713, 0.06035742053389549, 0.06410417085886001, 0.05530174922943115]
+test_mean_mu: 0.24613100559115414 +- 0.13460291180850922 --- [0.31904611659049986, 0.046489911377429964, 0.13824401381611823, 0.41936294531822205, 0.30751204085350037]
+test_std_mu: 4.274334694671632 +- 0.13229831289985244 --- [4.369570137023926, 4.11220337677002, 4.43529528427124, 4.122838306427002, 4.331766368865967]
+test_mean_sigma: 2.55770873374939 +- 0.1420234414849412 --- [2.7031539783477783, 2.749760944366455, 2.415026081085205, 2.418586971282959, 2.502015693664551]
+test_std_sigma: 2.3002770797729495 +- 0.14652362758827825 --- [2.5288701877593995, 2.3713816738128664, 2.282232542037964, 2.2303212852478027, 2.088579710006714]
+test_nll_loss: 2.491140419006348 +- 0.00966088831230772 --- [2.487359924316406, 2.5103789520263673, 2.4855041198730468, 2.4851690368652344, 2.4872900619506835]
+test_nll_loss_normalized: 0.9450976181030273 +- 0.009660888312307646 --- [0.9413171234130859, 0.9643361511230468, 0.9394613189697265, 0.939126235961914, 0.9412472610473632]
+test_weights_entropy: 2.2251861877441406 +- 0.07632341228577855 --- [2.326019683837891, 2.1881495208740236, 2.1358263244628906, 2.169867454528809, 2.30606795501709]
+test_misclibration_area: 0.03178094239234924 +- 0.004632024475108834 --- [0.03088865387439728, 0.02793540632724762, 0.026827853441238402, 0.03980475836992264, 0.03344803994894028]
+test_hellinger_distance: 0.3431259855106473 +- 0.0038378465154558935 --- [0.34322978534922005, 0.35031450069323183, 0.3390170670039952, 0.34146505407616495, 0.3416035204306245]
+test_wasserstein_distance: 0.4751050504332408 +- 0.012927171885351984 --- [0.4797060574861243, 0.4975498206540942, 0.4623035343270749, 0.4727417845185846, 0.4632240551803261]
+test_kl_divergence: 1.245471857842803 +- 0.013296441216328224 --- [1.246082973100245, 1.2700341979265213, 1.2314052578136325, 1.2366978418082, 1.2431390185654163]
+
+ Model Type: mse - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'mse', 'n_hidden': [32, 32], 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 2.911564324696859
+Results for mse
+test_mse_loss: 20.33761756591797 +- 0.136195538050996 --- [20.28053594970703, 20.301215881347655, 20.309103698730468, 20.59850115966797, 20.19873114013672]
+test_nll_loss: 2.9267177841186522 +- 0.003092124354762316 --- [2.925421829223633, 2.925891357421875, 2.9260704040527346, 2.932640769958496, 2.9235645599365236]
+test_misclibration_area: 0.02897926211357117 +- 0.0008188835815328762 --- [0.029869649291038514, 0.029530417144298552, 0.02755028337240219, 0.02864569514989853, 0.02930026561021805]
+test_hellinger_distance: 0.4707628241971135 +- 0.0007607255636666613 --- [0.4710173144862056, 0.47100760623067617, 0.47028968612849714, 0.4718777269795537, 0.469621787160635]
+test_wasserstein_distance: 0.9125495336651802 +- 0.0026933358479162817 --- [0.9130527552999556, 0.9124954212978482, 0.9116275830864906, 0.9169723816439509, 0.9085995269976557]
+test_kl_divergence: 1.5628359503775837 +- 0.011645899485463766 --- [1.5688734654337169, 1.568445552378893, 1.5542375064492226, 1.57761552760005, 1.5450077000260354]
+
+ Model Type: nf - Dataset: {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}
+Best Config cv run 0:
+{'config_id': 'reproduce_rothfuss5', 'seeds': [42, 43, 44, 45, 46], 'data_seed': 0, 'training_hyperparameters': {'early_stopping_patience': 3, 'epochs': 150, 'batch_size': 64, 'optimizer_hyperparameters': {'lr': 0.002, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.0}, 'optimizer': 'adam', 'input_noise_x': 0.02, 'input_noise_y': 0.02, 'loss_hyperparameters': {'reliability_loss_weight': 0.0, 'loss_calculation_in_normalised_domain': True}, 'eval_metric_for_best_model': 'val_nll_loss', 'evaluation_function_names': ['hellinger_distance', 'wasserstein_distance', 'kl_divergence']}, 'data_hyperparameters': {'data_type': 'synthetic', 'data_path': 'datasets/simulated_data/gmm_2_10000/gmm_2_10000', 'random_state': 1337}, 'model_hyperparameters': {'model_class': 'nf', 'n_hidden': [32, 32], 'n_flows': 50, 'dropout_rate': 0.0, 'activation_function': 'tanh'}}Best mean cv score: 2.6605177942911786
+Results for nf
+test_nll_loss: 2.6924037384033204 +- 0.009087699251352896 --- [2.687296813964844, 2.6817642974853517, 2.708239776611328, 2.6889774169921874, 2.6957403869628904]
+test_nll_loss_normalized: 1.1463609375000001 +- 0.00908769925135299 --- [1.1412540130615234, 1.1357214965820313, 1.1621969757080077, 1.1429346160888672, 1.1496975860595704]
+test_hellinger_distance: 0.4037393917962909 +- 0.005506729664420409 --- [0.40279823200032117, 0.4006286362446845, 0.41030509589239955, 0.3955981042422354, 0.4093668906018138]
+test_wasserstein_distance: 0.6746584563530982 +- 0.01619559677941763 --- [0.6638757589831948, 0.6624446104038507, 0.706228742999956, 0.6678611421510577, 0.6728820272274315]
+test_kl_divergence: 1.4307642548695205 +- 0.014077705024650658 --- [1.4296380740478636, 1.4045308355763555, 1.436328393690288, 1.4376019599363208, 1.4457220110967755]
