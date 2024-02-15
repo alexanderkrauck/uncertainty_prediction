@@ -99,21 +99,47 @@ class TrainingDataModule:
 
 
 class DataModule(ABC, TrainingDataModule):
-    def __init__(self, pre_normalize_datasets: bool = False, **kwargs):
+    def __init__(
+        self,
+        pre_normalize_datasets: bool = False,
+        pre_normalize_mean_absolute_response: bool = False,
+        validation_is_test: bool = False,
+        **kwargs,
+    ):
         self.pre_normalize_datasets = pre_normalize_datasets
+        self.pre_normalize_mean_absolute_response = pre_normalize_mean_absolute_response
+        self.validation_is_test = validation_is_test
+
+        if pre_normalize_datasets and pre_normalize_mean_absolute_response:
+            raise ValueError(
+                "Both pre_normalize_datasets and pre_normalize_mean_absolute_response cannot be True at the same time."
+            )
 
         self.initialize_data(**kwargs)
         self.fix_dimensions()
+
+        if validation_is_test:
+            self.x_train = np.concatenate((self.x_train, self.x_val), axis=0)
+            self.y_train = np.concatenate((self.y_train, self.y_val), axis=0)
+            self.x_val = self.x_test.copy()
+            self.y_val = self.y_test.copy()
+
         self.create_datasets()
 
     def get_train_dataloader(self, batch_size: int, shuffle: bool = True) -> DataLoader:
-        return DataLoader(self.train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
+        return DataLoader(
+            self.train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2
+        )
 
     def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.val_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
+        return DataLoader(
+            self.val_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2
+        )
 
     def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(self.test_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
+        return DataLoader(
+            self.test_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2
+        )
 
     @abstractmethod
     def iterable_cv_splits(
@@ -132,6 +158,8 @@ class DataModule(ABC, TrainingDataModule):
     def create_datasets(self) -> None:
         if self.pre_normalize_datasets:
             self.normalize_datasets()
+        if self.pre_normalize_mean_absolute_response:
+            self.normalize_mean_absolute_response()
 
         if self.has_distribution():
             self.train_dataset = CustomDataset(
@@ -167,6 +195,19 @@ class DataModule(ABC, TrainingDataModule):
             self.densities_train.rescale(mean, std)
             self.densities_val.rescale(mean, std)
             self.densities_test.rescale(mean, std)
+
+    def normalize_mean_absolute_response(self) -> None:
+
+        if self.has_distribution():
+            raise ValueError(
+                "This method is not supported for datasets with distribution as of now."
+            )
+
+        mar = np.mean(np.abs(self.y_train))
+
+        self.y_train = self.y_train / mar
+        self.y_val = self.y_val / mar
+        self.y_test = self.y_test / mar
 
     def fix_dimensions(self) -> None:
         self.x_train = self.x_train.reshape(self.x_train.shape[0], -1)
@@ -406,8 +447,10 @@ class VoestDataModule(DataModule):
             :, ~std_exclude
         ]  # remove columns that are constant as they do not contribute to the model at all
 
-        if remove_quantiles > 0: # remove extreme outliers
-            mask = (self.y_total < np.quantile(self.y_total, 1 - remove_quantiles)) & (self.y_total > np.quantile(self.y_total, remove_quantiles))
+        if remove_quantiles > 0:  # remove extreme outliers
+            mask = (self.y_total < np.quantile(self.y_total, 1 - remove_quantiles)) & (
+                self.y_total > np.quantile(self.y_total, remove_quantiles)
+            )
             self.y_total = self.y_total[mask]
             self.x_total = self.x_total[mask]
 
