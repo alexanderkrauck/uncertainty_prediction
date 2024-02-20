@@ -220,8 +220,15 @@ class DataModule(ABC, TrainingDataModule):
 
 class SyntheticDataModule(DataModule):
 
-    def __init__(self, data_path: str, pre_normalize_datasets: bool = False, **kwargs):
+    def __init__(
+        self,
+        data_path: str,
+        pre_normalize_datasets: bool = False,
+        pre_normalize_mean_absolute_response: bool = False,
+        **kwargs,
+    ):
         self.pre_normalize_datasets = pre_normalize_datasets
+        self.pre_normalize_mean_absolute_response = pre_normalize_mean_absolute_response
 
         self.initialize_data(data_path=data_path, **kwargs)
         self.fix_dimensions()
@@ -405,47 +412,21 @@ class VoestDataModule(DataModule):
         self.val_split = val_split
         self.test_split = test_split
         if original:
-            meta_cols = 4
-            filename = "Export_Nov22_Oktl23_Rohdaten_Kontr.csv"
-            remove_first_n = 0
+            filename = "voest_realistic_clean.csv"
         else:
-            meta_cols = 1
-            filename = "Export_Nov22_Oktl23_Rohdaten_Train.csv"
-            remove_first_n = 56
+            filename = "voest_ideal_clean.csv"
+
+        if not os.path.exists(f"{data_path}/{filename}"):
+            VoestDataModule.preprocess_dataset(data_path)
 
         voest_ds = pd.read_csv(
-            filepath_or_buffer=f"{data_path}/{filename}", sep=";", dtype=str
+            filepath_or_buffer=os.path.join(data_path, filename)
         )
-        voest_ds = voest_ds.iloc[remove_first_n:]
-        voest_ds = VoestDataModule.sort_columns_excluding_first_n(voest_ds, meta_cols)
-
-        for col in voest_ds.columns:
-            if str(col).isdigit():
-                if voest_ds[col].dtype == "float64":
-                    voest_ds[col] = voest_ds[col].astype(np.float32)
-                else:
-                    voest_ds[col] = (
-                        voest_ds[col].str.replace(",", ".").astype(np.float32)
-                    )
-
-        voest_ds = VoestDataModule.move_column_to_first(voest_ds, "85")
-        meta_cols += 1
-
-        # new_columns = [id_to_name.get(int(col), col) if str(col).isdigit() else col for col in voest_ds_1.columns]
-        # voest_ds_1.columns = new_columns
-
-        self.x_total = voest_ds.iloc[:, meta_cols:].to_numpy()
-        self.y_total = voest_ds["85"].to_numpy()
-
-        mean_vals = np.nanmean(self.x_total, axis=0)
-        std_exclude = np.nan_to_num(np.nanstd(self.x_total, axis=0)) < 1e-7
-        nan_mask = np.isnan(self.x_total)
-        self.x_total[nan_mask] = np.take(mean_vals, np.where(nan_mask)[1])
-        self.x_total = np.nan_to_num(self.x_total)
-
-        self.x_total = self.x_total[
-            :, ~std_exclude
-        ]  # remove columns that are constant as they do not contribute to the model at all
+        
+        target_col = voest_ds["PROGNOSE-EXT_Preise_EURspez_AE00-ENTSOE-Indikative"]
+        feature_cols = voest_ds.iloc[:,2:]
+        self.x_total = feature_cols.to_numpy()
+        self.y_total = target_col.to_numpy()
 
         if remove_quantiles > 0:  # remove extreme outliers
             mask = (self.y_total < np.quantile(self.y_total, 1 - remove_quantiles)) & (
@@ -512,6 +493,108 @@ class VoestDataModule(DataModule):
 
         # Return the generator object
         return cv_generator()
+
+    @staticmethod
+    def preprocess_dataset(data_dir: str):
+
+        feature_names = pd.read_excel(os.path.join(data_dir, 'TSS_Parameter.xlsx'))
+
+        id_to_name = pd.Series(feature_names.PAR_NAME.values,index=feature_names.PAR_ID).to_dict()
+        name_to_id = {value: key for key, value in id_to_name.items()}      
+        date_format = '%d.%m.%Y %H:%M:%S'
+
+        #Voest Data 1 (the one with the ideal conditions)
+        voest_ds_1_meta_cols = 1
+        voest_ds_1 = pd.read_csv(filepath_or_buffer="datasets/voest_datasets/Export_Nov22_Oktl23_Rohdaten_Train.csv", sep=";", dtype=str) 
+        voest_ds_1 = VoestDataModule.sort_columns_excluding_first_n(voest_ds_1, voest_ds_1_meta_cols)
+
+        for col in voest_ds_1.columns:
+            if str(col).isdigit():
+                if voest_ds_1[col].dtype == 'float64':
+                    voest_ds_1[col] = voest_ds_1[col].astype(np.float32)
+                else:
+                    voest_ds_1[col] = voest_ds_1[col].str.replace(',', '.').astype(np.float32)
+
+        voest_ds_1 = VoestDataModule.move_column_to_first(voest_ds_1, '85')
+        voest_ds_1_meta_cols += 1
+            
+        new_columns = [id_to_name.get(int(col), col) if str(col).isdigit() else col for col in voest_ds_1.columns]
+        voest_ds_1.columns = new_columns
+
+
+        voest_ds_1['BALANCING_TIME_UNIT_UTC'] = pd.to_datetime(voest_ds_1['BALANCING_TIME_UNIT_UTC'], format=date_format)
+        voest_ds_1.sort_values(by='BALANCING_TIME_UNIT_UTC', inplace=True)
+
+        #Voest Data 2 (the one with the real conditions)
+        voest_ds_2_meta_cols = 4
+        voest_ds_2 = pd.read_csv(filepath_or_buffer="datasets/voest_datasets/Export_Nov22_Oktl23_Rohdaten_Kontr.csv", sep=";", dtype=str)
+        voest_ds_2 = VoestDataModule.sort_columns_excluding_first_n(voest_ds_2, voest_ds_2_meta_cols)
+
+        for col in voest_ds_2.columns:
+            if str(col).isdigit():
+                if voest_ds_2[col].dtype == 'float64':
+                    voest_ds_2[col] = voest_ds_2[col].astype(np.float32)
+                else:
+                    voest_ds_2[col] = voest_ds_2[col].str.replace(',', '.').astype(np.float32)
+
+        voest_ds_2 = VoestDataModule.move_column_to_first(voest_ds_2, '85')
+        voest_ds_2_meta_cols += 1
+
+        new_columns = [id_to_name.get(int(col), col) if str(col).isdigit() else col for col in voest_ds_2.columns]
+        voest_ds_2.columns = new_columns
+
+
+        voest_ds_2['CALC_DATE_UTC'] = pd.to_datetime(voest_ds_2['CALC_DATE_UTC'], format=date_format)
+        voest_ds_2['BALANCING_TIME_UNIT_UTC'] = pd.to_datetime(voest_ds_2['BALANCING_TIME_UNIT_UTC'], format=date_format)
+        voest_ds_2['LAST_QUERY_TIMESTAMP_UTC'] = pd.to_datetime(voest_ds_2['LAST_QUERY_TIMESTAMP_UTC'], format=date_format)
+        voest_ds_2.sort_values(by='BALANCING_TIME_UNIT_UTC', inplace=True)
+
+
+        # clean up the data
+        voest_ds_2 = voest_ds_2[voest_ds_2['BALANCING_TIME_UNIT_UTC'].isin(voest_ds_1['BALANCING_TIME_UNIT_UTC'])].copy()
+        voest_ds_1 = voest_ds_1[voest_ds_1['BALANCING_TIME_UNIT_UTC'].isin(voest_ds_2['BALANCING_TIME_UNIT_UTC'])].copy()
+
+        voest_ds_1.set_index('BALANCING_TIME_UNIT_UTC', inplace=True)
+        voest_ds_2.set_index('BALANCING_TIME_UNIT_UTC', inplace=True)
+
+        # Replace the target column in the realistic dataset with the one from the ideal dataset (because we want to predict the true values after adaption)
+        voest_ds_2['PROGNOSE-EXT_Preise_EURspez_AE00-ENTSOE-Indikative'] = voest_ds_1['PROGNOSE-EXT_Preise_EURspez_AE00-ENTSOE-Indikative']
+
+        # Reset the index
+        voest_ds_2.reset_index(inplace=True)
+        voest_ds_1.reset_index(inplace=True)
+
+        threshold = 1e-6
+        nan_threshhold = 0.1
+
+        columns_to_drop = [col for col in voest_ds_2.columns[voest_ds_2_meta_cols:] if voest_ds_2[col].std() < threshold or voest_ds_2[col].isna().mean() > nan_threshhold]
+
+        voest_ds_2_dropped = voest_ds_2.drop(columns=columns_to_drop)
+        common_columns = voest_ds_1.columns.intersection(voest_ds_2_dropped.columns)
+        # Forward fill the remaining NaNs
+        voest_ds_2_dropped.ffill(inplace=True)
+
+        
+        voest_ds_1_dropped = voest_ds_1[common_columns].copy()
+        voest_ds_2_dropped = voest_ds_2_dropped[common_columns].copy()
+
+        voest_ds_1_dropped.ffill(inplace=True)
+
+        voest_ds_1_dropped.set_index('BALANCING_TIME_UNIT_UTC', inplace=True)
+        voest_ds_2_dropped.set_index('BALANCING_TIME_UNIT_UTC', inplace=True)
+
+        # Replace NaNs in dataframe1 with the values in dataframe2 (as the one with the ideal conditions should have access to the real conditions)
+        voest_ds_1_dropped = voest_ds_1_dropped.combine_first(voest_ds_2_dropped)
+
+        # Reset the index
+        voest_ds_1_dropped.reset_index(inplace=True)
+        voest_ds_2_dropped.reset_index(inplace=True)
+
+        voest_ds_1_dropped.sort_values(by='BALANCING_TIME_UNIT_UTC', inplace=True)
+        voest_ds_2_dropped.sort_values(by='BALANCING_TIME_UNIT_UTC', inplace=True)
+
+        voest_ds_1_dropped.to_csv(os.path.join(data_dir,'voest_ideal_clean.csv'), index=False)
+        voest_ds_2_dropped.to_csv(os.path.join(data_dir,'voest_realistic_clean.csv'), index=False)
 
     @staticmethod
     def sort_columns_excluding_first_n(df, n):
@@ -602,6 +685,66 @@ class RothfussDataModule(DataModule):
             ) = rothfuss_dataset.BostonHousing().get_target_feature_split()
         else:
             raise ValueError(f"Dataset {dataset_name} not supported yet.")
+
+        self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
+            self.x_total, self.y_total, test_size=val_split, random_state=random_state
+        )
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
+            self.x_train,
+            self.y_train,
+            test_size=test_split
+            * (1 / (1 - val_split)),  # because test_split is relative to total size
+            random_state=random_state,
+        )
+
+    def has_distribution(self) -> bool:
+        return False
+
+    def iterable_cv_splits(
+        self, n_splits: int, seed: int
+    ) -> Iterable[TrainingDataModule]:
+        # Ensure numpy array type for compatibility with KFold
+        x = np.concatenate((self.x_train, self.x_val), axis=0)
+        y = np.concatenate((self.y_train, self.y_val), axis=0)
+
+        # Create a KFold object
+        kfold = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+
+        # Generator function to yield train and validation DataLoaders
+        def cv_generator():
+            for train_indices, val_indices in kfold.split(x):
+                # Create subsets for this fold
+                x_train_fold, y_train_fold = x[train_indices], y[train_indices]
+                x_val_fold, y_val_fold = x[val_indices], y[val_indices]
+
+                # Wrap them in TensorDataset and DataLoader
+                train_dataset = CustomDataset(x_train_fold, y_train_fold)
+                val_dataset = CustomDataset(x_val_fold, y_val_fold)
+
+                yield TrainingDataModule(train_dataset, val_dataset)
+
+        # Return the generator object
+        return cv_generator()
+
+
+class ConformalPredictionDataModule(DataModule):
+
+    def initialize_data(
+        self,
+        dataset_name: str,
+        data_path: str = "datasets/conformal_prediction_datasets/",
+        val_split: float = 0.15,
+        test_split: float = 0.15,
+        random_state: int = 42,
+        **kwargs,
+    ):
+        from .data import conformal_prediction_datasets
+
+        os.makedirs(data_path, exist_ok=True)
+
+        dataset_name = dataset_name.lower()
+        
+        self.x_total, self.y_total = conformal_prediction_datasets.get_dataset(dataset_name, data_path)
 
         self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
             self.x_total, self.y_total, test_size=val_split, random_state=random_state
