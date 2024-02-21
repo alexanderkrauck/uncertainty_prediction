@@ -201,6 +201,7 @@ def main_config_run(
             if eval_mode == "optuna":
                 os.makedirs(f"runs/{project_name}/", exist_ok=True)
                 study = optuna.create_study(
+                    sampler=optuna.samplers.TPESampler(seed=1337),
                     direction="minimize",
                     study_name=f"{project_name}_{true_config['config_id']}_{data_config['data_type']}_split{outer_idx}",
                     storage=f"sqlite:///runs/{project_name}/{true_config['config_id']}_optuna.db",#f"sqlite:///{log_directory}/{true_config['model_hyperparameters']['model_class']}_{data_config['data_type']}.db",
