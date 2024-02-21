@@ -19,7 +19,8 @@ from abc import ABC, abstractmethod
 import torch
 from torch import Tensor
 import numpy as np
-from typing import Dict
+from typing import Dict, Tuple, Union
+Numeric = Union[int, float, np.ndarray]
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
@@ -59,6 +60,10 @@ class BaseEvaluationFunction(ABC):
         pass
 
     @abstractmethod
+    def is_slow(self) -> bool:
+        pass
+
+    @abstractmethod
     def __call__(
         self,
         y_space: Tensor,
@@ -71,9 +76,16 @@ class BaseEvaluationFunction(ABC):
     ) -> float:
         pass
 
+    @property
+    def output_size(self):
+        return 1
+
 
 class HellingerDistance(BaseEvaluationFunction):
     def is_density_evaluation_function(self):
+        return True
+    
+    def is_slow(self):
         return True
 
     def __call__(  # TODO make y multidimensial-able
@@ -160,6 +172,9 @@ class HellingerDistance(BaseEvaluationFunction):
 class KLDivergence(BaseEvaluationFunction):
     def is_density_evaluation_function(self):
         return True
+    
+    def is_slow(self):
+        return True
 
     def __call__(
         self,
@@ -241,6 +256,9 @@ class KLDivergence(BaseEvaluationFunction):
 class WassersteinDistance(BaseEvaluationFunction):
     def is_density_evaluation_function(self):
         return True
+    
+    def is_slow(self):
+        return True
 
     def __call__(
         self,
@@ -320,17 +338,255 @@ class WassersteinDistance(BaseEvaluationFunction):
         return wasserstein_distances
 
 
-class MiscalibrationArea(BaseEvaluationFunction):
+class ConformalPrediction(BaseEvaluationFunction):
     def is_density_evaluation_function(self):
         return False
+    
+    def is_slow(self):
+        return True
+    
+    @property
+    def output_size(self):
+        return 2
 
     def __call__(
+        self,
+        y_space: torch.Tensor,
         x_batch: torch.Tensor,
         y_batch: torch.Tensor,
         model: ConditionalDensityEstimator,
+        precomputed_variables: Dict[str, torch.Tensor] = None,
+        reduce="mean",
+        conformal_p: float = 0.95,
         **kwargs,
     ):
-        raise NotImplementedError("MiscalibrationArea is not implemented yet.")
+        #TODO: Implement Conformal Prediction
+        num_steps = y_space.shape[0]
+        step_size = (y_space[1] - y_space[0]).abs()
+
+        conformal_sizes = []
+        conformal_in_set = []
+        for idx in range(x_batch.shape[0]):
+            x_space = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
+
+            if precomputed_variables:
+                to_pass_precomputed_variables = make_to_pass_precomputed_variables(
+                    precomputed_variables, num_steps, idx
+                )
+                estimated_densities = model.get_density(
+                    x_space, y_space, False, **to_pass_precomputed_variables
+                )
+            else:
+                estimated_densities = model.get_density(x_space, y_space, False)
+
+            normalized_estimated_densities = estimated_densities / estimated_densities.sum(dim=0)
+            sorted_indices = torch.argsort(normalized_estimated_densities, descending=True)
+            cumulative_sum = torch.cumsum(normalized_estimated_densities[sorted_indices], dim=0)
+            conformal_set = sorted_indices[cumulative_sum < conformal_p]
+
+            if torch.min(torch.abs(y_batch[idx] - y_space[conformal_set])) < step_size/2:
+                conformal_in_set.append(1)
+            else:
+                conformal_in_set.append(0)
+            
+
+            conformal_size = step_size * len(conformal_set)
+            conformal_sizes.append(conformal_size.item())
+
+        if reduce == "mean":
+            conformal_sizes = np.mean(conformal_sizes)
+            conformal_in_set = np.mean(conformal_in_set)
+        elif reduce == "sum":
+            conformal_sizes = np.sum(conformal_sizes)
+            conformal_in_set = np.sum(conformal_in_set)
+
+        return np.array([conformal_sizes, conformal_in_set], dtype=np.float32)
+
+
+class Miscalibration(BaseEvaluationFunction):
+    def is_density_evaluation_function(self):
+        return False
+    
+    def is_slow(self) -> bool:
+        return True
+    
+    @property
+    def output_size(self):
+        return 3
+
+    def __call__(
+        self,
+        y_space: torch.Tensor,
+        x_batch: torch.Tensor,
+        y_batch: torch.Tensor,
+        model: ConditionalDensityEstimator,
+        precomputed_variables: Dict[str, torch.Tensor] = None,
+        reduce="mean",
+        **kwargs,
+    ):
+        
+        num_steps = y_space.shape[0]
+        quantiles = torch.arange(5, 96, 10, device=y_space.device) / 100
+
+        samples = []
+        for idx in range(x_batch.shape[0]):
+            x_space = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
+
+            if precomputed_variables:
+                to_pass_precomputed_variables = make_to_pass_precomputed_variables(
+                    precomputed_variables, num_steps, idx
+                )
+                estimated_densities = model.get_density(
+                    x_space, y_space, False, **to_pass_precomputed_variables
+                )
+            else:
+                estimated_densities = model.get_density(x_space, y_space, False)
+
+            normalized_estimated_densities = estimated_densities / estimated_densities.sum(dim=0)
+            
+            cumsum = normalized_estimated_densities.cumsum(dim=0)
+            quantile_indices = (cumsum.unsqueeze(-1) - quantiles).abs().argmin(0)
+
+            sums = y_space[quantile_indices] - y_batch[idx] > 0
+            samples.append(sums)
+            
+        samples = torch.cat(samples, dim=1).T
+        empirical_quantiles = samples.float().mean(dim=0)
+        empirical_quantile_diffs = (empirical_quantiles - quantiles).abs()
+        mean_absolute_calibration_error = empirical_quantile_diffs.mean().item()
+        root_mean_squared_calibration_error = torch.sqrt(empirical_quantile_diffs.square().mean()).item()
+        miscalibration_area = Miscalibration.miscalibration_area_from_proportions(quantiles.cpu().numpy(), empirical_quantiles.cpu().numpy())
+
+        if reduce == "sum":
+            mean_absolute_calibration_error = mean_absolute_calibration_error * x_batch.shape[0]
+            root_mean_squared_calibration_error = root_mean_squared_calibration_error * x_batch.shape[0]
+            miscalibration_area = miscalibration_area * x_batch.shape[0]
+
+        return np.array([mean_absolute_calibration_error, root_mean_squared_calibration_error, miscalibration_area], dtype=np.float32)
+    
+    def miscalibration_area_from_proportions(
+        exp_proportions: np.ndarray, obs_proportions: np.ndarray
+    ) -> float:
+        """Miscalibration area from expected and observed proportions lists.
+
+        This function returns the same output as `miscalibration_area` directly from a list
+        of expected proportions (the proportion of data that you expect to observe within
+        prediction intervals) and a list of observed proportions (the proportion data that
+        you observe within prediction intervals).
+
+        Args:
+            exp_proportions: expected proportion of data within prediction intervals.
+            obs_proportions: observed proportion of data within prediction intervals.
+
+        Returns:
+            A single scalar that contains the miscalibration area.
+        """
+        areas = Miscalibration.trapezoid_area(
+            exp_proportions[:-1],
+            exp_proportions[:-1],
+            obs_proportions[:-1],
+            exp_proportions[1:],
+            exp_proportions[1:],
+            obs_proportions[1:],
+            absolute=True,
+        )
+        return areas.sum()
+
+    @staticmethod
+    def trapezoid_area(
+        xl: np.ndarray,
+        al: np.ndarray,
+        bl: np.ndarray,
+        xr: np.ndarray,
+        ar: np.ndarray,
+        br: np.ndarray,
+        absolute: bool = True,
+    ) -> Numeric:
+        """
+        Calculate the area of a vertical-sided trapezoid, formed connecting the following points:
+            (xl, al) - (xl, bl) - (xr, br) - (xr, ar) - (xl, al)
+
+        This function considers the case that the edges of the trapezoid might cross,
+        and explicitly accounts for this.
+
+        Args:
+            xl: The x coordinate of the left-hand points of the trapezoid
+            al: The y coordinate of the first left-hand point of the trapezoid
+            bl: The y coordinate of the second left-hand point of the trapezoid
+            xr: The x coordinate of the right-hand points of the trapezoid
+            ar: The y coordinate of the first right-hand point of the trapezoid
+            br: The y coordinate of the second right-hand point of the trapezoid
+            absolute: Whether to calculate the absolute area, or allow a negative area (e.g. if a and b are swapped)
+
+        Returns: The area of the given trapezoid.
+
+        """
+
+        # Differences
+        dl = bl - al
+        dr = br - ar
+
+        # The ordering is the same for both iff they do not cross.
+        cross = dl * dr < 0
+
+        # Treat the degenerate case as a trapezoid
+        cross = cross * (1 - ((dl == 0) * (dr == 0)))
+
+        # trapezoid for non-crossing lines
+        area_trapezoid = (xr - xl) * 0.5 * ((bl - al) + (br - ar))
+        if absolute:
+            area_trapezoid = np.abs(area_trapezoid)
+
+        # Hourglass for crossing lines.
+        # NaNs should only appear in the degenerate and parallel cases.
+        # Those NaNs won't get through the final multiplication so it's ok.
+        with np.errstate(divide="ignore", invalid="ignore"):
+            x_intersect = Miscalibration.intersection((xl, bl), (xr, br), (xl, al), (xr, ar))[0]
+        tl_area = 0.5 * (bl - al) * (x_intersect - xl)
+        tr_area = 0.5 * (br - ar) * (xr - x_intersect)
+        if absolute:
+            area_hourglass = np.abs(tl_area) + np.abs(tr_area)
+        else:
+            area_hourglass = tl_area + tr_area
+
+        # The nan_to_num function allows us to do 0 * nan = 0
+        return (1 - cross) * area_trapezoid + cross * np.nan_to_num(area_hourglass)
+
+    @staticmethod
+    def intersection(
+        p1: Tuple[Numeric, Numeric],
+        p2: Tuple[Numeric, Numeric],
+        p3: Tuple[Numeric, Numeric],
+        p4: Tuple[Numeric, Numeric],
+    ) -> Tuple[Numeric, Numeric]:
+        """
+        Calculate the intersection of two lines between four points, as defined in
+        https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection.
+
+        This is an array option and works can be used to calculate the intersections of
+        entire arrays of points at the same time.
+
+        Args:
+            p1: The point (x1, y1), first point of Line 1
+            p2: The point (x2, y2), second point of Line 1
+            p3: The point (x3, y3), first point of Line 2
+            p4: The point (x4, y4), second point of Line 2
+
+        Returns: The point of intersection of the two lines, or (np.nan, np.nan) if the lines are parallel
+
+        """
+
+        x1, y1 = p1
+        x2, y2 = p2
+        x3, y3 = p3
+        x4, y4 = p4
+
+        D = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+
+        x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / D
+        y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / D
+
+        return x, y
 
 
 def log_plot(
@@ -407,3 +663,62 @@ def log_plot(
                 )
             # plt.show()
             summary_writer.add_figure(f"Sample {idx}", plt.gcf())
+
+def log_permutation_feature_importance(
+    summary_writer: SummaryWriter,
+    model: ConditionalDensityEstimator,
+    data_loader: DataLoader,
+    device: str = "cpu",
+):
+    model.eval()
+    model.to(device)
+
+    num_samples = len(data_loader.dataset)
+    num_features = data_loader.dataset.x.shape[1]
+
+    feature_importances = torch.empty((num_samples, num_features))
+
+    current_sample = 0
+
+    with torch.no_grad():
+        for idx, batch in enumerate(data_loader):
+            if len(batch) == 3:
+                x_batch, y_batch, densities = batch
+            else:
+                x_batch, y_batch = batch
+            x_batch = x_batch.to(device)
+            y_batch = y_batch.to(device)
+
+            original_density = model.get_density(x_batch, y_batch, False)
+            
+            for feature_idx in range(x_batch.shape[1]):
+                permutation = torch.randperm(x_batch.shape[0])
+
+                x_permuted = x_batch.clone()
+                x_permuted[:, feature_idx] = x_permuted[permutation, feature_idx]
+
+                estimated_density = model.get_density(x_permuted, y_batch, False)
+
+
+
+                feature_importances[current_sample:current_sample + x_batch.shape[0], feature_idx] = (original_density.log() - estimated_density.log()).abs()
+            
+            current_sample += x_batch.shape[0]
+    
+    feature_importances = feature_importances.mean(dim=0)
+
+    for idx, importance in enumerate(feature_importances):
+        summary_writer.add_scalar(f"Feature Importance/Feature {idx}", importance.item())
+
+    #Create a bar plot of the feature importances
+    plt.figure(figsize=(10, 10))
+    plt.bar(np.arange(num_features), feature_importances.cpu().numpy())
+    plt.title("Feature Importances")
+    plt.xlabel("Feature")
+    plt.ylabel("Importance")
+    plt.xticks(np.arange(num_features), np.arange(num_features), rotation='vertical')
+    summary_writer.add_figure("Feature Importances", plt.gcf())
+
+
+
+

@@ -66,9 +66,12 @@ class CustomDataset(Dataset):
 
     @property
     def y_space(self):
-        return (
-            self.sample_densities.y_space if self.sample_densities is not None else None
-        )
+        if self.sample_densities is not None:
+            return self.sample_densities.y_space
+        else:
+            return torch.linspace(
+                self.y.min() - self.std_y / 2, self.y.max() + self.std_y / 2, 256
+            )
 
     def __len__(self):
         return len(self.x)

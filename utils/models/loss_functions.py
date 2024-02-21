@@ -60,7 +60,7 @@ def miscalibration_area_fn( #NOTE: Actually this is "mean absulute calibration e
     mu: Tensor,
     sigma: Tensor,
     n_samples: int = 100,
-    grumble_tau: float = 0.1,
+    gumbel_tau: float = 0.1,
     sigmoid_steepness: float = 50,
     reduce="mean",
     **kwargs,
@@ -96,7 +96,7 @@ def miscalibration_area_fn( #NOTE: Actually this is "mean absulute calibration e
 
     weights = weights.unsqueeze(1).expand(-1, n_samples, -1)
     component_indices = F.gumbel_softmax(
-        weights, tau=grumble_tau, hard=False
+        weights, tau=gumbel_tau, hard=False
     )
 
     effective_samples = (component_indices.unsqueeze(-2) * drawn_samples).sum(dim=-1)

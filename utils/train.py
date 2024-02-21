@@ -33,7 +33,10 @@ from .evaluation_functions import (
     KLDivergence,
     WassersteinDistance,
     BaseEvaluationFunction,
-    log_plot
+    ConformalPrediction,
+    log_plot,
+    log_permutation_feature_importance,
+    Miscalibration
 )
 from .utils import flatten_dict, make_lists_strings_in_dict
 
@@ -41,6 +44,8 @@ EVALUATION_FUNCTION_MAP = {
     "hellinger_distance": HellingerDistance(),
     "wasserstein_distance": KLDivergence(),
     "kl_divergence": WassersteinDistance(),
+    "conformal_prediction": ConformalPrediction(),
+    "miscalibration": Miscalibration()
 }
 
 
@@ -72,8 +77,9 @@ def evaluate_model(
     loss_hyperparameters: dict,
     y_space: Optional[np.ndarray] = None,
     evaluation_function_names: List[str] = [],
-    density_evaluation_function_first_n_batches: int = 3,
+    slow_first_n_batches: int = 3,
     is_test: bool = False,
+    has_distribution: bool = False,
     **kwargs,
 ):
     """Evaluate a model on the validation set and return the metrics
@@ -90,7 +96,7 @@ def evaluate_model(
         Hyperparameters for the loss function
     y_space : Optional[np.ndarray], optional
         Tensor containing the y space, by default None. If provided then the val loader is expected to return (x, y, densities) tuples.
-    density_evaluation_function_first_n_batches : int, optional
+    slow_first_n_batches : int, optional
         Number of batches to use to calculate the Density Metrics, by default 3. Since it is a slow operation, it is only calculated for the first n batches as an approximate.
     is_test : bool, optional
         Whether this is a test evaluation or not, by default False
@@ -105,10 +111,7 @@ def evaluate_model(
     first_n_batch_sizes = 0
     eval_metrics = {}
 
-    has_distribution = y_space is not None
-
-    if has_distribution:
-        y_space = torch.tensor(y_space, device=device).view(-1, 1)
+    y_space = torch.tensor(y_space, device=device).view(-1, 1)
 
     evaluation_function_names = [func.lower() for func in evaluation_function_names]
     for func in evaluation_function_names:
@@ -122,7 +125,7 @@ def evaluate_model(
                 f"Evaluation function {func} requires densities, but the dataset does not contain densities."
             )
 
-    additional_eval_metrics = {func: 0 for func in evaluation_function_names}
+    additional_eval_metrics = {func: np.zeros((EVALUATION_FUNCTION_MAP[func].output_size)) for func in evaluation_function_names}
 
     with torch.no_grad():
         for idx, minibatch in enumerate(val_loader):
@@ -142,8 +145,7 @@ def evaluate_model(
             eval_input_dict["model"] = model
             eval_input_dict["precomputed_variables"] = model_output
             eval_input_dict["reduce"] = "sum"
-            if has_distribution:
-                eval_input_dict["y_space"] = y_space
+            eval_input_dict["y_space"] = y_space
 
             _, current_eval_metrics = model.eval_output(
                 y_batch, model_output, False, "sum", **loss_hyperparameters
@@ -155,9 +157,9 @@ def evaluate_model(
                     eval_metrics[key] += value
 
             if (
-                idx < density_evaluation_function_first_n_batches
+                idx < slow_first_n_batches
                 or is_test
-                or density_evaluation_function_first_n_batches == -1
+                or slow_first_n_batches == -1
             ):
                 first_n_batch_sizes += x_batch.shape[0]
 
@@ -166,12 +168,13 @@ def evaluate_model(
                 if evaluation_function.is_density_evaluation_function():
                     if not has_distribution:
                         continue
-                    if (
-                        idx >= density_evaluation_function_first_n_batches
-                        and not is_test
-                        and density_evaluation_function_first_n_batches != -1
-                    ):
-                        continue
+                if (
+                    idx >= slow_first_n_batches
+                    and not is_test
+                    and slow_first_n_batches != -1
+                    and evaluation_function.is_slow()
+                ):
+                    continue
                 additional_eval_metrics[
                     evaluation_function_name
                 ] += evaluation_function(**eval_input_dict)
@@ -181,11 +184,16 @@ def evaluate_model(
 
     for evaluation_function_name in evaluation_function_names:
         evaluation_function = EVALUATION_FUNCTION_MAP[evaluation_function_name]
-        if evaluation_function.is_density_evaluation_function():
+        if evaluation_function.is_slow():
             additional_eval_metrics[evaluation_function_name] /= first_n_batch_sizes
         else:
             additional_eval_metrics[evaluation_function_name] /= len(val_loader.dataset)
-    eval_metrics.update(additional_eval_metrics)
+    for metric, val in additional_eval_metrics.items():
+        if len(val) == 1:
+            eval_metrics[metric] = val[0]
+        else:
+            for i, v in enumerate(val):
+                eval_metrics[f"{metric}{i}part"] = v
 
     prefix = "test_" if is_test else "val_"
     return_dict = {prefix + key: value for key, value in eval_metrics.items()}
@@ -308,6 +316,7 @@ def train_model(
             device,
             loss_hyperparameters,
             train_data_module.y_space,
+            has_distribution=train_data_module.has_distribution(),
             **kwargs,
         )
         wandb.log({"step": step, **val_metrics, "epoch": 0})
@@ -326,6 +335,7 @@ def train_model(
             device,
             loss_hyperparameters,
             train_data_module.y_space,
+            has_distribution=train_data_module.has_distribution(),
             **kwargs,
         )
         log_data = {"step": step, **val_metrics}
@@ -476,7 +486,7 @@ def outer_train(
         mode=wandb_mode,
     )
     summary_writer = SummaryWriter(
-        os.path.join("runs", project_name, group_name)
+        os.path.join("runs", project_name, run_name)
     )
 
     model = load_model(train_data_module, **model_hyperparameters).to(device)
@@ -508,11 +518,13 @@ def outer_train(
             device,
             y_space=train_data_module.y_space,
             is_test=True,
+            has_distribution=train_data_module.has_distribution(),
             **training_hyperparameters,
         )
         metrics_dict.update(test_metrics)
         if train_data_module.has_distribution():
             log_plot(summary_writer, model, test_dataloader, train_data_module.y_space, 5, device)
+        log_permutation_feature_importance(summary_writer, model, test_dataloader, device)
     if use_validation_set:
         best_val_metrics = {
             "best_" + key: value for key, value in best_val_metrics.items()
