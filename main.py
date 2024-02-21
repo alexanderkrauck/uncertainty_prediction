@@ -199,6 +199,7 @@ def main_config_run(
             data_module = load_data_module(**data_config)
 
             if eval_mode == "optuna":
+                os.makedirs(f"runs/{project_name}/", exist_ok=True)
                 study = optuna.create_study(
                     direction="minimize",
                     study_name=f"{project_name}_{true_config['config_id']}_{data_config['data_type']}_split{outer_idx}",
