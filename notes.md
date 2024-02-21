@@ -70,3 +70,7 @@ might be full batch training that they are doin
 ## Idea for better optimization
 
 An idea might be instead of rewarding the true y of CDE to punish other answers similar to how it is done in classification tasks.
+
+## Conformal Intervals are Calibrated if the model is probabilistically calibrated
+
+It is still probabilistic calibration but just integrated from high density areas to low density areas. So in the end of the day the mean abosolute miscalibration error is the integration over all those p=.. Conformal predictions.. Looking at the definition in Gneiting reveals that very obviously.
