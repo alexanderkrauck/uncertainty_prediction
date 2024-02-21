@@ -62,7 +62,7 @@ class CustomDataset(Dataset):
         self.mean_x, self.std_x = torch.mean(self.x, dim=0), torch.std(self.x, dim=0)
         self.mean_y, self.std_y = torch.mean(self.y, dim=0), torch.std(self.y, dim=0)
 
-        if self.std_x == 0 or self.std_y == 0:
+        if (self.std_x == 0).any().item() or (self.std_y == 0).any().item():
             raise ValueError("Standard deviation of x or y is zero. Some features might be (to) constant.")
 
         self.sample_densities = sample_densities
