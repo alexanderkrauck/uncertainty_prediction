@@ -394,7 +394,7 @@ class ConformalPrediction(BaseEvaluationFunction):
             
 
             conformal_size = step_size * len(conformal_set)
-            conformal_sizes.append(conformal_size.item())
+            conformal_sizes.append(conformal_size)
 
         if reduce == "mean":
             conformal_sizes = np.mean(conformal_sizes)
