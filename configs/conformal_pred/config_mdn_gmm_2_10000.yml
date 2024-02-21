@@ -1,4 +1,4 @@
-config_id: optunarun_singlestrong
+config_id: mdn_gmm_2_10000
 seeds: [42,43,44,45,46]
 data_seed: 0
 

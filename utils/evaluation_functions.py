@@ -384,7 +384,7 @@ class ConformalPrediction(BaseEvaluationFunction):
             cumulative_sum = torch.cumsum(normalized_estimated_densities[sorted_indices], dim=0)
             conformal_set = sorted_indices[cumulative_sum < conformal_p]
 
-            if torch.min(torch.abs(y_batch[idx] - y_space[conformal_set])) < step_size/2:
+            if torch.min(torch.abs(y_batch[idx] - y_space[conformal_set])).item() < step_size/2:
                 conformal_in_set.append(1)
             else:
                 conformal_in_set.append(0)
