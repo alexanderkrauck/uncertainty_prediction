@@ -19,11 +19,11 @@ from copy import deepcopy
 # Local/Application Specific
 from utils.data_module import (
     SyntheticDataModule, VoestDataModule, UCIDataModule, 
-    DataModule, TrainingDataModule, RothfussDataModule
+    DataModule, TrainingDataModule, RothfussDataModule, ConformalPredictionDataModule
 )
 from utils.models import (
     MDN, VAEConditionalDensityEstimator, ConditionalDensityEstimator, 
-    GaussianKMN, NFDensityEstimator, MSEModel
+    GaussianKMN, NFDensityEstimator, MSEModel, CDETransformer, MCDEN
 )
 
 
@@ -68,11 +68,20 @@ def load_model_class(model_class: str) -> ConditionalDensityEstimator:
         return VAEConditionalDensityEstimator
     elif model_class == "mse":
         return MSEModel
+    elif model_class == "cde_transformer":
+        return CDETransformer
+    elif model_class == "mcden":
+        return MCDEN
     else:
         raise ValueError(f"Model class {model_class} not supported yet.")
     
 def load_model(train_data_module: TrainingDataModule, model_class: str, **model_hyperparameters: dict):
     model_class = load_model_class(model_class)
+
+    if model_class == MCDEN: # Special case for MCDEN (because its sub_architectures are also models)
+        sub_architectures = model_hyperparameters.pop("sub_architectures")
+        sub_architectures = [load_model(train_data_module, **sub_architecture) for sub_architecture in sub_architectures]
+        return MCDEN(train_data_module, sub_architectures, **model_hyperparameters)
     return model_class(train_data_module, **model_hyperparameters)
     
 def generate_configs(config, tune_key="tune"):
