@@ -230,6 +230,10 @@ def train_model(
     num_steps: int = None,
     use_validation_set: bool = True,
     verbose: bool = True,
+    noisy_start: bool = False,
+    noise_decay: float = 0.99,
+    noise_level: float = 0.9,
+    noise_stop: int = 100,
     **kwargs,
 ):
     """Train a model using the given hyperparameters and return the best model and its validation metrics
@@ -296,6 +300,10 @@ def train_model(
 
     train_loader = train_data_module.get_train_dataloader(batch_size)
     val_loader = train_data_module.get_val_dataloader(batch_size)
+
+    if noisy_start:
+        min_y = train_data_module.train_dataset.y.min()
+        max_y = train_data_module.train_dataset.y.max()
 
     has_distribution = train_data_module.has_distribution()
 
@@ -382,6 +390,11 @@ def train_model(
                     y
                 ) * input_noise_y * train_loader.dataset.std_y.to(device)
 
+            if noisy_start and epoch < noise_stop:
+                mask = torch.rand(y.shape[0]) < noise_level
+                random_values = torch.empty(mask.sum().item(), y.shape[-1], device=device).uniform_(min_y, max_y)
+                y[mask] = random_values
+                noise_level = noise_level * noise_decay
             optimizer.zero_grad()
             loss, train_metrics = model.training_pass(x, y, **loss_hyperparameters)
             wandb.log({**train_metrics, "step": step})
