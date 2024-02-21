@@ -1,0 +1,71 @@
+config_id: optunarun_singlestrong
+seeds: [42,43,44,45,46]
+data_seed: 0
+
+training_hyperparameters:
+  early_stopping_patience: 4
+  epochs: 500
+  clip_gradient_norm: 
+    rangetunefloat: [0.5, 10.0]
+  batch_size: 
+    logtuneint: [32, 512]
+  optimizer_hyperparameters:
+    lr: 
+      logtunefloat: [1.0e-4, 1.0e-2]
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+    weight_decay: 0.0
+  optimizer: adam
+  input_noise_x: 
+    rangetunefloat: [0.02, 0.3]
+  input_noise_y: 
+    rangetunefloat: [0.02, 0.3]
+  loss_hyperparameters:
+    reliability_loss_weight: 
+      rangetunefloat: [0.0, 2.0]
+
+    reliability_loss_weight:
+      rangetunefloat: [0.0, 2.0]
+    gumbel_tau: 
+      logtunefloat: [0.001, 2.0]
+    sigmoid_steepness:
+      logtunefloat: [0.1, 500.0]
+    
+    weights_entropy_loss_weight: 
+      rangetunefloat: [0.0, 2.0]
+
+    loss_calculation_in_normalised_domain: True
+  eval_metric_for_best_model: val_nll_loss
+  evaluation_function_names: [miscalibration, conformal_prediction]
+  slow_first_n_batches: 1
+  noisy_start:
+    choose:
+      - value: True
+        noise_level:
+          rangetunefloat: [0.01, 1.0]
+        noise_decay:
+          rangetunefloat: [0.2, 0.99]
+      - value: False
+
+data_hyperparameters:
+  data_type: conformal
+  dataset_name: meps_21
+  val_split: 0.1
+  test_split: 0.2
+  random_state: 1337
+  
+
+model_hyperparameters:
+  model_class: mdn
+  n_hidden: 
+    tune: [[32, 32], [64,128,64,32], [128,128], [128, 128, 128], [64,512,64], [64,128,128,64]]
+  n_distributions: 
+    rangetuneint: [5, 50]
+  dropout_rate: 
+    rangetunefloat: [0.0, 0.5]
+  activation_function: 
+    tune: [tanh, leaky_relu, relu]
+  distribution_type: 
+    tune: [gaussian, laplacian]
+  std_stability_mode: softplus
+  

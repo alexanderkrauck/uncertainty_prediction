@@ -1,0 +1,29 @@
+config_id: config_tranformer_testing
+seeds: [42,43,44,45,46]
+data_seed: 0
+
+training_hyperparameters:
+  early_stopping_patience: 15
+  epochs: 150
+  batch_size: 64
+  optimizer_hyperparameters:
+    lr: 2.0e-3
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+    weight_decay: 0.0
+  optimizer: adam
+  input_noise_x: 0.02
+  input_noise_y: 0.06
+  loss_hyperparameters:
+    loss_calculation_in_normalised_domain: True
+  eval_metric_for_best_model: val_nll_loss
+
+data_hyperparameters:
+  data_type: synthetic
+  data_path: datasets/simulated_data/gmm_10_10000/gmm_10_10000
+  
+
+model_hyperparameters:
+  model_class: cde_transformer
+  activation_function: relu
+  
