@@ -116,3 +116,15 @@ def generate_configs(config, tune_key="tune"):
 
     # If the current config or value is not a dict or no 'tune' elements are found, yield the config/value as is
     yield config
+
+def find_keys(d, path=None, target_keys={"tune", "rangetune", "logtune"}):
+    if path is None:
+        path = []
+    paths = []
+    if isinstance(d, dict):
+        for k, v in d.items():
+            new_path = path + [k]
+            if k in target_keys:
+                paths.append(new_path)
+            paths += find_keys(v, new_path, target_keys)
+    return paths

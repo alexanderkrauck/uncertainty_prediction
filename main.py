@@ -6,14 +6,94 @@ import random
 import os
 import traceback
 
-from utils.setup import sync_wandb, load_data_module, generate_configs
+from utils.setup import sync_wandb, load_data_module, generate_configs, find_keys
 from utils.train import cv_experiment, seeded_experiment
+from utils.data_module import DataModule
 
 import torch
 import numpy as np
 from copy import deepcopy
 
 from tqdm import tqdm
+import optuna
+from optuna import Trial
+
+def objective(trial: Trial, config: dict, data_module: DataModule, device: str, wandb_mode:str, project_name:str):
+    """
+    Optuna objective function for tuning hyperparameters.
+
+    Args:
+        trial: An Optuna `Trial` object.
+        config: A dictionary containing the configuration.
+        data_module: A `DataModule` object that contains the data.
+        device: The device to use for training.
+        wandb_mode: The wandb mode.
+        project_name: The name of the wandb project.
+
+    Returns:
+        score
+    """
+
+    conf = deepcopy(config)
+    paths = find_keys(config, None, target_keys=["choose"])
+    for path in paths:
+        inner_conf = conf
+        for key in path[:-2]:
+            inner_conf = inner_conf[key]
+        options = {key["value"]: idx for idx, key in enumerate(inner_conf[path[-2]][path[-1]])}
+        choice = trial.suggest_categorical(str(path), list(options.keys()))
+        choice = options[choice]
+        for key, val in inner_conf[path[-2]][path[-1]][choice].items():
+            if key != "value":
+                inner_conf[key] = val
+        inner_conf[path[-2]] = inner_conf[path[-2]][path[-1]][choice]["value"]
+        
+    paths = find_keys(conf, None, target_keys=["tune", "rangetunefloat", "logtunefloat", "rangetuneint", "logtuneint"])
+    for path in paths:
+        inner_conf = conf
+        for key in path[:-2]:
+            inner_conf = inner_conf[key]
+        options = inner_conf[path[-2]][path[-1]]
+        if path[-1] == "tune":
+            opts = {str(option): option for option in options}
+            choice = trial.suggest_categorical(str(path), [str(option) for option in options])
+            choice = opts[choice]
+        elif path[-1] == "rangetunefloat":
+            choice = trial.suggest_float(str(path), options[0], options[1])
+        elif path[-1] == "logtunefloat":
+            choice = trial.suggest_float(str(path), options[0], options[1], log=True)
+        elif path[-1] == "rangetuneint":
+            choice = trial.suggest_int(str(path), options[0], options[1])
+        elif path[-1] == "logtuneint":
+            choice = trial.suggest_int(str(path), options[0], options[1], log=True)
+        inner_conf[path[-2]] = choice
+
+    metric_list = cv_experiment(
+        data_module,
+        conf["config_id"],
+        conf["data_seed"],
+        conf["seeds"],
+        conf,
+        conf["model_hyperparameters"],
+        conf["training_hyperparameters"],
+        device,
+        wandb_mode,
+        project_name,
+        use_test_set=False,
+        verbose=False,
+    )
+    mean_metrics = {}
+    for key in metric_list[0].keys():
+        mean_metrics[key] = np.mean([metric[key] for metric in metric_list])
+    trial.set_user_attr("metrics", mean_metrics)
+    trial.set_user_attr("config", conf)
+    score = mean_metrics["best_"+conf["training_hyperparameters"]["eval_metric_for_best_model"]]
+
+    return score
+
+    
+    
+
 
 
 def main(
@@ -24,6 +104,7 @@ def main(
     wandb_mode: str = "offline",
     project_name="debug_project",
     nested_cv_results_file="nested_cv_results.log",
+    device="cuda" if torch.cuda.is_available() else "cpu",
 ):
     """Main function for running deep learning experiments.
 
@@ -79,6 +160,7 @@ def main(
             wandb_mode=wandb_mode,
             project_name=project_name,
             nested_cv_results_file=nested_cv_results_file,
+            device=device
         )
 
 
@@ -90,7 +172,8 @@ def main_config_run(
     choose_n_configs: int = None,
     wandb_mode: str = "offline",
     project_name="debug_project",
-    nested_cv_results_file="nested_cv_results.log"
+    nested_cv_results_file="nested_cv_results.log",
+    device="cuda" if torch.cuda.is_available() else "cpu",
     ):
 
         # Load hyperparameters
@@ -100,12 +183,10 @@ def main_config_run(
     eval_mode = eval_mode.lower()
     if eval_mode == "nested_cv":
         print("Saving nested cv results to", nested_cv_results_file)
-    if eval_mode not in ["default", "cv", "nested_cv"]:
+    if eval_mode not in ["default", "cv", "nested_cv", "optuna"]:
         raise ValueError(f"Evaluation mode {eval_mode} not supported yet.")
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    if eval_mode == "nested_cv":
+    if eval_mode == "nested_cv" or eval_mode == "optuna":
         data_configs = generate_configs(config=true_config["data_hyperparameters"])
         with open(nested_cv_results_file, "a") as f:
                 f.write(f"\n Model Type: {true_config['model_hyperparameters']['model_class']} - Dataset: {true_config['data_hyperparameters']}\n")
@@ -116,40 +197,57 @@ def main_config_run(
             config_grid["data_hyperparameters"] = data_config
 
             data_module = load_data_module(**data_config)
-            configs = [conf for conf in generate_configs(config=config_grid)]
-            if choose_n_configs and len(configs) > choose_n_configs:
-                random.shuffle(configs)
-                print(
-                    f"Randomly choosing {choose_n_configs} configs from {len(configs)} configs."
-                )
-                configs = configs[:choose_n_configs]
-            best_eval_score = np.inf
-            best_config = None
-            best_epoch = None
-            for idx, config in enumerate(tqdm(configs)):
-                metric_list = cv_experiment(
-                    data_module,
-                    config["config_id"],
-                    config["data_seed"],
-                    config["seeds"],
-                    config,
-                    config["model_hyperparameters"],
-                    config["training_hyperparameters"],
-                    device,
-                    wandb_mode,
-                    project_name,
-                    use_test_set=False,
-                    verbose=False,
-                )
-                mean_metrics = {}
-                for key in metric_list[0].keys():
-                    mean_metrics[key] = np.mean([metric[key] for metric in metric_list])
-                score = mean_metrics["best_"+config["training_hyperparameters"]["eval_metric_for_best_model"]]
 
-                if score < best_eval_score:
-                    best_eval_score = score
-                    best_config = config
-                    best_epoch = int(mean_metrics["best_val_epoch"])
+            if eval_mode == "optuna":
+                study = optuna.create_study(
+                    direction="minimize",
+                    study_name=f"{project_name}_{true_config['config_id']}_{data_config['data_type']}_split{outer_idx}",
+                    storage=f"sqlite:///runs/{project_name}/{true_config['config_id']}_optuna.db",#f"sqlite:///{log_directory}/{true_config['model_hyperparameters']['model_class']}_{data_config['data_type']}.db",
+                    load_if_exists=True,
+                )
+                objective_fn = lambda trial: objective(trial, config_grid, data_module, device, wandb_mode, project_name)
+                study.optimize(objective_fn, n_trials=choose_n_configs if choose_n_configs is not None else 1000, show_progress_bar=True)
+
+                best_trial = study.best_trial
+                best_config = best_trial.user_attrs["config"]
+                best_epoch = int(best_trial.user_attrs["metrics"]["best_val_epoch"])
+                best_eval_score = best_trial.value
+
+            if eval_mode == "nested_cv":
+                configs = [conf for conf in generate_configs(config=config_grid)]
+                if choose_n_configs and len(configs) > choose_n_configs:
+                    random.shuffle(configs)
+                    print(
+                        f"Randomly choosing {choose_n_configs} configs from {len(configs)} configs."
+                    )
+                    configs = configs[:choose_n_configs]
+                best_eval_score = np.inf
+                best_config = None
+                best_epoch = None
+                for idx, config in enumerate(tqdm(configs)):
+                    metric_list = cv_experiment(
+                        data_module,
+                        config["config_id"],
+                        config["data_seed"],
+                        config["seeds"],
+                        config,
+                        config["model_hyperparameters"],
+                        config["training_hyperparameters"],
+                        device,
+                        wandb_mode,
+                        project_name,
+                        use_test_set=False,
+                        verbose=False,
+                    )
+                    mean_metrics = {}
+                    for key in metric_list[0].keys():
+                        mean_metrics[key] = np.mean([metric[key] for metric in metric_list])
+                    score = mean_metrics["best_"+config["training_hyperparameters"]["eval_metric_for_best_model"]]
+
+                    if score < best_eval_score:
+                        best_eval_score = score
+                        best_config = config
+                        best_epoch = int(mean_metrics["best_val_epoch"])
 
             with open(nested_cv_results_file, "a") as f:
                 f.write(f"Best Config cv run {outer_idx}:\n")
@@ -166,7 +264,7 @@ def main_config_run(
                 best_config["model_hyperparameters"],
                 best_config["training_hyperparameters"],
                 device,
-                wandb_mode,
+                "online", #For the test set we always want to log to wandb because we don't care about speed
                 project_name,
                 False,
                 verbose=False
@@ -189,7 +287,9 @@ def main_config_run(
 
 
 
+    # Run experiments in default or cv mode
     else:
+
         configs = [conf for conf in generate_configs(config=true_config)]
 
         if choose_n_configs and len(configs) > choose_n_configs:
@@ -283,6 +383,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nested_cv_results_file", type=str, help="Nested cv results file"
     )
+    parser.add_argument("--device", type=str, help="Device to use")
 
     args = parser.parse_args()
     pass_args = {k: v for k, v in dict(args._get_kwargs()).items() if v is not None}
