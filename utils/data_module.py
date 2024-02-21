@@ -70,7 +70,7 @@ class CustomDataset(Dataset):
             return self.sample_densities.y_space
         else:
             return torch.linspace(
-                self.y.min() - self.std_y / 2, self.y.max() + self.std_y / 2, 256
+                (self.y.min() - self.std_y / 2).item(), (self.y.max() + self.std_y).item() / 2, 256
             )
 
     def __len__(self):
