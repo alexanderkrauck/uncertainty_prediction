@@ -357,12 +357,12 @@ class ConformalPrediction(BaseEvaluationFunction):
         model: ConditionalDensityEstimator,
         precomputed_variables: Dict[str, torch.Tensor] = None,
         reduce="mean",
-        conformal_p: float = 0.95,
+        conformal_p: float = 0.90,
         **kwargs,
     ):
         #TODO: Implement Conformal Prediction
         num_steps = y_space.shape[0]
-        step_size = (y_space[1] - y_space[0]).abs()
+        step_size = (y_space[1] - y_space[0]).abs().item()
 
         conformal_sizes = []
         conformal_in_set = []
@@ -382,7 +382,10 @@ class ConformalPrediction(BaseEvaluationFunction):
             normalized_estimated_densities = estimated_densities / estimated_densities.sum(dim=0)
             sorted_indices = torch.argsort(normalized_estimated_densities, descending=True)
             cumulative_sum = torch.cumsum(normalized_estimated_densities[sorted_indices], dim=0)
-            conformal_set = sorted_indices[cumulative_sum < conformal_p]
+
+            # Find the smallest set of indices such that the sum of the estimated densities is greater than the conformal p
+            smaller_count = (cumulative_sum < conformal_p).sum()
+            conformal_set = sorted_indices[:smaller_count + 1]
 
             if torch.min(torch.abs(y_batch[idx] - y_space[conformal_set])).item() < step_size/2:
                 conformal_in_set.append(1)

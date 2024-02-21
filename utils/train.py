@@ -111,10 +111,11 @@ def evaluate_model(
     first_n_batch_sizes = 0
     eval_metrics = {}
 
-    if isinstance(y_space, np.ndarray):
-        y_space = torch.tensor(y_space, device=device).view(-1, 1)
-    elif isinstance(y_space, torch.Tensor):
+
+    if isinstance(y_space, torch.Tensor):
         y_space = y_space.clone().to(device).view(-1, 1)
+    else:
+        y_space = torch.tensor(y_space, device=device).view(-1, 1)
 
     evaluation_function_names = [func.lower() for func in evaluation_function_names]
     for func in evaluation_function_names:
