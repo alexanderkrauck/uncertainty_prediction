@@ -53,6 +53,8 @@ def load_data_module(data_type: str, **data_hyperparameters:dict) -> DataModule:
         return UCIDataModule(**data_hyperparameters)
     elif data_type == "rothfuss":
         return RothfussDataModule(**data_hyperparameters)
+    elif data_type == "conformal":
+        return ConformalPredictionDataModule(**data_hyperparameters)
     else:
         raise ValueError(f"Data type {data_type} not supported yet.")
     
