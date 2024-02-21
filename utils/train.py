@@ -550,6 +550,7 @@ def outer_train(
 
     wandb.log(metrics_dict)
     summary_writer.add_hparams(make_lists_strings_in_dict(flatten_dict(config)), metrics_dict)
+    summary_writer.close()
 
     wandb.finish()
     if test_dataloader is not None:
