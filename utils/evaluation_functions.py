@@ -26,6 +26,8 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import matplotlib
 
+from scipy.interpolate import interp1d
+
 matplotlib.use("Agg")
 
 # Local/Application Specific
@@ -358,11 +360,17 @@ class ConformalPrediction(BaseEvaluationFunction):
         precomputed_variables: Dict[str, torch.Tensor] = None,
         reduce="mean",
         conformal_p: float = 0.90,
+        conformal_finer: float = 10,
         **kwargs,
     ):
         #TODO: Implement Conformal Prediction
         num_steps = y_space.shape[0]
         step_size = (y_space[1] - y_space[0]).abs().item()
+        fine_step_size = step_size / conformal_finer
+
+        y_space_fine = torch.linspace(
+            y_space.min().item(), y_space.max().item(), num_steps * conformal_finer, device=y_space.device
+        )
 
         conformal_sizes = []
         conformal_in_set = []
@@ -379,21 +387,27 @@ class ConformalPrediction(BaseEvaluationFunction):
             else:
                 estimated_densities = model.get_density(x_space, y_space, False)
 
-            normalized_estimated_densities = estimated_densities / estimated_densities.sum(dim=0)
-            sorted_indices = torch.argsort(normalized_estimated_densities, descending=True)
-            cumulative_sum = torch.cumsum(normalized_estimated_densities[sorted_indices], dim=0)
+            interp = interp1d(y_space.flatten().detach().cpu().numpy(), estimated_densities.flatten().detach().cpu().numpy(), kind="linear")
+            estimated_densities_fine = torch.tensor(interp(y_space_fine.detach().cpu().numpy()), device=y_space.device)
+            estimated_densities_fine_normalized = (
+                estimated_densities_fine / estimated_densities_fine.sum()
+            )
+
+            #normalized_estimated_densities = estimated_densities / estimated_densities.sum(dim=0)
+            sorted_indices = torch.argsort(estimated_densities_fine_normalized, descending=True)
+            cumulative_sum = torch.cumsum(estimated_densities_fine_normalized[sorted_indices], dim=0)
 
             # Find the smallest set of indices such that the sum of the estimated densities is greater than the conformal p
             smaller_count = (cumulative_sum < conformal_p).sum()
             conformal_set = sorted_indices[:smaller_count + 1]
 
-            if torch.min(torch.abs(y_batch[idx] - y_space[conformal_set])).item() < step_size/2:
+            if torch.min(torch.abs(y_batch[idx] - y_space_fine[conformal_set])).item() < fine_step_size/2:
                 conformal_in_set.append(1)
             else:
                 conformal_in_set.append(0)
             
 
-            conformal_size = step_size * len(conformal_set)
+            conformal_size = fine_step_size * len(conformal_set)
             conformal_sizes.append(conformal_size)
 
         if reduce == "mean":
