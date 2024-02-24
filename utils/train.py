@@ -39,6 +39,7 @@ from .evaluation_functions import (
     Miscalibration
 )
 from .utils import flatten_dict, make_lists_strings_in_dict
+from copy import deepcopy
 
 EVALUATION_FUNCTION_MAP = {
     "hellinger_distance": HellingerDistance(),
@@ -181,7 +182,7 @@ def evaluate_model(
                     continue
                 additional_eval_metrics[
                     evaluation_function_name
-                ] += evaluation_function(**eval_input_dict)
+                ] += evaluation_function(**eval_input_dict, **kwargs)
 
     for key, value in eval_metrics.items():
         eval_metrics[key] /= len(val_loader.dataset)
@@ -527,8 +528,8 @@ def outer_train(
         artifact.add_file(best_params_path)
         wandb.log_artifact(artifact)
     metrics_dict = {}
+    model.load_state_dict(best_params)
     if test_dataloader is not None:
-        model.load_state_dict(best_params)
         test_metrics = evaluate_model(
             model,
             test_dataloader,
@@ -542,6 +543,18 @@ def outer_train(
         if train_data_module.has_distribution():
             log_plot(summary_writer, model, test_dataloader, train_data_module.y_space, 5, device)
         log_permutation_feature_importance(summary_writer, model, test_dataloader, device)
+    elif use_validation_set: # If we don't have a test set, we log the best validation metrics with the slow metrics calculated for the whole validation set
+        copied_training_hyperparameters = deepcopy(training_hyperparameters)
+        copied_training_hyperparameters["slow_first_n_batches"] = -1
+        best_val_metrics.update(evaluate_model(
+            model,
+            train_data_module.get_val_dataloader(128),
+            device,
+            y_space=train_data_module.y_space,
+            is_test=False,
+            has_distribution=train_data_module.has_distribution(),
+            **training_hyperparameters,
+        ))
     if use_validation_set:
         best_val_metrics = {
             "best_" + key: value for key, value in best_val_metrics.items()

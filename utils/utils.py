@@ -31,3 +31,11 @@ def make_lists_strings_in_dict(d):
         if isinstance(v, list):
             d[k] = str(v)
     return d
+
+def conformity_improvement(conformity_score:float, conformal_p: float):
+    """
+    Improve the conformal p-value by using the conformity score.
+    """
+
+    conformal_p_new = 1 - (1 - conformal_p)**2 / (1 - conformity_score)
+    return conformal_p_new

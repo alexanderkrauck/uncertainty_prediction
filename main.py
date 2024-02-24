@@ -9,6 +9,7 @@ import traceback
 from utils.setup import sync_wandb, load_data_module, generate_configs, find_keys
 from utils.train import cv_experiment, seeded_experiment
 from utils.data_module import DataModule
+import utils
 
 import torch
 import numpy as np
@@ -197,6 +198,7 @@ def main_config_run(
             config_grid["data_hyperparameters"] = data_config
 
             data_module = load_data_module(**data_config)
+            best_val_conformity = None
 
             if eval_mode == "optuna":
                 os.makedirs(f"runs/{project_name}/", exist_ok=True)
@@ -213,6 +215,8 @@ def main_config_run(
                 best_trial = study.best_trial
                 best_config = best_trial.user_attrs["config"]
                 best_epoch = int(best_trial.user_attrs["metrics"]["best_val_epoch"])
+                if "best_val_conformal_prediction1part" in best_trial.user_attrs["metrics"]:
+                    best_val_conformity = best_trial.user_attrs["metrics"]["best_val_conformal_prediction1part"]
                 best_eval_score = best_trial.value
 
             if eval_mode == "nested_cv":
@@ -250,6 +254,8 @@ def main_config_run(
                         best_eval_score = score
                         best_config = config
                         best_epoch = int(mean_metrics["best_val_epoch"])
+                        if "best_val_conformal_prediction1part" in mean_metrics:
+                            best_val_conformity = mean_metrics["best_val_conformal_prediction1part"]
 
             with open(nested_cv_results_file, "a") as f:
                 f.write(f"Best Config cv run {outer_idx}:\n")
@@ -257,6 +263,8 @@ def main_config_run(
                 f.write(f"Best mean cv score: {best_eval_score}\n")
 
             best_config["training_hyperparameters"]["epochs"] = best_epoch # Because we don't know whats best if we don't use the validation set
+            original_conformal_p = best_config["training_hyperparameters"]["conformal_p"] if "conformal_p" in best_config["training_hyperparameters"] else 0.9
+            best_config["training_hyperparameters"]["conformal_p"] = utils.conformity_improvement(best_val_conformity, original_conformal_p) 
             print(best_config)
             test_metrics = seeded_experiment(
                 data_module,

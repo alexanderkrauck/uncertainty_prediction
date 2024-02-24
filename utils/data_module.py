@@ -75,7 +75,7 @@ class CustomDataset(Dataset):
             return self.sample_densities.y_space
         else:
             return torch.linspace(
-                (self.y.min() - self.std_y / 2).item(), (self.y.max() + self.std_y).item() / 2, 256
+                (self.y.min() - self.std_y / 2).item(), (self.y.max() + self.std_y/ 2).item(), 256
             )
 
     def __len__(self):
@@ -141,12 +141,12 @@ class DataModule(ABC, TrainingDataModule):
 
     def get_val_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
         return DataLoader(
-            self.val_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2
+            self.val_dataset, batch_size=batch_size, shuffle=shuffle
         )
 
     def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
         return DataLoader(
-            self.test_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2
+            self.test_dataset, batch_size=batch_size, shuffle=shuffle
         )
 
     @abstractmethod
@@ -185,8 +185,8 @@ class DataModule(ABC, TrainingDataModule):
             self.test_dataset = CustomDataset(self.x_test, self.y_test)
 
     def normalize_datasets(self) -> None:
-        x_scaler = StandardScaler().fit(self.x_train)
-        y_scaler = StandardScaler().fit(self.y_train)
+        x_scaler = StandardScaler().fit(np.concatenate([self.x_train, self.x_val, self.x_test], axis=0))
+        y_scaler = StandardScaler().fit(np.concatenate([self.y_train, self.y_val, self.y_test], axis=0))
 
         self.x_train = x_scaler.transform(self.x_train)
         self.x_val = x_scaler.transform(self.x_val)
