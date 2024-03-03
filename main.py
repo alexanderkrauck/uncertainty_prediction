@@ -210,7 +210,7 @@ def main_config_run(
                     load_if_exists=True,
                 )
                 objective_fn = lambda trial: objective(trial, config_grid, data_module, device, wandb_mode, project_name)
-                study.optimize(objective_fn, n_trials=choose_n_configs if choose_n_configs is not None else 1000, show_progress_bar=True)
+                study.optimize(objective_fn, n_trials=choose_n_configs if choose_n_configs is not None else 1000, show_progress_bar=True, catch=(ValueError,))
 
                 best_trial = study.best_trial
                 best_config = best_trial.user_attrs["config"]
@@ -274,7 +274,7 @@ def main_config_run(
                 best_config["model_hyperparameters"],
                 best_config["training_hyperparameters"],
                 device,
-                "online", #For the test set we always want to log to wandb because we don't care about speed
+                "offline", #For the test set we always want to log to wandb because we don't care about speed
                 project_name,
                 False,
                 verbose=False
