@@ -3,7 +3,7 @@ seeds: [42,43,44,45,46]
 data_seed: 0
 
 training_hyperparameters:
-  early_stopping_patience: 3
+  early_stopping_patience: 15
   epochs: 150
   batch_size: 128
   optimizer_hyperparameters:

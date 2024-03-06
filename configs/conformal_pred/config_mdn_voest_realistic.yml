@@ -24,8 +24,7 @@ training_hyperparameters:
     reliability_loss_weight: 
       rangetunefloat: [0.0, 2.0]
 
-    reliability_loss_weight:
-      rangetunefloat: [0.0, 2.0]
+
     gumbel_tau: 
       logtunefloat: [0.001, 2.0]
     sigmoid_steepness:

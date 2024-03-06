@@ -1,4 +1,4 @@
-config_id: kmn_voest_ideal
+config_id: mdn_blog
 seeds: [42,43,44,45,46]
 data_seed: 0
 
@@ -24,7 +24,6 @@ training_hyperparameters:
     reliability_loss_weight: 
       rangetunefloat: [0.0, 2.0]
 
-
     gumbel_tau: 
       logtunefloat: [0.001, 2.0]
     sigmoid_steepness:
@@ -47,29 +46,24 @@ training_hyperparameters:
       - value: False
 
 data_hyperparameters:
-  data_type: voest
-  data_path: datasets/voest_datasets/
-  original: False
-  val_split: 0.15
+  data_type: conformal
+  dataset_name: blog
+  val_split: 0.1
   test_split: 0.2
   random_state: 1337
   
 
 model_hyperparameters:
-  model_class: kmn
+  model_class: mdn
   n_hidden: 
     tune: [[32, 32], [64,128,64,32], [128,128], [128, 128, 128], [64,512,64], [64,128,128,64]]
+  n_distributions: 
+    rangetuneint: [5, 50]
   dropout_rate: 
     rangetunefloat: [0.0, 0.5]
   activation_function: 
     tune: [tanh, leaky_relu, relu]
-  center_selection_method: 
-    tune: [k_means, agglomerative]
-  trainable_scales: 
-    tune: [True, False]
-  initial_kernel_scales: [0.7, 0.3]
-  n_centers: 
-    rangetuneint: [5, 100]
-  keep_edges: 
-    tune: [True, False]
+  distribution_type: 
+    tune: [gaussian, laplacian]
+  std_stability_mode: softplus
   

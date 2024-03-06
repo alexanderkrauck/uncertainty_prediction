@@ -1,4 +1,4 @@
-config_id: kmn_voest_ideal
+config_id: kmn_blog
 seeds: [42,43,44,45,46]
 data_seed: 0
 
@@ -24,7 +24,6 @@ training_hyperparameters:
     reliability_loss_weight: 
       rangetunefloat: [0.0, 2.0]
 
-
     gumbel_tau: 
       logtunefloat: [0.001, 2.0]
     sigmoid_steepness:
@@ -47,10 +46,9 @@ training_hyperparameters:
       - value: False
 
 data_hyperparameters:
-  data_type: voest
-  data_path: datasets/voest_datasets/
-  original: False
-  val_split: 0.15
+  data_type: conformal
+  dataset_name: blog
+  val_split: 0.1
   test_split: 0.2
   random_state: 1337
   
