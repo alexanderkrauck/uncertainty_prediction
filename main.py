@@ -202,6 +202,7 @@ def main_config_run(
 
             if eval_mode == "optuna":
                 os.makedirs(f"runs/{project_name}/", exist_ok=True)
+                optuna.logging.set_verbosity(optuna.logging.WARNING)
                 study = optuna.create_study(
                     sampler=optuna.samplers.TPESampler(seed=1337),
                     direction="minimize",
