@@ -275,7 +275,7 @@ def main_config_run(
                 best_config["model_hyperparameters"],
                 best_config["training_hyperparameters"],
                 device,
-                "offline", #For the test set we always want to log to wandb because we don't care about speed
+                wandb_mode, #For the test set we always want to log to wandb because we don't care about speed
                 project_name,
                 False,
                 verbose=False
