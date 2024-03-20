@@ -341,6 +341,13 @@ class WassersteinDistance(BaseEvaluationFunction):
 
 
 class ConformalPrediction(BaseEvaluationFunction):
+    """Conformal Prediction evaluation function.
+
+    The idea is to predict the conditional density function and then to use Highest Density Regions (HDRs) with p-values to make predictions.
+    The p-values are then used to calculate the size of the HDRs and the proportion of the true value that is in the HDRs.
+    """
+
+
     def is_density_evaluation_function(self):
         return False
     
@@ -349,7 +356,7 @@ class ConformalPrediction(BaseEvaluationFunction):
     
     @property
     def output_size(self):
-        return 2
+        return 4
 
     def __call__(
         self,
@@ -359,7 +366,7 @@ class ConformalPrediction(BaseEvaluationFunction):
         model: ConditionalDensityEstimator,
         precomputed_variables: Dict[str, torch.Tensor] = None,
         reduce="mean",
-        conformal_p: float = 0.90,
+        conformal_p: float = 0.90, 
         conformal_finer: float = 10,
         **kwargs,
     ):
@@ -374,6 +381,8 @@ class ConformalPrediction(BaseEvaluationFunction):
 
         conformal_sizes = []
         conformal_in_set = []
+        conformal_sizes_contiguous = []
+        conformal_in_set_contiguous = []
         for idx in range(x_batch.shape[0]):
             x_space = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
 
@@ -407,17 +416,31 @@ class ConformalPrediction(BaseEvaluationFunction):
                 conformal_in_set.append(0)
             
 
+
+
             conformal_size = fine_step_size * len(conformal_set)
             conformal_sizes.append(conformal_size)
+
+            # Now calculate if we want a contiguous set of indices. NOTE: If sizes are equal then the set is contiguous already
+            conformal_size_contiguous = (conformal_set.max() - conformal_set.min()) * fine_step_size #because conformal set are indices
+            if y_space_fine[conformal_set.min()].item() - fine_step_size/2 < y_batch[idx] <= y_space_fine[conformal_set.max()].item() + fine_step_size/2:
+                conformal_in_set_contiguous.append(1)
+            else:
+                conformal_in_set_contiguous.append(0)
+            conformal_sizes_contiguous.append(conformal_size_contiguous)
 
         if reduce == "mean":
             conformal_sizes = np.mean(conformal_sizes)
             conformal_in_set = np.mean(conformal_in_set)
+            conformal_sizes_contiguous = np.mean(conformal_sizes_contiguous)
+            conformal_in_set_contiguous = np.mean(conformal_in_set_contiguous)
         elif reduce == "sum":
             conformal_sizes = np.sum(conformal_sizes)
             conformal_in_set = np.sum(conformal_in_set)
+            conformal_sizes_contiguous = np.sum(conformal_sizes_contiguous)
+            conformal_in_set_contiguous = np.sum(conformal_in_set_contiguous)
 
-        return np.array([conformal_sizes, conformal_in_set], dtype=np.float32)
+        return np.array([conformal_sizes, conformal_in_set, conformal_sizes_contiguous, conformal_in_set_contiguous], dtype=np.float32)
 
 
 class Miscalibration(BaseEvaluationFunction):
