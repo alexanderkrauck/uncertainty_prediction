@@ -217,7 +217,7 @@ def main_config_run(
                 best_config = best_trial.user_attrs["config"]
                 best_epoch = int(best_trial.user_attrs["metrics"]["best_val_epoch"])
                 if "best_val_conformal_prediction1part" in best_trial.user_attrs["metrics"]:
-                    required_conformity = best_trial.user_attrs["metrics"]["best_val_conformal_prediction1part"]
+                    required_conformity = best_trial.user_attrs["metrics"]["best_val_required_conformal_p"]
                 best_eval_score = best_trial.value
 
             if eval_mode == "nested_cv":
