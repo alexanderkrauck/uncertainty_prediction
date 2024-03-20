@@ -340,6 +340,38 @@ class WassersteinDistance(BaseEvaluationFunction):
         return wasserstein_distances
 
 
+def infer_quantalized_conformal_p(
+        model,
+        val_data_loader,
+        device,
+        y_space,
+        has_distribution,
+        conformal_p: float = 0.9,
+        **training_hyperparameters,
+):
+    
+    if isinstance(y_space, torch.Tensor):
+        y_space = y_space.clone().to(device).view(-1, 1)
+    else:
+        y_space = torch.tensor(y_space, device=device).view(-1, 1)
+
+    all_required_ps = []
+    cp = ConformalPrediction()
+
+    for idx, batch in enumerate(val_data_loader):
+        if has_distribution:
+            x_batch, y_batch, densities = batch
+        else:
+            x_batch, y_batch = batch
+        x_batch = x_batch.to(device)
+        y_batch = y_batch.to(device)
+
+        model_output = model(x_batch, y_batch)
+
+        all_required_ps.extend(cp(y_space, x_batch, y_batch, model, model_output, return_required_conformal_p_instead=True))
+
+    return np.quantile(all_required_ps, conformal_p)
+
 class ConformalPrediction(BaseEvaluationFunction):
     """Conformal Prediction evaluation function.
 
@@ -368,6 +400,7 @@ class ConformalPrediction(BaseEvaluationFunction):
         reduce="mean",
         conformal_p: float = 0.90, 
         conformal_finer: float = 10,
+        return_required_conformal_p_instead: bool = False,
         **kwargs,
     ):
         #TODO: Implement Conformal Prediction
@@ -383,6 +416,8 @@ class ConformalPrediction(BaseEvaluationFunction):
         conformal_in_set = []
         conformal_sizes_contiguous = []
         conformal_in_set_contiguous = []
+
+        required_ps = []
         for idx in range(x_batch.shape[0]):
             x_space = x_batch[idx].unsqueeze(0).expand(num_steps, -1)
 
@@ -407,28 +442,36 @@ class ConformalPrediction(BaseEvaluationFunction):
             cumulative_sum = torch.cumsum(estimated_densities_fine_normalized[sorted_indices], dim=0)
 
             # Find the smallest set of indices such that the sum of the estimated densities is greater than the conformal p
-            smaller_count = (cumulative_sum < conformal_p).sum()
-            conformal_set = sorted_indices[:smaller_count + 1]
-
-            if torch.min(torch.abs(y_batch[idx] - y_space_fine[conformal_set])).item() < fine_step_size/2:
-                conformal_in_set.append(1)
+            if return_required_conformal_p_instead:
+                wanted_index = torch.argmin(torch.abs(y_batch[idx] - y_space_fine[sorted_indices])).item() #this is the index of the closest bin to the true value in the sorted indices
+                required_p = cumulative_sum[wanted_index] #this is the smallests conformal p that we would have required to include the true value in the set
+                required_ps.append(required_p.item())
             else:
-                conformal_in_set.append(0)
-            
+                smaller_count = (cumulative_sum < conformal_p).sum()
+                conformal_set = sorted_indices[:smaller_count + 1]
+
+                if torch.min(torch.abs(y_batch[idx] - y_space_fine[conformal_set])).item() < fine_step_size/2:
+                    conformal_in_set.append(1)
+                else:
+                    conformal_in_set.append(0)
+                
 
 
 
-            conformal_size = fine_step_size * len(conformal_set)
-            conformal_sizes.append(conformal_size)
+                conformal_size = fine_step_size * len(conformal_set)
+                conformal_sizes.append(conformal_size)
 
-            # Now calculate if we want a contiguous set of indices. NOTE: If sizes are equal then the set is contiguous already
-            conformal_size_contiguous = (conformal_set.max() - conformal_set.min()) * fine_step_size #because conformal set are indices
-            if y_space_fine[conformal_set.min()].item() - fine_step_size/2 < y_batch[idx] <= y_space_fine[conformal_set.max()].item() + fine_step_size/2:
-                conformal_in_set_contiguous.append(1)
-            else:
-                conformal_in_set_contiguous.append(0)
-            conformal_sizes_contiguous.append(conformal_size_contiguous)
+                # Now calculate if we want a contiguous set of indices. NOTE: If sizes are equal then the set is contiguous already
+                conformal_size_contiguous = (conformal_set.max() - conformal_set.min()) * fine_step_size #because conformal set are indices
+                if y_space_fine[conformal_set.min()].item() - fine_step_size/2 < y_batch[idx] <= y_space_fine[conformal_set.max()].item() + fine_step_size/2:
+                    conformal_in_set_contiguous.append(1)
+                else:
+                    conformal_in_set_contiguous.append(0)
+                conformal_sizes_contiguous.append(conformal_size_contiguous.item())
 
+        if return_required_conformal_p_instead:
+            return required_ps
+        
         if reduce == "mean":
             conformal_sizes = np.mean(conformal_sizes)
             conformal_in_set = np.mean(conformal_in_set)
