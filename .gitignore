@@ -406,3 +406,4 @@ fabric.properties
 /runs
 /debug
 !/important_logs/*.log
+/runs_data_for_analysis

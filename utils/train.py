@@ -239,6 +239,8 @@ def train_model(
     noise_decay: float = 0.99,
     noise_level: float = 0.9,
     noise_stop: int = 100,
+    log_train_every_n: int = 1,
+    use_lr_scheduler: bool = False,
     **kwargs,
 ):
     """Train a model using the given hyperparameters and return the best model and its validation metrics
@@ -302,6 +304,8 @@ def train_model(
     optimizer = OPTIMIZER_MAP[optimizer.lower()](
         model.parameters(), **optimizer_hyperparameters
     )
+    if use_lr_scheduler:
+        lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, factor=0.5, min_lr=5e-5, cooldown=3, verbose=verbose)
 
     train_loader = train_data_module.get_train_dataloader(batch_size)
     val_loader = train_data_module.get_val_dataloader(batch_size)
@@ -366,6 +370,8 @@ def train_model(
             best_params = model.state_dict()
 
         early_stopping(val_metrics[eval_metric_for_best_model])
+        if use_lr_scheduler:
+            lr_scheduler.step(val_metrics[eval_metric_for_best_model])
         if early_stopping.early_stop:
             if verbose:
                 print("Early stopping")
@@ -402,9 +408,10 @@ def train_model(
                 noise_level = noise_level * noise_decay
             optimizer.zero_grad()
             loss, train_metrics = model.training_pass(x, y, **loss_hyperparameters)
-            wandb.log({**train_metrics, "step": step})
-            for key, value in train_metrics.items():
-                summary_writer.add_scalar(key, value, step)
+            if step % log_train_every_n == 0:
+                wandb.log({**train_metrics, "step": step})
+                for key, value in train_metrics.items():
+                    summary_writer.add_scalar(key, value, step)
 
             loss.backward()
 
