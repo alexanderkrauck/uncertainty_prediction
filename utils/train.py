@@ -36,7 +36,8 @@ from .evaluation_functions import (
     ConformalPrediction,
     log_plot,
     log_permutation_feature_importance,
-    Miscalibration
+    infer_quantalized_conformal_p,
+    Miscalibration,
 )
 from .utils import flatten_dict, make_lists_strings_in_dict
 from copy import deepcopy
@@ -46,7 +47,7 @@ EVALUATION_FUNCTION_MAP = {
     "wasserstein_distance": KLDivergence(),
     "kl_divergence": WassersteinDistance(),
     "conformal_prediction": ConformalPrediction(),
-    "miscalibration": Miscalibration()
+    "miscalibration": Miscalibration(),
 }
 
 
@@ -112,7 +113,6 @@ def evaluate_model(
     first_n_batch_sizes = 0
     eval_metrics = {}
 
-
     if isinstance(y_space, torch.Tensor):
         y_space = y_space.clone().to(device).view(-1, 1)
     else:
@@ -130,14 +130,21 @@ def evaluate_model(
                 f"Evaluation function {func} requires densities, but the dataset does not contain densities."
             )
 
-    additional_eval_metrics = {func: np.zeros((EVALUATION_FUNCTION_MAP[func].output_size)) for func in evaluation_function_names}
+    additional_eval_metrics = {
+        func: np.zeros((EVALUATION_FUNCTION_MAP[func].output_size))
+        for func in evaluation_function_names
+    }
 
     with torch.no_grad():
         for idx, minibatch in enumerate(val_loader):
             eval_input_dict = {}
             if has_distribution:
                 x_batch, y_batch, densities = minibatch
-                x_batch, y_batch, densities = x_batch.to(device), y_batch.to(device), densities.to(device)
+                x_batch, y_batch, densities = (
+                    x_batch.to(device),
+                    y_batch.to(device),
+                    densities.to(device),
+                )
                 eval_input_dict["densities"] = densities
             else:
                 x_batch, y_batch = minibatch
@@ -161,11 +168,7 @@ def evaluate_model(
                 for key, value in current_eval_metrics.items():
                     eval_metrics[key] += value
 
-            if (
-                idx < slow_first_n_batches
-                or is_test
-                or slow_first_n_batches == -1
-            ):
+            if idx < slow_first_n_batches or is_test or slow_first_n_batches == -1:
                 first_n_batch_sizes += x_batch.shape[0]
 
             for evaluation_function_name in evaluation_function_names:
@@ -305,7 +308,9 @@ def train_model(
         model.parameters(), **optimizer_hyperparameters
     )
     if use_lr_scheduler:
-        lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, factor=0.5, min_lr=5e-5, cooldown=3, verbose=verbose)
+        lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, patience=5, factor=0.5, min_lr=5e-5, cooldown=3, verbose=verbose
+        )
 
     train_loader = train_data_module.get_train_dataloader(batch_size)
     val_loader = train_data_module.get_val_dataloader(batch_size)
@@ -382,7 +387,7 @@ def train_model(
     outer_break = False
     for epoch in bar:
         model.train()
-            
+
         for batch_idx, minibatch in enumerate(train_loader):
             step += 1
             if has_distribution:
@@ -403,7 +408,9 @@ def train_model(
 
             if noisy_start and epoch < noise_stop:
                 mask = torch.rand(y.shape[0]) < noise_level
-                random_values = torch.empty(mask.sum().item(), y.shape[-1], device=device).uniform_(min_y, max_y)
+                random_values = torch.empty(
+                    mask.sum().item(), y.shape[-1], device=device
+                ).uniform_(min_y, max_y)
                 y[mask] = random_values
                 noise_level = noise_level * noise_decay
             optimizer.zero_grad()
@@ -439,7 +446,9 @@ def train_model(
             wandb.log({"step": step, "epoch": epoch})
             summary_writer.add_scalar("epoch", epoch, step)
         if use_validation_set and verbose:
-            bar.set_description(f"{eval_metric_for_best_model}: {str(val_metrics[eval_metric_for_best_model])}")
+            bar.set_description(
+                f"{eval_metric_for_best_model}: {str(val_metrics[eval_metric_for_best_model])}"
+            )
     if use_validation_set:
         return best_params, best_val_metrics
     else:
@@ -510,9 +519,7 @@ def outer_train(
         dir=os.path.join("runs", project_name),
         mode=wandb_mode,
     )
-    summary_writer = SummaryWriter(
-        os.path.join("runs", project_name, run_name)
-    )
+    summary_writer = SummaryWriter(os.path.join("runs", project_name, run_name))
 
     model = load_model(train_data_module, **model_hyperparameters).to(device)
 
@@ -527,7 +534,7 @@ def outer_train(
         verbose=verbose,
         summary_writer=summary_writer,
     )
-    
+
     if wandb_mode != "disabled":
         best_params_path = wandb.run.dir + "/best_params.pt"
         torch.save(best_params, best_params_path)
@@ -548,20 +555,52 @@ def outer_train(
         )
         metrics_dict.update(test_metrics)
         if train_data_module.has_distribution():
-            log_plot(summary_writer, model, test_dataloader, train_data_module.y_space, 5, device)
-        log_permutation_feature_importance(summary_writer, model, test_dataloader, device)
-    elif use_validation_set: # If we don't have a test set, we log the best validation metrics with the slow metrics calculated for the whole validation set
+            log_plot(
+                summary_writer,
+                model,
+                test_dataloader,
+                train_data_module.y_space,
+                5,
+                device,
+            )
+        log_permutation_feature_importance(
+            summary_writer, model, test_dataloader, device
+        )
+    elif (
+        use_validation_set
+    ):  # If we don't have a test set, we log the best validation metrics with the slow metrics calculated for the whole validation set
         copied_training_hyperparameters = deepcopy(training_hyperparameters)
         copied_training_hyperparameters["slow_first_n_batches"] = -1
-        best_val_metrics.update(evaluate_model(
-            model,
-            train_data_module.get_val_dataloader(128),
-            device,
-            y_space=train_data_module.y_space,
-            is_test=False,
-            has_distribution=train_data_module.has_distribution(),
-            **training_hyperparameters,
-        ))
+        # Here we also do the calcluation of the conformity quantile that we want of the score.
+        if (
+            "evaluation_function_names" in training_hyperparameters
+            and "conformal_prediction"
+            in training_hyperparameters["evaluation_function_names"]
+        ):
+            required_conformal_p = infer_quantalized_conformal_p(
+                model,
+                train_data_module.get_val_dataloader(128),
+                device,
+                train_data_module.y_space,
+                train_data_module.has_distribution(),
+                **training_hyperparameters,
+           )
+            best_val_metrics["val_required_conformal_p"] = required_conformal_p
+            training_hyperparameters = training_hyperparameters.copy()
+            training_hyperparameters["conformal_p"] = required_conformal_p #we set the conformal p to the required one so below in the evaluation we use the correct one.
+        best_val_metrics.update(
+            evaluate_model(
+                model,
+                train_data_module.get_val_dataloader(128),
+                device,
+                y_space=train_data_module.y_space,
+                is_test=False,
+                has_distribution=train_data_module.has_distribution(),
+                **training_hyperparameters,
+            )
+        )
+        
+
     if use_validation_set:
         best_val_metrics = {
             "best_" + key: value for key, value in best_val_metrics.items()
@@ -569,7 +608,9 @@ def outer_train(
         metrics_dict.update(best_val_metrics)
 
     wandb.log(metrics_dict)
-    summary_writer.add_hparams(make_lists_strings_in_dict(flatten_dict(config)), metrics_dict)
+    summary_writer.add_hparams(
+        make_lists_strings_in_dict(flatten_dict(config)), metrics_dict
+    )
     summary_writer.close()
 
     wandb.finish()
