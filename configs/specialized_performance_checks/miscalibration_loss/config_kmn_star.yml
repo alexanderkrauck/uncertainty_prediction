@@ -1,0 +1,50 @@
+config_id: kmn_star
+seeds: [42,43,44,45,46]
+data_seed: 0
+
+training_hyperparameters:
+  early_stopping_patience: 4
+  epochs: 500
+  clip_gradient_norm: 4.0
+  batch_size: 32
+  optimizer_hyperparameters:
+    lr: 2.0e-4
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+    weight_decay: 0.0
+  optimizer: adam
+  input_noise_x: 0.03
+  input_noise_y: 0.03
+  loss_hyperparameters:
+    reliability_loss_weight: 
+      tune: [0.0, 0.1, 0.5, 1.0, 1.5, 2.0]
+
+    gumbel_tau: 0.05
+    sigmoid_steepness: 20
+    weights_entropy_loss_weight: 0.0
+
+    loss_calculation_in_normalised_domain: True
+  eval_metric_for_best_model: val_nll_loss
+  evaluation_function_names: [miscalibration, conformal_prediction]
+  slow_first_n_batches: 1
+  log_train_every_n: 10
+  noisy_start: False
+
+data_hyperparameters:
+  data_type: conformal
+  dataset_name: star
+  val_split: 0.1
+  test_split: 0.2
+  random_state: 
+    tune: [1337, 42, 43, 44, 45]
+      
+model_hyperparameters:
+  model_class: kmn
+  n_hidden: [64,128,128,64]
+  dropout_rate: 0.04
+  activation_function: relu
+  center_selection_method: k_means
+  trainable_scales: True
+  initial_kernel_scales: [0.7, 0.3]
+  n_centers: 90
+  keep_edges: True
