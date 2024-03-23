@@ -59,7 +59,10 @@ class CustomDataset(Dataset):
         self.x = torch.tensor(x, dtype=torch.float)
         self.y = torch.tensor(y, dtype=torch.float)
 
-        self.mean_x, self.std_x = torch.mean(self.x, dim=0), torch.std(self.x, dim=0)
+        if len(self.x.shape) == 2:
+            self.mean_x, self.std_x = torch.mean(self.x, dim=0), torch.std(self.x, dim=0)
+        elif len(self.x.shape) == 3:# time series data; we calculate the means w.r.t. the last time dimension
+            self.mean_x, self.std_x = torch.mean(self.x[:,-1]), torch.std(self.x[:, -1])
         self.mean_y, self.std_y = torch.mean(self.y, dim=0), torch.std(self.y, dim=0)
 
         self.std_x[self.std_x < 1e-2] = 1e-2
@@ -85,6 +88,30 @@ class CustomDataset(Dataset):
         if self.sample_densities is not None:
             return self.x[idx], self.y[idx], self.sample_densities[idx]
         return self.x[idx], self.y[idx]
+    
+    @property
+    def is_timeseries(self):
+        return len(self.x.shape) == 3
+    
+    def __add__(self, other):
+        """
+        Combine two datasets by concatenating their data.
+        """
+        if not isinstance(other, CustomDataset):
+            raise TypeError("Can only concatenate CustomDataset instances.")
+
+        if self.x.shape[1:] != other.x.shape[1:] or self.y.shape[1:] != other.y.shape[1:]:
+            raise ValueError("Can't concatenate datasets with different feature dimensions.")
+
+        x = torch.cat((self.x, other.x), dim=0)
+        y = torch.cat((self.y, other.y), dim=0)
+
+        if self.sample_densities is not None and other.sample_densities is not None:
+            sample_densities = self.sample_densities + other.sample_densities
+        else:
+            sample_densities = None
+
+        return CustomDataset(x.numpy(), y.numpy(), sample_densities)
 
 
 class TrainingDataModule:
@@ -147,6 +174,11 @@ class DataModule(ABC, TrainingDataModule):
     def get_test_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
         return DataLoader(
             self.test_dataset, batch_size=batch_size, shuffle=shuffle
+        )
+    
+    def get_total_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
+        return DataLoader(
+            self.train_dataset + self.val_dataset + self.test_dataset, batch_size=batch_size, shuffle=shuffle
         )
 
     @abstractmethod
@@ -413,8 +445,45 @@ class VoestDataModule(DataModule):
         split_random: bool = False,
         random_state: int = 42,
         remove_quantiles: float = 0.00,
+        only_use_columns: Optional[list] = None,
+        time_series_length: int = 1,
+        aggregate_n_timeseries_steps: int = 1,
+        flatten_timeseries: bool = False,
+        use_last_target_as_feature: bool = False, 
+        inject_targets_as_features: np.ndarray = None,
         **kwargs,
     ):
+        """
+        Initialize the Voest dataset.
+
+        Parameters:
+        -----------
+        data_path : str
+            Path to the dataset files.
+        original : bool
+            Whether to use the original or the ideal dataset.
+        val_split : float
+            Fraction of the dataset to be used for validation.
+        test_split : float
+            Fraction of the dataset to be used for testing.
+        split_random : bool
+            Whether to split the dataset randomly or sequentially.
+        random_state : int
+            Random seed for reproducibility.
+        remove_quantiles : float
+            Fraction of the target values to be removed from the dataset.
+        only_use_columns : list
+            List of column names to be used. If None, all columns are used.
+        time_series_length : int
+            Length of the time series. If 1 no time series type data is created.
+        aggregate_n_timeseries_steps : int
+            Aggregate n time series steps to one data point. The first step is kept non-aggregated.
+        flatten_timeseries : bool
+            Flatten the time series data. Then it is like a normal dataset but with more features.
+        use_last_target_as_feature : bool
+            Use the last target value as a feature. 
+        """
+
         self.data_path = data_path
         self.original = original
         self.val_split = val_split
@@ -427,12 +496,57 @@ class VoestDataModule(DataModule):
         if not os.path.exists(f"{data_path}/{filename}"):
             VoestDataModule.preprocess_dataset(data_path)
 
-        voest_ds = pd.read_csv(filepath_or_buffer=os.path.join(data_path, filename))
+        self.voest_ds = pd.read_csv(filepath_or_buffer=os.path.join(data_path, filename))
+    
 
-        target_col = voest_ds["PROGNOSE-EXT_Preise_EURspez_AE00-ENTSOE-Indikative"]
-        feature_cols = voest_ds.iloc[:, 2:]
+        target_col = self.voest_ds["PROGNOSE-EXT_Preise_EURspez_AE00-ENTSOE-Indikative"]
+
+
+        feature_column_names = self.voest_ds.columns[2:]
+        if only_use_columns is not None: # only use the specified columns
+            feature_column_names = [col for col in feature_column_names if col in only_use_columns]
+
+        feature_cols = self.voest_ds[feature_column_names]
+
         self.x_total = feature_cols.to_numpy()
         self.y_total = target_col.to_numpy()
+        self.total_indices = np.arange(len(self.x_total))
+
+        if use_last_target_as_feature: # use the last target value as a feature (in a way that it is not used for prediction ofc)
+            if inject_targets_as_features is None:
+                inject_targets_as_features = self.y_total
+
+            self.x_total = self.x_total[1:]
+            self.x_total = np.concatenate((self.x_total, inject_targets_as_features[:-1].reshape(-1, 1)), axis=1)
+            self.y_total = self.y_total[1:]
+            self.total_indices = self.total_indices[1:]
+
+            assert len(self.x_total) == len(self.y_total)
+
+        if time_series_length > 1:
+            time_series = []
+            for i in range(len(self.x_total) - time_series_length * aggregate_n_timeseries_steps):
+                aggregated = []
+                for j in range(time_series_length):
+                    aggregated_step = np.mean(self.x_total[i + j*aggregate_n_timeseries_steps:i + (j + 1)*aggregate_n_timeseries_steps], axis=0)
+                    aggregated.append(aggregated_step)
+                aggregated.append(self.x_total[i + time_series_length * aggregate_n_timeseries_steps - 1]) #add the last step without aggregation
+
+                time_series.append(aggregated)
+
+            self.y_total = self.y_total[time_series_length * aggregate_n_timeseries_steps:]
+            self.total_indices = self.total_indices[time_series_length * aggregate_n_timeseries_steps:]
+            self.x_total = np.array(time_series)
+
+            if flatten_timeseries:
+                self.x_total = self.x_total.reshape(self.x_total.shape[0], -1)
+
+            assert len(self.x_total) == len(self.y_total)
+                
+
+
+
+
 
         if remove_quantiles > 0:  # remove extreme outliers
             mask = (self.y_total < np.quantile(self.y_total, 1 - remove_quantiles)) & (
@@ -440,17 +554,20 @@ class VoestDataModule(DataModule):
             )
             self.y_total = self.y_total[mask]
             self.x_total = self.x_total[mask]
+            self.total_indices = self.total_indices[mask]
 
         if split_random:
-            self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
+            self.x_train, self.x_test, self.y_train, self.y_test, self.train_indices, self.test_indices = train_test_split(
                 self.x_total,
                 self.y_total,
+                self.total_indices,
                 test_size=test_split,
                 random_state=random_state,
             )
-            self.x_train, self.x_val, self.y_train, self.y_val = train_test_split(
+            self.x_train, self.x_val, self.y_train, self.y_val, self.train_indices, self.val_indices = train_test_split(
                 self.x_train,
                 self.y_train,
+                self.train_indices,
                 test_size=val_split * (1 / (1 - test_split)),
                 random_state=random_state,
             )
@@ -459,6 +576,11 @@ class VoestDataModule(DataModule):
 
             train_rows = int(n_rows * (1 - val_split - test_split))
             test_rows = int(n_rows * (1 - test_split))
+
+            self.test_indices = self.total_indices[test_rows:]
+            self.val_indices = self.total_indices[train_rows:test_rows]
+            self.train_indices = self.total_indices[:train_rows]
+
 
             self.x_train = self.x_total[:train_rows]
             self.x_val = self.x_total[train_rows:test_rows]

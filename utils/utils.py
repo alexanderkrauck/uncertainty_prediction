@@ -11,6 +11,8 @@ __author__ = "Alexander Krauck"
 __email__ = "alexander.krauck@gmail.com"
 __date__ = "2024-02-01"
 
+from torch import Tensor
+
 def flatten_dict(d, parent_key='', sep='/'):
     items = []
     for k, v in d.items():
@@ -32,10 +34,44 @@ def make_lists_strings_in_dict(d):
             d[k] = str(v)
     return d
 
-def conformity_improvement(conformity_score:float, conformal_p: float):
+def conformity_improvement(conformity_score:float, conformal_p: float) -> float:
     """
     Improve the conformal p-value by using the conformity score.
-    """
 
+    The idea is to calculate how much we would need to squish the conformity_score to reach the conformal_p and then apply the same
+    squishing to the conformal_p.
+
+    If it is already calibrated then conformity_score = conformal_p and the result will return conformal_p again.
+
+    Parameters
+    ----------
+    conformity_score : float
+        The conformity score on a calibration/validation set.
+    conformal_p : float
+        The conformal p-value that is intended.
+    """
+    
     conformal_p_new = 1 - (1 - conformal_p)**2 / (1 - conformity_score)
+    #conformal_p_new = 1 - (1 - conformal_p) * (1 - conformal_p_new) / (1 - conformity_score)
     return conformal_p_new
+
+def make_to_pass_precomputed_variables(
+    precomputed_variables: dict, num_steps: int, idx: int
+):
+    to_pass_precomputed_variables = {}
+    for key, value in precomputed_variables.items():
+        if isinstance(value, tuple):
+            new_tuple = tuple(
+                tup_element[idx].unsqueeze(0).expand(num_steps, *tup_element[idx].shape)
+                for tup_element in value
+            )
+            to_pass_precomputed_variables[key] = new_tuple
+        elif isinstance(value, Tensor):
+            to_pass_precomputed_variables[key] = (
+                value[idx].unsqueeze(0).expand(num_steps, *value[idx].shape)
+            )
+        else:
+            raise ValueError(
+                f"precomputed_variables must be a dict of tensors or tuples. {key} is not."
+            )
+    return to_pass_precomputed_variables

@@ -74,3 +74,16 @@ An idea might be instead of rewarding the true y of CDE to punish other answers 
 ## Conformal Intervals are Calibrated if the model is probabilistically calibrated
 
 It is still probabilistic calibration but just integrated from high density areas to low density areas. So in the end of the day the mean abosolute miscalibration error is the integration over all those p=.. Conformal predictions.. Looking at the definition in Gneiting reveals that very obviously.
+
+## Experiment ToDos 19.03.2024
+
+1. I want to make, for each of the hyperparmeters that I introduced novel, designated experiments where I basically compare the performance with and without it. If it is empirically better, ideally accross multiple datasets this is an implication that this hyperparameter is actually helpful for the task.
+
+2. Experiment with synthetic and very simple bimodal distribution and a gaussian to estimate it and look at the performance difference in estimating the quantiles/conformal stuff. Basically the point is that I want to say that CDE can model arbitrary distributions better than when we use models that have unimodal assumptions and that this also is reflected in the goodness of fit in the CP intervals. (larger intervals)
+
+3. Comparison between quantile regression and CDE predictions. I want to basically empirically see on a toy task how well QR compared to full CDE and predict quantiles. Under what circumstances is which model better?
+
+4. Of course I need to do full scale experiments on all datasets with a tightened grid on the relevant values. possibly after the above (1., 2., 3.) for the final thesis as the results table or so.
+    - For this I also need to implement the quantile method first.
+
+5. Potentially I need to do experiments or analyze synthetic datasets. Like for example I could analyze samples in synthetic datasets that are predicted very poorly and try to find out why this is and possibly try to do something against it. However, I need to be careful about the scope of my thesis; I think its already enough to be a good t hesis and I am still completely free to publish stuff later if I really feel like it.

@@ -7,7 +7,7 @@ import os
 import traceback
 
 from utils.setup import sync_wandb, load_data_module, generate_configs, find_keys
-from utils.train import cv_experiment, seeded_experiment
+from utils.train import cv_experiment, seeded_experiment, outer_train
 from utils.data_module import DataModule
 import utils
 
@@ -371,6 +371,31 @@ def main_config_run(
     if wandb_mode == "offline":
         sync_wandb(project_name)
 
+def train_single_model_from_config(config_file):
+    if isinstance(config_file, dict):
+        true_config = config_file
+    else:
+        with open(config_file, "r") as f:
+            true_config = yaml.safe_load(f)
+
+    data_module = load_data_module(**true_config["data_hyperparameters"])
+
+    return outer_train(data_module,
+                None,
+                1,
+                1,
+                true_config,
+                true_config["model_hyperparameters"],
+                true_config["training_hyperparameters"],
+                "cuda" if torch.cuda.is_available() else "cpu",
+                "disabled",
+                "debug_project",
+                True,
+                return_model_instead_of_metrics=True)
+
+    
+
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Deep Learning Experiment")

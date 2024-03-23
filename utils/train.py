@@ -309,7 +309,7 @@ def train_model(
     )
     if use_lr_scheduler:
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, patience=5, factor=0.5, min_lr=5e-5, cooldown=3, verbose=verbose
+            optimizer, patience=5, factor=0.5, min_lr=5e-6, cooldown=3, verbose=verbose
         )
 
     train_loader = train_data_module.get_train_dataloader(batch_size)
@@ -447,7 +447,7 @@ def train_model(
             summary_writer.add_scalar("epoch", epoch, step)
         if use_validation_set and verbose:
             bar.set_description(
-                f"{eval_metric_for_best_model}: {str(val_metrics[eval_metric_for_best_model])}"
+                f"{eval_metric_for_best_model}: {str(val_metrics[eval_metric_for_best_model])}, train-loss: {str(loss.item())}"
             )
     if use_validation_set:
         return best_params, best_val_metrics
@@ -468,6 +468,7 @@ def outer_train(
     project_name: str,
     use_validation_set: bool = True,
     verbose: bool = True,
+    return_model_instead_of_metrics: bool = False,
 ):
     """
     Run a single training run with the given hyperparameters and seed. Also initializes wandb logging and does test evaluation if test_dataloader is provided.
@@ -535,6 +536,8 @@ def outer_train(
         summary_writer=summary_writer,
     )
 
+    
+
     if wandb_mode != "disabled":
         best_params_path = wandb.run.dir + "/best_params.pt"
         torch.save(best_params, best_params_path)
@@ -543,6 +546,12 @@ def outer_train(
         wandb.log_artifact(artifact)
     metrics_dict = {}
     model.load_state_dict(best_params)
+
+    if return_model_instead_of_metrics:
+        wandb.finish()
+        summary_writer.close()
+        return model
+    
     if test_dataloader is not None:
         test_metrics = evaluate_model(
             model,

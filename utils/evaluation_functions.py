@@ -19,7 +19,7 @@ from abc import ABC, abstractmethod
 import torch
 from torch import Tensor
 import numpy as np
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, Union, List
 Numeric = Union[int, float, np.ndarray]
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
@@ -31,29 +31,10 @@ from scipy.interpolate import interp1d
 matplotlib.use("Agg")
 
 # Local/Application Specific
-from .models.basic_architectures import ConditionalDensityEstimator
+from utils.models.basic_architectures import ConditionalDensityEstimator
 
+from utils.utils import make_to_pass_precomputed_variables
 
-def make_to_pass_precomputed_variables(
-    precomputed_variables: dict, num_steps: int, idx: int
-):
-    to_pass_precomputed_variables = {}
-    for key, value in precomputed_variables.items():
-        if isinstance(value, tuple):
-            new_tuple = tuple(
-                tup_element[idx].unsqueeze(0).expand(num_steps, *tup_element[idx].shape)
-                for tup_element in value
-            )
-            to_pass_precomputed_variables[key] = new_tuple
-        elif isinstance(value, Tensor):
-            to_pass_precomputed_variables[key] = (
-                value[idx].unsqueeze(0).expand(num_steps, *value[idx].shape)
-            )
-        else:
-            raise ValueError(
-                f"precomputed_variables must be a dict of tensors or tuples. {key} is not."
-            )
-    return to_pass_precomputed_variables
 
 
 class BaseEvaluationFunction(ABC):
@@ -368,7 +349,7 @@ def infer_quantalized_conformal_p(
 
         model_output = model(x_batch, y_batch)
 
-        all_required_ps.extend(cp(y_space, x_batch, y_batch, model, model_output, return_required_conformal_p_instead=True))
+        all_required_ps.extend(cp(y_space, x_batch, y_batch, model, model_output, return_required_conformal_p_instead=True, **training_hyperparameters))
 
     return np.quantile(all_required_ps, conformal_p)
 
@@ -389,6 +370,11 @@ class ConformalPrediction(BaseEvaluationFunction):
     @property
     def output_size(self):
         return 4
+    
+    def get_y_space_fine(self, y_space: torch.Tensor, conformal_finer: int):
+        return torch.linspace(
+            y_space.min().item(), y_space.max().item(),  y_space.shape[0] * conformal_finer, device=y_space.device
+        )
 
     def __call__(
         self,
@@ -401,6 +387,7 @@ class ConformalPrediction(BaseEvaluationFunction):
         conformal_p: float = 0.90, 
         conformal_finer: float = 10,
         return_required_conformal_p_instead: bool = False,
+        return_grid_instead: bool = False,
         **kwargs,
     ):
         #TODO: Implement Conformal Prediction
@@ -408,9 +395,7 @@ class ConformalPrediction(BaseEvaluationFunction):
         step_size = (y_space[1] - y_space[0]).abs().item()
         fine_step_size = step_size / conformal_finer
 
-        y_space_fine = torch.linspace(
-            y_space.min().item(), y_space.max().item(), num_steps * conformal_finer, device=y_space.device
-        )
+        y_space_fine = self.get_y_space_fine(y_space, conformal_finer)
 
         conformal_sizes = []
         conformal_in_set = []
@@ -450,26 +435,29 @@ class ConformalPrediction(BaseEvaluationFunction):
                 smaller_count = (cumulative_sum < conformal_p).sum()
                 conformal_set = sorted_indices[:smaller_count + 1]
 
+                if return_grid_instead:
+                    grid = torch.zeros_like(y_space_fine, dtype=torch.bool)
+                    grid[conformal_set] = True
+                    required_ps.append(grid)
+                    continue
+
                 if torch.min(torch.abs(y_batch[idx] - y_space_fine[conformal_set])).item() < fine_step_size/2:
                     conformal_in_set.append(1)
                 else:
                     conformal_in_set.append(0)
-                
-
-
 
                 conformal_size = fine_step_size * len(conformal_set)
                 conformal_sizes.append(conformal_size)
 
                 # Now calculate if we want a contiguous set of indices. NOTE: If sizes are equal then the set is contiguous already
-                conformal_size_contiguous = (conformal_set.max() - conformal_set.min()) * fine_step_size #because conformal set are indices
+                conformal_size_contiguous = (conformal_set.max() - conformal_set.min() + 1) * fine_step_size #because conformal set are indices (+ one because we need to contain the whole histogram bins in the set)
                 if y_space_fine[conformal_set.min()].item() - fine_step_size/2 < y_batch[idx] <= y_space_fine[conformal_set.max()].item() + fine_step_size/2:
                     conformal_in_set_contiguous.append(1)
                 else:
                     conformal_in_set_contiguous.append(0)
                 conformal_sizes_contiguous.append(conformal_size_contiguous.item())
 
-        if return_required_conformal_p_instead:
+        if return_required_conformal_p_instead or return_grid_instead:
             return required_ps
         
         if reduce == "mean":
@@ -752,6 +740,8 @@ def log_permutation_feature_importance(
     model: ConditionalDensityEstimator,
     data_loader: DataLoader,
     device: str = "cpu",
+    show_plot_instead: bool = False,
+    feature_names: List[str] = None
 ):
     model.eval()
     model.to(device)
@@ -790,8 +780,9 @@ def log_permutation_feature_importance(
     
     feature_importances = feature_importances.mean(dim=0)
 
-    for idx, importance in enumerate(feature_importances):
-        summary_writer.add_scalar(f"Feature Importance/Feature {idx}", importance.item())
+    if summary_writer:
+        for idx, importance in enumerate(feature_importances):
+            summary_writer.add_scalar(f"Feature Importance/Feature {idx}", importance.item())
 
     #Create a bar plot of the feature importances
     plt.figure(figsize=(10, 10))
@@ -799,8 +790,14 @@ def log_permutation_feature_importance(
     plt.title("Feature Importances")
     plt.xlabel("Feature")
     plt.ylabel("Importance")
-    plt.xticks(np.arange(num_features), np.arange(num_features), rotation='vertical')
-    summary_writer.add_figure("Feature Importances", plt.gcf())
+    if feature_names:
+        plt.xticks(np.arange(num_features), feature_names, rotation='vertical')
+    else:
+        plt.xticks(np.arange(num_features), np.arange(num_features), rotation='vertical')
+    if show_plot_instead:
+        plt.show()
+    else:
+        summary_writer.add_figure("Feature Importances", plt.gcf())
 
 
 
