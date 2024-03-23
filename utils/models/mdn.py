@@ -67,7 +67,7 @@ class MDN(ConditionalDensityEstimator):
         tanh_std_stability : Optional[float]
             Tanh std stability value, by default 3.0. Only used if std_stability_mode is "tanh"
         """
-        super().__init__()
+        super().__init__(train_data_module)
 
         activation_function = activation_function.lower()
         if activation_function in ACTIVATION_FUNCTION_MAP:
@@ -77,14 +77,6 @@ class MDN(ConditionalDensityEstimator):
                 f"Activation function {activation_function} not supported."
             )
 
-        self.mean_x, self.std_x = (
-            train_data_module.train_dataset.mean_x,
-            train_data_module.train_dataset.std_x,
-        )
-        self.mean_y, self.std_y = (
-            train_data_module.train_dataset.mean_y,
-            train_data_module.train_dataset.std_y,
-        )
 
         self.tanh_std_stability = tanh_std_stability
         self.std_stability_mode = std_stability_mode.lower()
@@ -97,13 +89,6 @@ class MDN(ConditionalDensityEstimator):
                 "tanh_std_stability must be set if std_stability_mode is tanh"
             )
 
-        self.mean_x = nn.Parameter(self.mean_x, requires_grad=False)
-        self.std_x = nn.Parameter(self.std_x, requires_grad=False)
-        self.mean_y = nn.Parameter(self.mean_y, requires_grad=False)
-        self.std_y = nn.Parameter(self.std_y, requires_grad=False)
-
-        self.x_size = train_data_module.train_dataset.x.shape[1]
-        self.y_size = train_data_module.train_dataset.y.shape[1]
 
         distribution_type = distribution_type.lower()
         if distribution_type in DISTRIBUTION_MAP:
@@ -116,8 +101,15 @@ class MDN(ConditionalDensityEstimator):
             self.n_distributions * self.y_size,
             self.n_distributions * self.y_size,
         ]
+
+        input_size = self.x_size
+        if self.time_series: #If time series data, we use an RNN as the first layer and remove the first layer size from the list as that is the RNN size
+            self.rnn = nn.GRU(input_size, n_hidden[0], batch_first=True, dropout=dropout_rate)
+            input_size = n_hidden[0]
+            n_hidden = n_hidden[1:]
+
         self.mlp = MLP(
-            self.x_size,
+            input_size,
             n_hidden,
             (n_distributions * self.y_size) * 2 + n_distributions,
             dropout_rate,
@@ -125,8 +117,13 @@ class MDN(ConditionalDensityEstimator):
             **kwargs,
         )
 
+
     def forward(self, x, y=None, normalised_output_domain: bool = False):
         x = (x - self.mean_x) / self.std_x
+
+        if self.time_series:
+            x, _ = self.rnn(x)
+            x = x[:, -1] # We only take the last output of the RNN 
 
         mlp_out = self.mlp(x)
         logits_weights, mu, log_sigma = torch.split(mlp_out, self.split_sizes, dim=1)
@@ -134,9 +131,9 @@ class MDN(ConditionalDensityEstimator):
         if self.std_stability_mode == "tanh":
             log_sigma = (
                 F.tanh(log_sigma) * self.tanh_std_stability
-            )  # TODO !!!!!!!!!!!!!!! justify that. its intended to be a hack to prevent sigmas from getting too large
+            )  
             sigma = torch.exp(log_sigma)
-        elif self.std_stability_mode == "softplus":
+        elif self.std_stability_mode == "softplus": # softplus is a more stable version of the exponential function
             sigma = F.softplus(log_sigma)
         else:
             sigma = torch.exp(

@@ -56,7 +56,7 @@ class MCDEN(ConditionalDensityEstimator):
         activation_function :
             The activation function used in the MLP.
         """
-        super().__init__()
+        super().__init__(train_data_module)
 
         activation_function = activation_function.lower()
         if activation_function in ACTIVATION_FUNCTION_MAP:
@@ -65,23 +65,6 @@ class MCDEN(ConditionalDensityEstimator):
             raise ValueError(
                 f"Activation function {activation_function} not supported."
             )
-
-        self.mean_x, self.std_x = (
-            train_data_module.train_dataset.mean_x,
-            train_data_module.train_dataset.std_x,
-        )
-        self.mean_y, self.std_y = (
-            train_data_module.train_dataset.mean_y,
-            train_data_module.train_dataset.std_y,
-        )
-
-        self.mean_x = nn.Parameter(self.mean_x, requires_grad=False)
-        self.std_x = nn.Parameter(self.std_x, requires_grad=False)
-        self.mean_y = nn.Parameter(self.mean_y, requires_grad=False)
-        self.std_y = nn.Parameter(self.std_y, requires_grad=False)
-
-        self.x_size = train_data_module.train_dataset.x.shape[1]
-        self.y_size = train_data_module.train_dataset.y.shape[1]
 
         self.mlp = MLP(
             self.x_size,
@@ -191,7 +174,7 @@ class MCDEN(ConditionalDensityEstimator):
 
     def get_density(
         self,
-        x: Tensor,
+        x: Optional[Tensor], #if we have weights we do not need x
         y: Tensor,
         normalised_output_domain: bool = False,
         numeric_stability: float = 1e-8,

@@ -29,7 +29,7 @@ from .basic_architectures import (
     DISTRIBUTION_MAP,
 )
 from .loss_functions import nlll, miscalibration_area_fn
-from ..data_module import (
+from utils.data_module import (
     TrainingDataModule,
 )  # TODO: not ideal class dependencies here. Ideally would have some sort of models module class that contains the data dependencies. But this is not a priority right now
 
@@ -56,7 +56,7 @@ class MSEModel(ConditionalDensityEstimator):
         activation_function : str, optional
             Activation function to use, by default "relu"
         """
-        super().__init__()
+        super().__init__(train_data_module)
 
         activation_function = activation_function.lower()
         if activation_function in ACTIVATION_FUNCTION_MAP:
@@ -66,22 +66,6 @@ class MSEModel(ConditionalDensityEstimator):
                 f"Activation function {activation_function} not supported."
             )
 
-        self.mean_x, self.std_x = (
-            train_data_module.train_dataset.mean_x,
-            train_data_module.train_dataset.std_x,
-        )
-        self.mean_y, self.std_y = (
-            train_data_module.train_dataset.mean_y,
-            train_data_module.train_dataset.std_y,
-        )
-
-        self.mean_x = nn.Parameter(self.mean_x, requires_grad=False)
-        self.std_x = nn.Parameter(self.std_x, requires_grad=False)
-        self.mean_y = nn.Parameter(self.mean_y, requires_grad=False)
-        self.std_y = nn.Parameter(self.std_y, requires_grad=False)
-
-        self.x_size = train_data_module.train_dataset.x.shape[1]
-        self.y_size = train_data_module.train_dataset.y.shape[1]
 
         self.mlp = MLP(
             self.x_size,
