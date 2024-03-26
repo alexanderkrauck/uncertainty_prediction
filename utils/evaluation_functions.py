@@ -796,6 +796,11 @@ def log_permutation_feature_importance(
         plt.xticks(np.arange(num_features), np.arange(num_features), rotation='vertical')
     if show_plot_instead:
         plt.show()
+
+        sorted_idx = np.argsort(feature_importances.cpu().numpy())
+        for idx in sorted_idx:
+            feature_name = feature_names[idx] if feature_names else f"Feature {idx}"
+            print(f"{feature_name}: {feature_importances[idx].item()}")
     else:
         summary_writer.add_figure("Feature Importances", plt.gcf())
 

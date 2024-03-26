@@ -22,7 +22,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import KFold, train_test_split, TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 
 # Local/Application Specific
 import alpaca.utils.datasets.config as alpaca_config
@@ -445,7 +445,7 @@ class VoestDataModule(DataModule):
         split_random: bool = False,
         random_state: int = 42,
         remove_quantiles: float = 0.00,
-        only_use_columns: Optional[list] = None,
+        only_use_columns: Optional[Union[list, str]] = None,
         time_series_length: int = 1,
         aggregate_n_timeseries_steps: int = 1,
         flatten_timeseries: bool = False,
@@ -472,8 +472,8 @@ class VoestDataModule(DataModule):
             Random seed for reproducibility.
         remove_quantiles : float
             Fraction of the target values to be removed from the dataset.
-        only_use_columns : list
-            List of column names to be used. If None, all columns are used.
+        only_use_columns : list, str
+            List of column names to be used or str defining the type of columns to be used. Options are only "v4" right now. If None all columns are used.
         time_series_length : int
             Length of the time series. If 1 no time series type data is created.
         aggregate_n_timeseries_steps : int
@@ -504,6 +504,24 @@ class VoestDataModule(DataModule):
 
         feature_column_names = self.voest_ds.columns[2:]
         if only_use_columns is not None: # only use the specified columns
+            if isinstance(only_use_columns, str):
+                if only_use_columns == "v4":
+                    only_use_columns = [
+                        "PROGNOSE-EXT_SCR.pos.Price.in.AT_-_-",
+                        "PROGNOSE-EXT_SCR.neg.Price.in.AT_-_-",
+                        "PROGNOSE-EXT_AT.in.Sekundärregelenergie_st_e",
+                        "PROGNOSE-EXT_AT.in.SekundärregelenergieAngebot_st_e",
+                        "ISTWERT-EXT_AT.in.DE.out.CrossBorderBalancing.MinPreis_st_e",
+                        "ISTWERT-EXT_AT.in.DE.out.CrossBorderBalancing.Leistung_st_e",
+                        "ISTWERT-EXT_DE.in.AT.out.CrossBorderBalancing.Leistung_st_e",
+                        "ISTWERT-EXT_AT.out.Hydro.Pumpspeicher_st_e",
+                        "ISTWERT-EXT_AT.in.Hydro.Laufwasser_st_e",
+                        "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Viertelstundenprodukt",
+                        "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Stundenprodukt",
+                        "ISTWERT-VARB_Preise_-_DollarInEuro"
+                    ]
+                else:
+                    raise ValueError(f"Unknown value for only_use_columns: {only_use_columns}")
             feature_column_names = [col for col in feature_column_names if col in only_use_columns]
 
         feature_cols = self.voest_ds[feature_column_names]

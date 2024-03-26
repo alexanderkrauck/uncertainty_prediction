@@ -27,7 +27,7 @@ from .basic_architectures import (
     ACTIVATION_FUNCTION_MAP,
     DISTRIBUTION_MAP,
 )
-from .loss_functions import nlll, miscalibration_area_fn
+from .loss_functions import nlll, miscalibration_area_fn, pinball_loss_fn
 from ..data_module import (
     TrainingDataModule,
 )  # TODO: not ideal class dependencies here. Ideally would have some sort of models module class that contains the data dependencies. But this is not a priority right now
@@ -44,6 +44,8 @@ class MDN(ConditionalDensityEstimator):
         distribution_type: str = "gaussian",
         std_stability_mode: str = "softplus",
         tanh_std_stability: float = 3.0,
+        force_equal_weights: bool = False,
+        force_equal_std: bool = False,
         **kwargs,
     ):
         """
@@ -117,6 +119,9 @@ class MDN(ConditionalDensityEstimator):
             **kwargs,
         )
 
+        self.force_equal_weights = force_equal_weights
+        self.force_equal_std = force_equal_std
+
 
     def forward(self, x, y=None, normalised_output_domain: bool = False):
         x = (x - self.mean_x) / self.std_x
@@ -145,6 +150,14 @@ class MDN(ConditionalDensityEstimator):
         mu = mu.reshape(-1, self.y_size, self.n_distributions)
         sigma = sigma.reshape(-1, self.y_size, self.n_distributions)
 
+        if self.force_equal_weights:
+            weights = torch.ones_like(weights) / self.n_distributions
+        if self.force_equal_std: 
+            # This is useful for the case where we want to force the model to predict the same std for all distributions
+            # but for each sample in the batch separately
+            sigma = torch.ones_like(sigma) / self.n_distributions ** .5#torch.mean(sigma, dim=2, keepdim=True)
+            pass
+
         if not normalised_output_domain:
             mu = self.std_y.unsqueeze(-1) * mu + self.mean_y.unsqueeze(-1)
             sigma = self.std_y.unsqueeze(-1) * sigma
@@ -160,9 +173,39 @@ class MDN(ConditionalDensityEstimator):
         reduce="mean",
         miscalibration_area_loss_weight: float = 0.0,
         weights_entropy_loss_weight: float = 0.0,
+        pinball_loss_weight: float = 0.0,
+        nll_loss_weight: float = 1.0,
         force_alternative_loss_calculations: bool = True,
         **kwargs,
     ):
+        """ Evaluate the output of the model.
+        
+        Parameters
+        ----------
+        y : Tensor
+            The target values.
+        output : dict
+            The output of the model.
+        normalised_output_domain : bool, optional
+            Whether the output should be in the normalised domain, by default False
+        reduce : str, optional
+            The reduction type, by default "mean"
+        miscalibration_area_loss_weight : float, optional
+            The weight of the miscalibration area loss, by default 0.0
+        weights_entropy_loss_weight : float, optional
+            The weight of the weights entropy loss, by default 0.0
+        pinball_loss_weight : float, optional
+            The weight of the pinball loss, by default 0.0
+            The quantiles of the pinball loss are assumed uniformly distributed between 0 and 1 with the number of
+            quantiles equal to the number of distributions. So the predicted 'mu' are the quantiles.
+            If only the pinball loss is used, this is equivalent to multiple quantile regression.
+        nll_loss_weight : float, optional
+            The weight of the negative log likelihood loss, by default 1.0 (this is the default because it is the main loss)
+        force_alternative_loss_calculations : bool, optional
+            Whether to force the alternative loss calculations even if their weights are 0 for metrics, by default True
+        """
+
+
         if normalised_output_domain:
             y = (y - self.mean_y) / self.std_y
 
@@ -216,13 +259,27 @@ class MDN(ConditionalDensityEstimator):
             )
             metric_dict["misclibration_area"] = miscalibration_area.item()
 
+        if pinball_loss_weight > 0 or (
+            not normalised_output_domain and force_alternative_loss_calculations):
+
+            pinball_loss = pinball_loss_fn(
+                y, **output, reduce=reduce, **kwargs
+            )
+            metric_dict["pinball_loss"] = pinball_loss.item()
+
+        # We add the losses to the main loss
+        loss *= nll_loss_weight
+
         if weights_entropy_loss_weight > 0:
             loss = (
                 loss - weights_entropy_loss_weight * weights_entropy
-            )  # because we want to regularize for high entropy
+            )  
 
         if miscalibration_area_loss_weight > 0:
             loss = loss + miscalibration_area_loss_weight * miscalibration_area
+
+        if pinball_loss_weight > 0:
+            loss = loss + pinball_loss_weight * pinball_loss
 
         if (
             normalised_output_domain

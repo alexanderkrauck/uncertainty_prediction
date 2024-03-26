@@ -13,7 +13,7 @@ __date__ = "2024-02-01"
 
 # Standard libraries
 from abc import ABC, abstractmethod
-from typing import List, Dict
+from typing import List, Dict, Union
 
 # Third-party libraries
 import torch
@@ -265,6 +265,88 @@ class ConditionalDensityEstimator(ABC, torch.nn.Module):
 
         return torch.tensor(hellinger_distances)
 
+    def get_density_grid(self, x: torch.Tensor, y_space: Tensor = None, **kwargs):
+        if y_space is None:
+            y_space = self.y_space
+        densities = []
+        for x_val in x:
+            x_val = x_val.unsqueeze(0).expand(y_space.shape[0], *[-1 for _ in range(len(x_val.shape))])
+
+            densities.append(
+                self.get_density(
+                    x_val,
+                    y_space.unsqueeze(-1),
+                    False,
+                    **kwargs
+                )
+            )
+        return torch.stack(densities, dim=0)
+    
+    def get_quantile(self, x: torch.Tensor, quantile: float, y_space= None, **kwargs):
+        if y_space is None:
+            y_space = self.y_space
+
+        densities = self.get_density_grid(x, y_space, **kwargs)
+        densities /= densities.sum(dim=-1, keepdim=True)
+        quantile = torch.argmin(torch.abs(torch.cumsum(densities, dim=-1) - quantile), dim=-1)
+        return y_space[quantile]
+    
+    def get_hdr(self, x: torch.Tensor, confidence_levels: Union[Tensor, float], y_space = None, **kwargs):
+        """ Predicts the highest density region for the given confidence levels.
+
+        Parameters:
+        -----------
+        x : torch.Tensor
+            The input features.
+        confidence_levels : Union[Tensor, float]
+            The confidence levels for which to predict the highest density region. If a float is given, only the HDR for this level is calculated.
+        y_space : torch.Tensor
+            The grid of y values to predict the densities for. If None, the default y_space of the model is used.
+        
+        Returns:
+        --------
+        torch.Tensor
+            A tensor of shape (batch_size, grid_size, n_levels) containing the highest density regions.
+        """
+
+        if y_space is None:
+            y_space = self.y_space
+        
+        if isinstance(confidence_levels, float):
+            confidence_levels = torch.tensor([confidence_levels], device=x.device)
+
+        densities = self.get_density_grid(x, y_space, **kwargs)
+        densities /= densities.sum(dim=-1, keepdim=True)
+
+        sorted_indices = torch.argsort(densities, descending=True, dim=-1)
+        cumulative_sum = torch.cumsum(torch.gather(densities, 1, sorted_indices), dim=-1)
+
+        smaller_count = (cumulative_sum.unsqueeze(-1) <= confidence_levels) # -> (batch_size, grid_size, n_levels)
+        smaller_count = smaller_count.sum(dim=1) # -> (batch_size, n_levels)
+
+        range_tensor = torch.arange(len(y_space), device=x.device)
+        count = smaller_count.unsqueeze(-1)
+        output_tensor = (count > range_tensor)
+        expanded_indices = sorted_indices.argsort(-1).unsqueeze(1).expand(-1, len(confidence_levels), -1)
+        return_grid = torch.gather(output_tensor, 2, expanded_indices)
+
+        return return_grid
+    
+    def get_required_conformal_p_values(self, x: torch.Tensor, y: torch.Tensor, y_space, **kwargs):
+        """
+        Returns the required conformal p-values for the given input data.
+        """
+        if y_space is None:
+            y_space = self.y_space
+
+        densities = self.get_density_grid(x, y_space, **kwargs)
+        densities /= densities.sum(dim=-1, keepdim=True)
+
+        sorted_indices = torch.argsort(densities, descending=True, dim=-1)
+        cumulative_sum = torch.cumsum(torch.gather(densities, 1, sorted_indices), dim=-1)
+
+        wanted_indices = torch.argmin(torch.abs(y.unsqueeze(-1) - y_space[sorted_indices]), dim=-1)
+        return torch.gather(cumulative_sum, 1, wanted_indices.unsqueeze(-1)).squeeze()
 
 
 

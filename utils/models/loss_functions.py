@@ -118,3 +118,42 @@ def miscalibration_area_fn( #NOTE: Actually this is "mean absulute calibration e
         miscalibration_area = miscalibration_area * y.shape[0]
 
     return miscalibration_area
+
+def pinball_loss_fn(y: Tensor, mu: Tensor, sort_mu: bool = True, reduce: str="mean", **kwargs):
+    """Calculates the pinball loss
+    
+    Parameters
+    ----------
+    y : Tensor
+        Target values of shape (batch_size, 1)
+    mu : Tensor
+        Means of shape (batch_size, 1, n_quantiles)
+    sort_mu : bool, optional
+        Whether to sort the mu values, by default True
+    reduce : str, optional
+        Reduction method, by default "mean". Can be "mean" or "sum"
+    """
+
+    assert mu.shape[1] == 1 and y.shape[1] == 1, "we only do 1 output dimension with the pinball loss"
+
+    device = y.device
+
+    mu = mu.flatten(1)
+
+    n_quantiles = mu.shape[-1]
+    quantiles = torch.linspace(1.0/(n_quantiles+1), n_quantiles/(n_quantiles+1), n_quantiles, device=device).unsqueeze(0)
+
+    if sort_mu:
+        mu, _ = torch.sort(mu, dim=-1)
+
+    errors = y - mu # -> (batch_size, n_quantiles)
+
+    pinball_loss = torch.max((quantiles - 1) * errors, quantiles * errors) # -> (batch_size, n_quantiles)
+    pinball_loss = pinball_loss.mean(dim=-1) # -> (batch_size)
+
+    if reduce == "mean":
+        pinball_loss = pinball_loss.mean()
+    elif reduce == "sum":
+        pinball_loss = pinball_loss.sum()
+    
+    return pinball_loss

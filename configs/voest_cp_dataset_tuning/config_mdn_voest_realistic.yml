@@ -1,0 +1,101 @@
+config_id: mdn_voest_realistic_normal
+seeds: [42, 43, 44, 45, 46]
+data_seed: 0
+
+training_hyperparameters:
+  early_stopping_patience: 10
+  epochs: 500
+  clip_gradient_norm: 4.0
+  batch_size: 
+    tune: [32, 45, 64]
+  use_lr_scheduler:
+    tune: [True, False]
+  optimizer_hyperparameters:
+    lr: 2.0e-4
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+    weight_decay: 0.0
+  optimizer: adam
+  input_noise_x: 0.03
+  input_noise_y: 0.03
+  loss_hyperparameters:
+    reliability_loss_weight: 0.0
+    weights_entropy_loss_weight: 0.125
+    loss_calculation_in_normalised_domain: True
+  eval_metric_for_best_model: val_nll_loss
+  evaluation_function_names: [miscalibration, conformal_prediction]
+  slow_first_n_batches: 1
+  log_train_every_n: 10
+  noisy_start: True
+  noise_level: 0.5
+  noise_decay: 0.2
+
+data_hyperparameters:
+  data_type: voest
+  data_path: datasets/voest_datasets/
+  only_use_columns:
+    tune:
+      [
+        Null,
+        "v4",
+        [ #best 17 in terms of permutation feature importance
+          "PROGNOSE-EXT_AT.out_in.AusgleichsenergieMenge_st_v",
+          "ISTWERT-EXT-DAYAHEAD_AT.in.Preis_st_v",
+          "ISTWERT-EXT_AT.in.DE.out.CrossBorderBalancing.Leistung_st_e",
+          "ISTWERT-EXT_DE.in.AT.out.CrossBorderBalancing.Leistung_st_e",
+          "PROGNOSE-EXT_AT.out.AusgleichsenergieMenge_st_v",
+          "ISTWERT-EXT_AT.in.Solar_st_e",
+          "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Viertelstundenprodukt",
+          "PROGNOSE-EXT_AT.in.Sekundärregelenergie_st_e",
+          "PROGNOSE-EXT_AT.in.Sekundärregelenergie_st_v",
+          "ISTWERT-EXT_AT.in.Hydro.Speicher_st_e",
+          "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Stundenprodukt",
+          "ISTWERT-EXT_AT.in.Hydro.Pumpspeicher_st_e",
+          "PROGNOSE-EXT-DAYAHEAD_AT.in.Solar_st_e",
+          "PROGNOSE-EXT-INTRADAYTOTAL_AT.in.Solar_st_e",
+          "PROGNOSE-EXT-INTRADAYPROCESS_AT.in.Solar_st_e",
+          "PROGNOSE-EXT_AT.in.SekundärregelenergieAngebot_st_e",
+          "ISTWERT-EXT_AT.out.Hydro.Pumpspeicher_st_e"
+        ],
+        [ 
+          "PROGNOSE-EXT_AT.out_in.AusgleichsenergieMenge_st_v",
+          "ISTWERT-EXT-DAYAHEAD_AT.in.Preis_st_v",
+          "ISTWERT-EXT_AT.in.DE.out.CrossBorderBalancing.Leistung_st_e",
+          "ISTWERT-EXT_DE.in.AT.out.CrossBorderBalancing.Leistung_st_e",
+          "PROGNOSE-EXT_AT.out.AusgleichsenergieMenge_st_v",
+          "ISTWERT-EXT_AT.in.Solar_st_e",
+          "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Viertelstundenprodukt",
+          "PROGNOSE-EXT_AT.in.Sekundärregelenergie_st_e",
+          "PROGNOSE-EXT_AT.in.Sekundärregelenergie_st_v",
+          "ISTWERT-EXT_AT.in.Hydro.Speicher_st_e",
+          "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Stundenprodukt",
+          "ISTWERT-EXT_AT.in.Hydro.Pumpspeicher_st_e",
+          "PROGNOSE-EXT-DAYAHEAD_AT.in.Solar_st_e",
+          "PROGNOSE-EXT-INTRADAYTOTAL_AT.in.Solar_st_e",
+          "PROGNOSE-EXT-INTRADAYPROCESS_AT.in.Solar_st_e",
+          "PROGNOSE-EXT_AT.in.SekundärregelenergieAngebot_st_e",
+          "ISTWERT-EXT_AT.out.Hydro.Pumpspeicher_st_e",
+          
+          #Features from v4 that are low in permutation feature importance
+          "PROGNOSE-EXT_SCR.pos.Price.in.AT_-_-",
+          "PROGNOSE-EXT_SCR.neg.Price.in.AT_-_-",
+          "ISTWERT-EXT_AT.in.DE.out.CrossBorderBalancing.MinPreis_st_e",
+          "ISTWERT-VARB_Preise_-_DollarInEuro"
+        ],
+      ]
+  original: True
+  remove_quantiles: 0.001 #remove quantiles that are below 0.1% and above 99.9% (outliers)
+  val_split: 0.15
+  test_split: 0.2
+  random_state: 1337
+
+model_hyperparameters:
+  model_class: mdn
+  n_hidden: [64, 128, 128, 64]
+  n_distributions: 35
+  dropout_rate: 0.04
+  activation_function: relu
+  distribution_type: gaussian
+  std_stability_mode: softplus
+  use_layer_norm:
+    tune: [True, False]
