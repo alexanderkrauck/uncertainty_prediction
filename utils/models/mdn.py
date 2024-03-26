@@ -156,8 +156,7 @@ class MDN(ConditionalDensityEstimator):
             # but for each sample in the batch separately.
             # NOTE: we need to do that before applying std stability because otherwise while training the std can
             # become negative which breaks the model.
-            log_sigma = self.equal_component_std.expand(log_sigma.shape)
-
+            log_sigma = torch.ones_like(log_sigma, device=log_sigma.device) * self.equal_component_std
         if self.std_stability_mode == "tanh":
             log_sigma = F.tanh(log_sigma) * self.tanh_std_stability
             sigma = torch.exp(log_sigma)
