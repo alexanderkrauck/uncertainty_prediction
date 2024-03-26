@@ -46,6 +46,7 @@ class MDN(ConditionalDensityEstimator):
         tanh_std_stability: float = 3.0,
         force_equal_weights: bool = False,
         force_equal_std: bool = False,
+        train_equal_std: bool = False,
         **kwargs,
     ):
         """
@@ -68,6 +69,16 @@ class MDN(ConditionalDensityEstimator):
             Mode to use for std stability. Can be "none", "tanh" or "softplus", by default "none"
         tanh_std_stability : Optional[float]
             Tanh std stability value, by default 3.0. Only used if std_stability_mode is "tanh"
+        force_equal_weights : bool, optional
+            Whether to force the weights to be equal, by default False
+            This in particular used for having essentially multiple quantile regression.
+        force_equal_std : bool, optional
+            Whether to force the std to be equal, by default False.
+            This is in particular useful when we use the multiple quantile regression method for predicting the CDE
+            We reach that by fitting a small gaussian at every quantile and forcing the std to be equal.
+        train_equal_std : bool, optional
+            Only used if 'force_equal_std' is True. Whether to train the std to be equal or not, by default False. It is initialized with
+            one divided by the square root of components.
         """
         super().__init__(train_data_module)
 
@@ -79,7 +90,6 @@ class MDN(ConditionalDensityEstimator):
                 f"Activation function {activation_function} not supported."
             )
 
-
         self.tanh_std_stability = tanh_std_stability
         self.std_stability_mode = std_stability_mode.lower()
         if self.std_stability_mode not in ["none", "tanh", "softplus"]:
@@ -90,7 +100,6 @@ class MDN(ConditionalDensityEstimator):
             raise ValueError(
                 "tanh_std_stability must be set if std_stability_mode is tanh"
             )
-
 
         distribution_type = distribution_type.lower()
         if distribution_type in DISTRIBUTION_MAP:
@@ -105,8 +114,12 @@ class MDN(ConditionalDensityEstimator):
         ]
 
         input_size = self.x_size
-        if self.time_series: #If time series data, we use an RNN as the first layer and remove the first layer size from the list as that is the RNN size
-            self.rnn = nn.GRU(input_size, n_hidden[0], batch_first=True, dropout=dropout_rate)
+        if (
+            self.time_series
+        ):  # If time series data, we use an RNN as the first layer and remove the first layer size from the list as that is the RNN size
+            self.rnn = nn.GRU(
+                input_size, n_hidden[0], batch_first=True, dropout=dropout_rate
+            )
             input_size = n_hidden[0]
             n_hidden = n_hidden[1:]
 
@@ -121,24 +134,36 @@ class MDN(ConditionalDensityEstimator):
 
         self.force_equal_weights = force_equal_weights
         self.force_equal_std = force_equal_std
-
+        self.train_equal_std = train_equal_std
+        if self.force_equal_std:
+            self.equal_component_std = nn.Parameter(
+                torch.ones(1, self.y_size, 1) / self.n_distributions**0.5,
+                requires_grad=train_equal_std,
+            )
 
     def forward(self, x, y=None, normalised_output_domain: bool = False):
         x = (x - self.mean_x) / self.std_x
 
         if self.time_series:
             x, _ = self.rnn(x)
-            x = x[:, -1] # We only take the last output of the RNN 
+            x = x[:, -1]  # We only take the last output of the RNN
 
         mlp_out = self.mlp(x)
         logits_weights, mu, log_sigma = torch.split(mlp_out, self.split_sizes, dim=1)
 
+        if self.force_equal_std:
+            # This is useful for the case where we want to force the model to predict the same std for all distributions
+            # but for each sample in the batch separately.
+            # NOTE: we need to do that before applying std stability because otherwise while training the std can
+            # become negative which breaks the model.
+            log_sigma = self.equal_component_std.expand(log_sigma.shape)
+
         if self.std_stability_mode == "tanh":
-            log_sigma = (
-                F.tanh(log_sigma) * self.tanh_std_stability
-            )  
+            log_sigma = F.tanh(log_sigma) * self.tanh_std_stability
             sigma = torch.exp(log_sigma)
-        elif self.std_stability_mode == "softplus": # softplus is a more stable version of the exponential function
+        elif (
+            self.std_stability_mode == "softplus"
+        ):  # softplus is a more stable version of the exponential function
             sigma = F.softplus(log_sigma)
         else:
             sigma = torch.exp(
@@ -152,11 +177,6 @@ class MDN(ConditionalDensityEstimator):
 
         if self.force_equal_weights:
             weights = torch.ones_like(weights) / self.n_distributions
-        if self.force_equal_std: 
-            # This is useful for the case where we want to force the model to predict the same std for all distributions
-            # but for each sample in the batch separately
-            sigma = torch.ones_like(sigma) / self.n_distributions ** .5#torch.mean(sigma, dim=2, keepdim=True)
-            pass
 
         if not normalised_output_domain:
             mu = self.std_y.unsqueeze(-1) * mu + self.mean_y.unsqueeze(-1)
@@ -178,8 +198,8 @@ class MDN(ConditionalDensityEstimator):
         force_alternative_loss_calculations: bool = True,
         **kwargs,
     ):
-        """ Evaluate the output of the model.
-        
+        """Evaluate the output of the model.
+
         Parameters
         ----------
         y : Tensor
@@ -205,11 +225,24 @@ class MDN(ConditionalDensityEstimator):
             Whether to force the alternative loss calculations even if their weights are 0 for metrics, by default True
         """
 
-
         if normalised_output_domain:
             y = (y - self.mean_y) / self.std_y
 
-        loss = nlll(self.distribution_class, y, **output, reduce=reduce, **kwargs)
+        
+        if self.force_equal_weights and self.force_equal_std:
+            # We detach here the means and weights only, because if we force equal stds we don't want to detach them
+            # because either we do not have grad anyways or we want to train them, but only the stds here.
+            loss = nlll(
+                self.distribution_class,
+                y,
+                output["weights"].detach(),
+                output["mu"].detach(),
+                output["sigma"],
+                reduce=reduce,
+                **kwargs,
+            )
+        else:
+            loss = nlll(self.distribution_class, y, **output, reduce=reduce, **kwargs)
 
         metric_dict = {}
         for key, value in output.items():
@@ -227,24 +260,25 @@ class MDN(ConditionalDensityEstimator):
                 metric_dict["nll_loss"] = (loss + torch.log(self.std_y).sum()).item()
             else:
                 metric_dict["nll_loss"] = (
-                    (loss + torch.log(self.std_y).sum() * y.shape[0]) 
+                    (loss + torch.log(self.std_y).sum() * y.shape[0])
                 ).item()
         else:
             metric_dict["nll_loss"] = loss.item()
             if reduce == "mean":
-                metric_dict["nll_loss_normalized"] = (loss - torch.log(self.std_y).sum()).item()
+                metric_dict["nll_loss_normalized"] = (
+                    loss - torch.log(self.std_y).sum()
+                ).item()
             else:
                 metric_dict["nll_loss_normalized"] = (
-                    (loss - torch.log(self.std_y).sum() * y.shape[0]) 
+                    (loss - torch.log(self.std_y).sum() * y.shape[0])
                 ).item()
 
         if weights_entropy_loss_weight > 0 or (
             not normalised_output_domain and force_alternative_loss_calculations
         ):
-            weights_entropy = (
-                torch.distributions.categorical.Categorical(probs=output["weights"])
-                .entropy()
-            )
+            weights_entropy = torch.distributions.categorical.Categorical(
+                probs=output["weights"]
+            ).entropy()
             if reduce == "mean":
                 weights_entropy = weights_entropy.mean()
             else:
@@ -260,20 +294,17 @@ class MDN(ConditionalDensityEstimator):
             metric_dict["misclibration_area"] = miscalibration_area.item()
 
         if pinball_loss_weight > 0 or (
-            not normalised_output_domain and force_alternative_loss_calculations):
+            not normalised_output_domain and force_alternative_loss_calculations
+        ):
 
-            pinball_loss = pinball_loss_fn(
-                y, **output, reduce=reduce, **kwargs
-            )
+            pinball_loss = pinball_loss_fn(y, **output, reduce=reduce, **kwargs)
             metric_dict["pinball_loss"] = pinball_loss.item()
 
         # We add the losses to the main loss
         loss *= nll_loss_weight
 
         if weights_entropy_loss_weight > 0:
-            loss = (
-                loss - weights_entropy_loss_weight * weights_entropy
-            )  
+            loss = loss - weights_entropy_loss_weight * weights_entropy
 
         if miscalibration_area_loss_weight > 0:
             loss = loss + miscalibration_area_loss_weight * miscalibration_area

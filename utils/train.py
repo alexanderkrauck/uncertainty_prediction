@@ -242,6 +242,7 @@ def train_model(
     noise_decay: float = 0.99,
     noise_level: float = 0.9,
     noise_stop: int = 100,
+    n_random_target_swap_per_epoch: int = 0,
     log_train_every_n: int = 1,
     use_lr_scheduler: bool = False,
     **kwargs,
@@ -290,7 +291,23 @@ def train_model(
         Whether to use a validation set or not, by default True
     verbose : bool
         Whether to print progress or not, by default True
-
+    noisy_start : bool, optional
+        Whether to start with noisy labels, by default False
+        The noise here is random uniform noise between the min and max of the y values.
+    noise_decay : float, optional
+        Factor to decay the noise level with, by default 0.99
+    noise_level : float, optional
+        Initial noise level, by default 0.9
+    noise_stop : int, optional
+        Epoch to stop the noise, by default 100
+    n_random_target_swap_per_epoch : int, optional
+        Number of random target swaps per epoch, by default 0. The idea is to infuse the
+        model with some epistemic uncertainty such that it will always keep some density for other regions that have targets.
+        It scales with the number of samples per epoch since the idea is that if there are more samples then there is less epistemic uncertainty required.
+    log_train_every_n : int, optional
+        Log the training metrics every n steps, by default 1
+    use_lr_scheduler : bool, optional
+        Whether to use a learning rate scheduler or not, by default False
     Returns
     -------
     Tuple[dict, dict]
@@ -385,8 +402,11 @@ def train_model(
         return False  # Continue training
 
     outer_break = False
+
+    swap_chance_per_sample = n_random_target_swap_per_epoch / len(train_loader.dataset)
     for epoch in bar:
         model.train()
+        
 
         for batch_idx, minibatch in enumerate(train_loader):
             step += 1
@@ -395,6 +415,11 @@ def train_model(
             else:
                 x, y = minibatch
             x, y = x.to(device), y.to(device)
+
+            if n_random_target_swap_per_epoch > 0:
+                mask = torch.rand(y.shape[0]) < swap_chance_per_sample
+                y_shuffled = y[torch.randperm(y.size(0))]
+                y[mask] = y_shuffled[mask]
 
             # TODO: consider adding rule of thumb noise:
             if input_noise_x > 0.0:

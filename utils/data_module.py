@@ -520,6 +520,26 @@ class VoestDataModule(DataModule):
                         "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Stundenprodukt",
                         "ISTWERT-VARB_Preise_-_DollarInEuro"
                     ]
+                if only_use_columns == "v5": # The 17 best features in terms of permutation feature importance
+                    only_use_columns = [
+                        "PROGNOSE-EXT_AT.out_in.AusgleichsenergieMenge_st_v",
+                        "ISTWERT-EXT-DAYAHEAD_AT.in.Preis_st_v",
+                        "ISTWERT-EXT_AT.in.DE.out.CrossBorderBalancing.Leistung_st_e",
+                        "ISTWERT-EXT_DE.in.AT.out.CrossBorderBalancing.Leistung_st_e",
+                        "PROGNOSE-EXT_AT.out.AusgleichsenergieMenge_st_v",
+                        "ISTWERT-EXT_AT.in.Solar_st_e",
+                        "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Viertelstundenprodukt",
+                        "PROGNOSE-EXT_AT.in.Sekundärregelenergie_st_e",
+                        "PROGNOSE-EXT_AT.in.Sekundärregelenergie_st_v",
+                        "ISTWERT-EXT_AT.in.Hydro.Speicher_st_e",
+                        "PROGNOSE-EXT_Preise_EURspez_EPEXSpot-AT-Stundenprodukt",
+                        "ISTWERT-EXT_AT.in.Hydro.Pumpspeicher_st_e",
+                        "PROGNOSE-EXT-DAYAHEAD_AT.in.Solar_st_e",
+                        "PROGNOSE-EXT-INTRADAYTOTAL_AT.in.Solar_st_e",
+                        "PROGNOSE-EXT-INTRADAYPROCESS_AT.in.Solar_st_e",
+                        "PROGNOSE-EXT_AT.in.SekundärregelenergieAngebot_st_e",
+                        "ISTWERT-EXT_AT.out.Hydro.Pumpspeicher_st_e"
+                    ]
                 else:
                     raise ValueError(f"Unknown value for only_use_columns: {only_use_columns}")
             feature_column_names = [col for col in feature_column_names if col in only_use_columns]
