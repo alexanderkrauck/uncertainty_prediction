@@ -177,9 +177,14 @@ class DataModule(ABC, TrainingDataModule):
         )
     
     def get_total_dataloader(self, batch_size: int, shuffle: bool = False) -> DataLoader:
-        return DataLoader(
-            self.train_dataset + self.val_dataset + self.test_dataset, batch_size=batch_size, shuffle=shuffle
-        )
+        if not self.validation_is_test:
+            return DataLoader(
+                self.train_dataset + self.val_dataset + self.test_dataset, batch_size=batch_size, shuffle=shuffle
+            )
+        else:
+            return DataLoader(
+                self.train_dataset + self.val_dataset, batch_size=batch_size, shuffle=shuffle
+            )
 
     @abstractmethod
     def iterable_cv_splits(
@@ -545,10 +550,10 @@ class VoestDataModule(DataModule):
             feature_column_names = [col for col in feature_column_names if col in only_use_columns]
 
         feature_cols = self.voest_ds[feature_column_names]
+        self.voest_ds = self.voest_ds[["BALANCING_TIME_UNIT_UTC", "PROGNOSE-EXT_Preise_EURspez_AE00-ENTSOE-Indikative"] + feature_column_names]
 
         self.x_total = feature_cols.to_numpy()
         self.y_total = target_col.to_numpy()
-        self.total_indices = np.arange(len(self.x_total))
 
         if use_last_target_as_feature: # use the last target value as a feature (in a way that it is not used for prediction ofc)
             if inject_targets_as_features is None:
@@ -557,7 +562,6 @@ class VoestDataModule(DataModule):
             self.x_total = self.x_total[1:]
             self.x_total = np.concatenate((self.x_total, inject_targets_as_features[:-1].reshape(-1, 1)), axis=1)
             self.y_total = self.y_total[1:]
-            self.total_indices = self.total_indices[1:]
 
             assert len(self.x_total) == len(self.y_total)
 
@@ -573,7 +577,6 @@ class VoestDataModule(DataModule):
                 time_series.append(aggregated)
 
             self.y_total = self.y_total[time_series_length * aggregate_n_timeseries_steps:]
-            self.total_indices = self.total_indices[time_series_length * aggregate_n_timeseries_steps:]
             self.x_total = np.array(time_series)
 
             if flatten_timeseries:
@@ -592,8 +595,11 @@ class VoestDataModule(DataModule):
             )
             self.y_total = self.y_total[mask]
             self.x_total = self.x_total[mask]
-            self.total_indices = self.total_indices[mask]
+            
 
+            self.voest_ds = self.voest_ds[mask]
+
+        self.total_indices = np.arange(len(self.x_total))
         if split_random:
             self.x_train, self.x_test, self.y_train, self.y_test, self.train_indices, self.test_indices = train_test_split(
                 self.x_total,
@@ -627,6 +633,10 @@ class VoestDataModule(DataModule):
             self.y_train = self.y_total[:train_rows]
             self.y_val = self.y_total[train_rows:test_rows]
             self.y_test = self.y_total[test_rows:]
+        
+        #if self.validation_is_test:
+        #    self.train_indices = np.concatenate((self.train_indices, self.val_indices))
+        #    self.val_indices = self.test_indices
 
     def has_distribution(self) -> bool:
         return False
