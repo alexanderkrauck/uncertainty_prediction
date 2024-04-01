@@ -34,7 +34,7 @@ training_hyperparameters:
 
 data_hyperparameters:
   data_type: conformal
-  dataset_name: blog
+  dataset_name: blog_data
   val_split: 0.15
   test_split: 0.2
   random_state: 
