@@ -1,0 +1,75 @@
+\babel@toc {english}{}\relax 
+\babel@toc {naustrian}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Background}{2}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}Uncertainty in Finance}{2}{subsection.1.1.1}%
+\contentsline {subsubsection}{\nonumberline Energy Price Prediction}{2}{subsubsection*.7}%
+\contentsline {subsubsection}{\nonumberline Stock Price Prediction}{3}{subsubsection*.9}%
+\contentsline {subsection}{\numberline {1.1.2}Uncertainty in Healthcare and Life Science}{3}{subsection.1.1.2}%
+\contentsline {section}{\numberline {1.2}Related Work and Motivation}{4}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Research Questions}{6}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Contributions}{7}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Structure of the Work}{8}{section.1.5}%
+\contentsline {chapter}{\numberline {2}Theoretical Analysis}{9}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Preliminaries}{9}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Conditional Density Estimation}{11}{section.2.2}%
+\contentsline {subsubsection}{\nonumberline Smoothness Assumptions}{11}{subsubsection*.11}%
+\contentsline {section}{\numberline {2.3}Quantile Regression}{12}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Conformal Prediction}{13}{section.2.4}%
+\contentsline {section}{\numberline {2.5}CP, CDE and QR are Essentially the Same Task}{14}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Model Producing Function}{15}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Theoretical Bridge: CDE and CP}{15}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Theoretical Bridge: CDE and QR}{16}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.4}CDE can fully be modeled by CP and QR}{17}{subsection.2.5.4}%
+\contentsline {subsection}{\numberline {2.5.5}CDE to improve current CP}{19}{subsection.2.5.5}%
+\contentsline {subsection}{\numberline {2.5.6}CP methods are practically not distribution free methods}{20}{subsection.2.5.6}%
+\contentsline {subsection}{\numberline {2.5.7}Limitations of the Bridge between CDE-Methods}{21}{subsection.2.5.7}%
+\contentsline {subsection}{\numberline {2.5.8}Conclusion on the Bridge between CDE, CP and QR}{21}{subsection.2.5.8}%
+\contentsline {section}{\numberline {2.6}Optimal Conformal Prediction}{22}{section.2.6}%
+\contentsline {subsection}{\numberline {2.6.1}New perspective on MLL and Optimal CP}{23}{subsection.2.6.1}%
+\contentsline {subsection}{\numberline {2.6.2}Focusing on Density instead of the Coverage Level}{34}{subsection.2.6.2}%
+\contentsline {section}{\numberline {2.7}Calibration and Recalibration}{36}{section.2.7}%
+\contentsline {subsection}{\numberline {2.7.1}Calibration in CP}{36}{subsection.2.7.1}%
+\contentsline {subsection}{\numberline {2.7.2}Common Implicit Assumptions on the CP-Region Fuction}{39}{subsection.2.7.2}%
+\contentsline {subsection}{\numberline {2.7.3}Recalibration of CDE on CP when using HDR}{40}{subsection.2.7.3}%
+\contentsline {subsubsection}{\nonumberline Calibration of CDE on CP}{40}{subsubsection*.15}%
+\contentsline {subsection}{\numberline {2.7.4}Calibration of CDE-methods in General}{41}{subsection.2.7.4}%
+\contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDE-methods}{42}{subsubsection*.17}%
+\contentsline {section}{\numberline {2.8}Uncertainty and Calibration: The Connection}{44}{section.2.8}%
+\contentsline {subsection}{\numberline {2.8.2}Recalibration: A new perspective}{46}{subsection.2.8.2}%
+\contentsline {subsection}{\numberline {2.8.3}Mathematical interpretation}{48}{subsection.2.8.3}%
+\contentsline {subsubsection}{\nonumberline Monotonicity of the PDF between borders}{48}{subsubsection*.20}%
+\contentsline {subsubsection}{\nonumberline Connection to Epistemic Uncertainty}{48}{subsubsection*.22}%
+\contentsline {chapter}{\numberline {3}Empirical Study}{52}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Core Model Classes}{52}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Experimental Setup}{53}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Hyperparameters}{53}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Known Hyperparameters - General}{54}{subsection.3.3.1}%
+\contentsline {subsubsection}{\nonumberline Learning Rate}{54}{subsubsection*.24}%
+\contentsline {subsubsection}{\nonumberline Batch Size}{54}{subsubsection*.26}%
+\contentsline {subsubsection}{\nonumberline Number of Epochs}{54}{subsubsection*.28}%
+\contentsline {subsubsection}{\nonumberline Dropout}{54}{subsubsection*.30}%
+\contentsline {subsubsection}{\nonumberline Weight Decay}{55}{subsubsection*.32}%
+\contentsline {subsubsection}{\nonumberline Base Architecture}{55}{subsubsection*.34}%
+\contentsline {subsubsection}{\nonumberline Activation Function}{55}{subsubsection*.36}%
+\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{55}{subsubsection*.38}%
+\contentsline {subsubsection}{\nonumberline Layer Norm}{56}{subsubsection*.40}%
+\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{56}{subsubsection*.42}%
+\contentsline {subsubsection}{\nonumberline Number of Components}{56}{subsubsection*.44}%
+\contentsline {subsubsection}{\nonumberline Component Distribution}{56}{subsubsection*.46}%
+\contentsline {subsubsection}{\nonumberline Kernel Width}{56}{subsubsection*.48}%
+\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{57}{subsection.3.3.2}%
+\contentsline {subsubsection}{\nonumberline Additional Target Noise}{57}{subsubsection*.50}%
+\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{58}{subsubsection*.52}%
+\contentsline {section}{\numberline {3.4}Datasets}{58}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Calculation of the HDR}{59}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{60}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Experiment Results}{62}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{62}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Main Benchmark Results}{62}{subsection.3.7.2}%
+\contentsline {chapter}{\numberline {4}Conclusion}{65}{chapter.4}%
+\contentsline {chapter}{\numberline {5}ToDos}{66}{chapter.5}%
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

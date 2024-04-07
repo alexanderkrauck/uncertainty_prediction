@@ -1,0 +1,335 @@
+\documentclass{article}
+
+\usepackage[nonatbib, final]{neurips_2021}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+% own packages
+\usepackage{amsmath}
+\usepackage{multicol}
+\usepackage{svg}
+\usepackage[]{graphicx}
+\usepackage{subfig}
+\usepackage[square,numbers]{natbib}
+\usepackage{stackengine}
+\usepackage[english]{babel}
+\usepackage{datetime}
+
+
+\usepackage{dcolumn} % Load this package in your preamble
+
+\newcolumntype{d}[1]{D{.}{.}{#1}} % Define a new column type 'd' for decimal alignment
+
+\bibliographystyle{abbrvnat}
+\setcitestyle{authoryear}
+
+\newdateformat{specialdate}{\THEDAY\ of \monthname[\THEMONTH]}
+
+\newcommand\pef[1]{\hyperref[#1]{Section~\ref{#1}}}
+\newcommand\fef[1]{\hyperref[#1]{Figure~\ref{#1}}}
+\newcommand\tef[1]{\hyperref[#1]{Table~\ref{#1}}}
+\newcommand\eef[1]{\hyperref[#1]{Equation~\ref{#1}}}
+
+\title{Neural Conditional Density Estimation for Regression Tasks - Practical Work in AI}
+\author{%
+  Alexander Krauck \\
+  Department of Machine Learning\\
+  Johannes Kepler University Linz\\
+  Upper Austria, Austria \\
+  \texttt{alexander.krauck@gmail.com}
+}
+\date{\specialdate\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Conditional Density Estimation (CDE)\footnote{CDE is used as shorthand for Conditional Density Estimation, Estimator and Estimate} is the task of predicting conditional probability density functions (CPDF) given an input. In particular, this is already the default for most classification tasks in the field of machine learning (ML) as we there usually predict probabilities for each class which might or might not resemble actual probabilities in terms of calibration. In regression tasks, the default as of now is to predict single point estimates in the target space. However, as for some regression tasks it is due to less deterministic relationships between the feature space and the target space often not possible to make accurate predictions. In particular, in regression task domains that are risk sensitive like finance or healthcare this can be a big caveat as every possible outcome in the target space should be accounted for, no matter how unlikely, at least to some extent. For this reason CDEs are becoming a more active research topic in the field of regression tasks \citep{rothfuss2019noise, rothfuss2019conditional, klotz2021uncertainty, trippe2018conditional, rezende2015variational}.
+
+\subsection{Motivation}
+CDEs in regression tasks offer many unique challenges that still require to be addressed and thus I decided to dive deep into the state of the art (SOTA) to uncover the intricate details of what opportunities I can find in this field.
+
+The work's main objective is to establish a scientifically strong experiment pipeline for conducting SOTA level research in the domain of CDE for regression tasks. This implies the implementation of rigorous schema like train-validation-test-splitting, (nested) cross-validation, logging of all experiments, running multiple initialization seeds and ensuring experiment-reproduciblity. Moreover, I am making it my responsibility to set up solid baseline models to be later used for evaluating possible improvements in architecture or training.
+
+Secondly, I decided to make it a goal to verify the validity of this pipeline by replicating experiments and their results from previous publications in this domain. In particular the work by \citep{rothfuss2019noise} seemed to be the best work to compare my pipeline to since it comes with an experimental result table on different datasets that can be aimed for. Moreover, they have provide a framework\footnote{\url{https://github.com/freelunchtheorem/Conditional_Density_Estimation}} which they have initially established in a previous work \citep{rothfuss2019conditional} for CDE on GitHub that I used as source of inspiration for my experiment structure. However, I did not directly use their components in my code except for some minor parts since their framework is based on outdated components (python 3.6) and the experimental tracking is not as rigorous as I prefer.
+
+Finally, the last goal is to identify the current major challenges in the field of CDE for regression and to make propositions for achievable future work that could have a major impact on the field.
+
+\subsection{Structure of the Report}
+In the following, first in \pef{sec:related_work} relevant related work is discussed. In \pef{sec:datasets} the datasets that are used are discussed. Furthermore, in \pef{sec:pipeline} the created pipeline is detailed and in \pef{sec:baselines} the implemented baselines are discussed. In \pef{sec:evaluation_and_metrics} the evaluation methods and the diverse metrics that are used are described. \pef{sec:experiments_and_results} shows the baselines in action, reproducing results of previous works. Finally, in \pef{sec:future_work_and_conclusion} I explain major challenges in CDE and propose ideas for future work after which I conclude.
+
+\section{Related Work}\label{sec:related_work}
+CDE in regression has emerged as a critical area of research in machine learning, bridging the gap between probabilistic predictions and decision-making in uncertain environments. This section reviews the current state of the art in CDE, focusing on benchmarking efforts, evaluation methodologies, and architectural advancements that have shaped the field. Despite the growing body of literature, a comprehensive understanding of these elements remains challenging due to the scarcity of standardized benchmarks and the complexity of evaluation metrics used to assess model performance.
+
+\subsection{Evaluation Metrics for CDE}
+The landscape of evaluation metrics for CDE is diverse, encompassing a variety of measures designed to assess model performance comprehensively. While an exhaustive discussion of all metrics exceeds the scope of this work, it is essential to highlight the most pivotal ones, providing a concise overview to establish a foundational understanding of performance evaluation in CDE.
+
+A significant portion of these metrics presupposes specific characteristics of the task at hand, notably the assumption of unimodality in true target distributions and minimal aleatoric uncertainty. Aleatoric uncertainty, thoroughly examined by \citep{hullermeier_aleatoric_2021}, is beyond this discussion's purview. The implications of these assumptions on the evaluation of CDE models are critically assessed in Section \pef{sec:evaluation_and_metrics}, where the focus is to elucidate the constraints they introduce. Herein, the narrative centers on delineating both conventional metrics and those devoid of such assumptions.
+
+\subsubsection{Unimodality-Centric Metrics}
+
+Within the realm of CDE, several metrics have gained prominence for their applicability and insightfulness. The Continuous Ranked Probability Score (CRPS) is esteemed for its utility in evaluating cumulative distribution function (CDF) predictions. Similarly, the Check Score or Pinball Loss, and Interval Score find widespread use in quantile prediction and prediction interval assessments, respectively. For an in-depth exploration, readers are directed to the seminal works of \citep{gneiting2007strictly} and \citep{selten1998axiomatic}.
+
+Additional metrics explored in CDE studies, notably by \citep{rothfuss2019conditional}, include the Root Mean Squared Error (RMSE) applied to the discrepancy between observed outcomes and the mean predictions of the conditional density function. This evaluation extends to the RMSE regarding the standard deviation of the estimated CDF and observed value deviation from the CDF's mean.
+
+Furthermore, \citep{klotz2021uncertainty} have advocated for the incorporation of the Mean Absolute Deviation, Standard Deviation, Variance, Average Width, and Distance between Quantiles as metrics to capture various facets of a CDE model's performance.
+
+\subsubsection{Average Log Likelihood}\label{sec:mean_log_likelihood}
+
+The Average Log Likelihood (ALL) stands as a cornerstone metric for CDE, providing a profound insight into model efficacy. \citep{rothfuss2019noise} offer a comprehensive analysis, illustrating the ALL's role in approximating empirical data distributions through the minimization of Kullback-Leibler (KL) divergence, articulated as:
+
+\begin{equation}
+\arg \max _{\theta \in \Theta} \sum_{i=1}^n \log \hat{f}_\theta\left(x_i\right)=\arg \min _{\theta \in \Theta} \mathcal{D}_{K L}\left(p_{\mathcal{D}} \| \hat{f}_\theta\right)
+\end{equation}
+
+Here, \(\hat{f}\) symbolizes the CDE, parameterized by \(\theta\). To the current knowledge, ALL uniquely integrates the target value's estimated density directly into its computation.
+
+\subsubsection{Calibration Metrics}
+
+Calibration metrics serve as essential tools for assessing the reliability of CDE models. The foundational work by \citep{gneiting2007probabilistic} categorizes calibration into four distinct modes: probabilistic calibration, exceedance calibration, marginal calibration, and strong calibration. Probabilistic calibration, which is perhaps the most practically significant, aims to demonstrate that the following condition is satisfied:
+
+\begin{equation}
+\frac{1}{T} \sum_{t=1}^T G_t \circ F_t^{-1}(p) \longrightarrow p \text{ for all } p \in (0,1)
+\end{equation}
+
+where $G_t$ represents the true cumulative distribution functions (CDF) and $F_t$ denotes the estimated CDF for each of the $T$ samples. Due to the impracticality of knowing the true CDF in real-world applications, an approximation is necessary. The condition
+
+\begin{equation}
+\frac{1}{T} \sum_{t=1}^T 1\left\{p_t<p\right\} \longrightarrow p \quad \text{almost surely for all } p
+\end{equation}\label{eq:practical_probabilistic_calibration}
+
+is deemed satisfied if and only if the CDE model is calibrated, as elucidated by \citep{gneiting2007probabilistic}. Here, $p_t = F_t(x_t)$, where $x_t$ is the observed value evaluated on the estimated conditional cumulative distribution function. Depending on the method employed to derive the CDF, $p_t$ can be determined analytically or numerically, the latter through sampling or constructing a grid to infer the cumulative distribution function.
+
+Additionally, methodologies for visualizing and quantifying calibration as a metric have been developed, as discussed in works by \citep{klotz2021uncertainty, chung2020beyond, tran2020methods, chung2021uncertainty}. These approaches involve selecting a discrete set of quantiles and approximating the left-hand side of the calibration condition. Visualization is achieved by plotting $p$ against the empirical estimate $\hat{p}$ of $\frac{1}{T} \sum_{t=1}^T 1\left\{p_t<p\right\}$. The degree of miscalibration can be quantified by integrating $| p - \hat{p} |$, the area between $p$ and the empirical estimates, to obtain the miscalibration area. Moreover, we can average $| p - \hat{p} |$ to obtain the mean absolute miscalibration error or take the RMSE thereof. Those miscalibration metrics are implemented in the uncertainty toolbox\footnote{\url{https://github.com/uncertainty-toolbox/uncertainty-toolbox}} by \citep{chung2021uncertainty}, a tool for assessing uncertainty in different types of machine learning models.
+
+
+\subsubsection{Hellinger Distance}\label{sec:hellinger_distance}
+
+Distinct from previously mentioned metrics, the Hellinger Distance offers a measure for evaluating the commonality between two probability distributions, \(p\) and \(q\), as defined by:
+
+\begin{equation}
+H(p, q) = \frac{1}{\sqrt{2}} \sqrt{\int_X (\sqrt{p(x)} - \sqrt{q(x)})^2 \, dx}
+\end{equation}
+
+This metric is particularly pertinent to synthetic datasets, facilitating detailed insights into CDE methods' effectiveness relative to actual targets. \citep{rothfuss2019conditional} underscore the value of synthetic data experimentation in comprehensively understanding CDE methodologies.
+
+\subsection{Architectural Approaches for CDE}
+
+CDE encompasses a variety of methods aimed at modeling the CPDF of a target variable given an input. These methodologies leverage different architectural strategies to accurately estimate density functions.
+
+Mixture Density Networks (MDNs) as introduced by \citep{bishop1994mixture} utilize a Multi-Layer Perceptron (MLP) to predict the parameters (mixture weights, means, and standard deviations) of mixture components, usually Gaussians or Laplacians, for each input sample. The approach normalizes the mixture weights using a softmax function and it is a common practice to ensure the positivity of standard deviations with a softplus function.
+
+Kernel Mixture Networks (KMN), as developed by \citep{ambrogioni2017kernel}, focus on approximating the weights for Gaussian kernels, effectively simplifying the estimation process to concentrate on predetermined means and standard deviations. In some approaches also the kernel parameters have been made trainable.
+
+Conditional Kernel Density Estimation (CKDE) and its bandwidth optimization techniques represent a non-parametric approach to directly estimate the density from the data, with bandwidth optimization via cross-validation for improved accuracy, as noted by \citep{silverman1982estimation} and further optimized by \citep{li2023nonparametric}.
+
+Normalizing Flow Networks (NFN), highlighted in works by \citep{rezende2015variational} and \citep{trippe2018conditional}, map inputs to parameters of a normalizing flow. Thereafter, the conditional density can be inferred by inserting target variables into that flow to map them to a simple known distribution and by using the change of variables formula to obtain the densities on the original distribution.
+
+These methodologies, ranging from direct parameter prediction with MDNs and KMNs to complex distribution modeling through NFNs, significantly contribute to advancing the field of CDE. Each method offers unique insights and tools for understanding and estimating conditional distributions.
+
+\section{Datasets}\label{sec:datasets}
+In the domain of CDE, the utilization of datasets for experimentation purposes can be broadly categorized into synthetic and real-world datasets. Synthetic datasets are indispensable in CDE research due to their known conditional distribution, enabling a comprehensive evaluation of the full predictive density estimations. In contrast, real-world datasets, while crucial for practical applicability, only allow for the evaluation of the density at the observed sample points, hence providing a very limited view of the model's predictive capabilities.
+
+Practically any regression dataset can be used for CDE. However, it is necessary for conducting scientifically valuable experiments to use datasets that either already have other scientific works in which they are used in the same task or that have some especially good structure for CDE experiments. \tef{tab:dataset_overview} provides an overview of the datasets used in this study, including both real-world and synthetic datasets.
+
+\subsection{Real World Datasets}
+Datasets from the UCI repository \citep{dua2019uci}, specifically \textit{concrete} (concrete compression strength), \textit{boston housing}, and \textit{energy} (energy efficiency), were used in both \citep{rothfuss2019noise} and \citep{trippe2018conditional}, thus providing a solid foundation for comparison.
+
+\citep{rothfuss2019noise} and \citep{trippe2018conditional} also utilized that \textit{NYC taxi} dataset, originally sourced from the New York City website (\url{https://www.nyc.gov}). This dataset poses certain challenges; A precise link to the dataset used in \citep{rothfuss2019noise} and \citep{trippe2018conditional} is not available. This unavailability raises concerns regarding reproducibility and limits direct comparability with these studies. However, a dataset on Kaggle (\url{https://www.kaggle.com/datasets/gopalkalpnde/nyc-tlc-data?select=yellow\_tripdata\_2016-01.csv}), believed to be equivalent, was utilized. It's crucial to note that reliance on datasets not consistently available or officially recognized may affect the robustness of the research findings. Additionally, the use of only a random subset of 10,000 samples from the \textit{NYC taxi} dataset in \citep{rothfuss2019noise} further complicates exact replication. For result reproduction purposes alone the NYC Taxi dataset was still used as this is one of the goals of this practical work.
+
+Moreover, the \textit{Voest} dataset from the collaborating Voestalpine AG containing around 35000 samples for an energy price prediction task with a variety of features is also being incorporated into this research as it in particular as a dataset with an inherent forecast task. Forecast tasks are a very interesting topic in the field of CDE, making this highly relevant. The Voest dataset will be kept private for now but possibly will be published at a later time.
+
+\subsection{Synthetic Datasets}\label{sec:synthetic_datasets}
+
+Synthetic datasets are datasets that were generated by a known data generating function, which usually is parameterized. There are many options for such functions, for example Gaussian Mixture Models or even Neural Networks. For the purpose of CDE it is important that those data generating functions can not only provide values for the target variable but actually can provide the true conditional density function $p(y\mid \mathbf{x})$. This means what is wanted from a data generating function for CDE is the ability to generate samples $\mathbf{x}$, $y$ together with $p(y\mid \mathbf{x})$. For the purpose of this study I am limiting myself to only having single target variables with synthetic datasets.
+
+A significant consideration in synthetic dataset creation and usage is the method of storing and representing the true conditional densities. While storing the parameters of the data generating function is one approach, it still necessitates re-computation of the true conditional densities and can be computationally intensive for complex synthetic models. As a solution, this study proposes evaluating true conditional densities on a predefined grid for each generated sample. This grid can in theory be arbitrary and thus it is essential to store the grid coordinates on the target dimension as a fundamental part of synthetic datasets. For the purpose of my experiments the range of this grid was set to the minimum/maximum of the sampled target values, adjusted by plus/minus one standard deviation respectively, with 128 uniform steps. The synthetic datasets considered for this work are the GMM-2-1k\footnote{GMM is the shorthand of Gausian Mixture Model.}, GMM-2-10k, GMM-10-1k, GMM-10-10k, EconDensity, ArmaJump and SkewNormal datasets generated using the code by \citep{rothfuss2019conditional} but slightly enhanced in the sense that those datasets are sampled already making results based on them perfectly comparable for any future study. The simulated datasets are available under \url{http://tinyurl.com/3rv4uv4h}.
+
+\begin{table}
+  \caption{Comparison of Different Used Datasets}
+  \label{tab:dataset_overview}
+  \centering
+  \begin{tabular}{lrrrr}
+    \toprule
+    Dataset & \# Samples & \# Features & \# Targets & Synthetic \\
+    \midrule
+    Boston Housing & 506 & 13 & 1 & No \\
+    Concrete & 1030 & 8 & 1 & No \\
+    Energy & 768 & 8 & 1 & No \\
+    NYC Taxi & 10000 & 6 & 2 & No \\
+    Voest & 35723 & 51 & 1 & No \\
+    GMM-2-1k & 1400 & 2 & 1 & Yes \\
+    GMM-2-10k & 14000 & 2 & 1 & Yes \\
+    GMM-10-1k & 14000 & 10 & 1 & Yes \\
+    GMM-10-10k & 14000 & 10 & 1 & Yes \\
+    EconDensity & 1400 & 1 & 1 & Yes \\
+    ArmaJump & 1400 & 1 & 1 & Yes \\
+    SkewNormal & 1400 & 1 & 1 & Yes \\
+    % Add more datasets here if necessary
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+
+\section{Pipeline and Code Structure}\label{sec:pipeline}
+The pipeline is self-coded in python using popular frameworks like PyTorch, NumPy, pandas, Matplotlib. For experimental tracking I decided to use Weight and Biases and TensorBoard together with simple logging to log files for some experiment types.
+
+My implemented pipeline can be split into multiple components, namely: the \textit{hyperparameter config} in form of a .yml file where all hyperparameters are defined and also search grids. The \textit{main function} that is called form the command line and initiates the experiments, the \textit{grid search} component where I loop over all or a random subset of the hyperparameter configurations in the grid. The \textit{multi-seeding-/cv-loop} where I loop over multiple seeds for the same hyperparameter config and optionally do cross validation. The \textit{outer training function} where I initiate the experiment loggers Weights and Biases and TensorBoard and do the test-set run after training. The \textit{training loop} where I iterate over the epochs and do the optimization steps. The \textit{evaluation function} where I regularly validate on the validation set using some more metrics than on the training set. The \textit{conditional density estimators} that contain the neural architecture and loss functions. Moreover, \textit{data modules} for managing the different kinds of data are important. The structure of the pipeline is kept highly modular and well documented.
+
+For the purpose of this report I will focus only go into detail the most interesting parts of this code structure, namely the conditional density estimator and the data module approach.
+
+\subsection{CDE Class}
+For my CDEs I decided to go for a common pattern in form of an abstract class \texttt{ConditionalDensityEstimator} so that I can envelope all CDE types that I could think of within that. The biggest design decision for me here was the meaning of the forward function. In usual PyTorch programs the forward function is responsible for the full forward pass that needs to be done or at least the major part thereof such that those almost return the loss therein.
+
+However, for the purpose of CDE there usually exist two computational components. Firstly, we use $\mathbf{x}$ to compute the conditional distribution or the parameters thereof. In some models this already is the major part of the computation but in other ones, like the NFN we still are missing a major part. This brings me to the second part of the computation: We need to forward pass $y$ thru the predicted distribution in order to infer the density. This is also required for most metrics, most notably the negative ALL.
+This lead to the design decision for me to do the computation of the parameters of the conditional probability in the \texttt{forward} function and to have a \texttt{get\_density} function that allows for computation of y given the computed parameters.
+
+Furthermore, since the exact loss functions used by the different CDE methods vary highly and for the ease of loss computation also w.r.t. the separation of concerns philosophy I decided to embed the full loss computation in the CDE models in the function \texttt{eval\_output} which in turn returns the loss and also relevant metrics for logging acquired during the evaluation and forward pass. Moreover I added a simple \texttt{training\_pass} function which is called in the training loop that simply calls \texttt{forward} and \texttt{eval\_output} and returns the result. This design decision in particular allows the training loop to be more centered around logging. In the training loop basically only the back-propagation is initiated and the training step is taken.
+
+\subsection{Data Module Class}
+Recently it has become a common approach to define not only dataset classes or data loaders but more complete data module classes which basically are responsible for the entire life-cycle of one type of data. This includes loading the data, splitting the data, creating sub-datasets and train, validation and test loaders or even creating cross validation splits. In my case I decided to implement exactly such a type of class in an abstract form.
+
+
+\section{Baselines}\label{sec:baselines}
+
+The establishment of robust baselines is pivotal in delineating the current state-of-the-art and facilitating the empirical assessment of novel methodologies in comparison to established benchmarks. The primary architectures selected for benchmarking within this study encompass those utilized by \citep{rothfuss2019noise}, specifically Mixture Density Networks (MDN), Kernel Mixture Networks (KMN), and Normalizing Flow Networks (NFN). This selection confers a twofold advantage: it not only enables a direct comparison of novel contributions against recognized standards but also facilitates the validation of the experimental framework by benchmarking results against those reported in \citep{rothfuss2019noise}.
+
+Moreover, In this investigation, I introduce a distinctive approach to juxtapose conventional regression with CDE. The core of this comparison lies in examining regression models trained via Mean Squared Error (MSE). These models, fundamentally based on a Gaussian error model, focus on estimating $\mathbb{E}\left[p(y\mid \mathbf{x})\right]$. 
+To facilitate a meaningful comparison between this traditional regression approach and more nuanced CDE methodologies, I propose a novel baseline. Here, the output of an MSE-based regression model is interpreted as the mean of a Gaussian distribution, a perspective rooted in the model's implicit Gaussian assumption. The standard deviation of this distribution is derived from the MSE itself, specifically its square root, adhering to the principles of maximum likelihood estimation. In particular, the same standard deviation is applied to all Gaussian distributions which inherently also is assumed by the MSE. This conceptual framework serves not as an enhancement to the regression model but as a benchmark for evaluating the efficacy of CDE methods. The premise is straightforward: if a CDE model can outperform this baseline in terms of likelihood on a task, it substantiates the advantage of employing specialized CDE techniques over standard regression models.
+In the following this baseline is referred to as \textit{mean-squared error conditional density estimator} (MSE-CDE).
+
+\section{Evaluation and Metrics}\label{sec:evaluation_and_metrics}
+Evaluation of CDE architectures is a highly difficult task and many considerations need to be made. In particular this is because we are trying to predict the whole CPDF while we only know about the target that was present in the data. What makes it even harder is that in most cases we only have a single target value for one input which means that we need to make smoothness assumptions of the targets w.r.t. the input.
+
+Regardless this issue of assumption I made my effort to capture the most information in terms of evaluation metrics possible. In the following I will discuss my employed metrics including some novelties and also other considerations that had to be made for CDE tasks.
+
+\subsection{Likelihood and Probability Scaling}
+The most essential metric is the ALL which is the density of the sampled value $y$ on the estimated CPDF as already discussed in \pef{sec:mean_log_likelihood}.
+
+It is an important consideration that probability density functions at some fixed point have different densities depending on the scale of the distribution. This factor is also present in the ALL which is used to infer the loss as its negative. The ALL is as of now the most commonly used metric for reporting model performance on datasets in the literature \citep{rothfuss2019conditional, rothfuss2019noise, trippe2018conditional} where it is noteworthy that those ALLs are usually w.r.t. the originally scaled dataset. During training however, it is intuitively reasonable to optimize the ALL w.r.t. normalized target space. This does not really pose any difficult challenge but it is important to consider this difference during result-logging and optimization. For my experiments during training I decided to calculate both, the ALL w.r.t. the normalized and original domain and during evaluation I only calculate the ALL w.r.t. original domain. It is worth mentioning that the ALL can be easily transformed into the scale of the other domain by using the change of variable formula.
+
+\subsection{Miscalibration}\label{sec:miscalibration}
+I implemented a way of measuring the probabilistic miscalibration error as described by \citep{gneiting2007probabilistic}. In particular the algorithm is inspired by \citep{klotz2021uncertainty} and \citep{chung2020beyond, tran2020methods} currently only for MDN and for KMN. The way \eef{eq:practical_probabilistic_calibration} is quantified is by first sampling $n$ samples from the estimated CDE for each of the validation samples which is generally possible, albeit efficiency depends on the exact method. We can then calculate for each sample the quantiles of the samples which in \eef{eq:practical_probabilistic_calibration} is $p_t$. Intuitively the $p$ quantile of those samples should be larger than true samples in $p$ percent of the samples. Averaging over many samples will yield an approximate result for each quantile $p$. Now we can just sum over the absolute differences between the result for the $p$-th quantile and $p$ to obtain an estimate for the miscalibration. This metric is referred to as mean absolute miscalibration error.
+
+Moreover, I decided to implement the above in a differentiable manner such that we can actually use this as an additional objective function to the ALL, possibly for regularization. The main differences to the non-differentiable implementation is that firstly, we need to sample using the reparameterization trick. Secondly, for mixture networks we can not use multinomial sampling to sample from the mixture components as this is not differentiable and so I decided to utilize the Gumbel-Softmax \citep{jang2016categorical}. Finally comparison is not differentiable as in the comparison between the actual quantile and the $p$ values and thus I replaced it by a scaled sigmoid function. This implementation is differentiable w.r.t. all model predictions.
+
+\subsection{Synthetic Dataset Evaluation}
+
+Utilizing Synthetic Datasets presents a unique advantage: direct access to the true conditional probability density functions (CPDFs). While incorporating these true CPDFs during training would render practical applicability of the results questionable, their utilization in post-training evaluation can unveil deeper insights into the capabilities and limitations of CDE methodologies. To this end, I have incorporated three additional, rigorously-selected evaluation metrics, notably only for one dimensional targets for the reason of computational complexity, the first one being the Hellinger Distance already detailed in \pef{sec:hellinger_distance}. The other two are explained below.
+
+\subsubsection{Kullback-Leibler Divergence}
+Predominantly the Kullback-Leibler (KL) Divergence is recognized in the realm of variational inference, notably within the structure of variational autoencoders, this metric serves as an indicator of dissimilarity between two probability distributions. It measures the extent of deviation when a model, predicated on the assumption that data adheres to Distribution A, is confronted with the reality of Distribution B. This divergence quantifies the discrepancy between our preconceived notions (Distribution A) and the actual data distribution (Distribution B), with a higher value indicating a greater disparity.
+
+\subsubsection{($p$)-Wasserstein Distance}
+This metric, frequently employed in the evaluation of generative models, especially Generative Adversarial Networks (GANs), assesses the similarity between two probability distributions through the lens of optimal transport theory. It provides an intuitive measure of the 'effort' required to morph one distribution into another. The parameter $p$ in this context modulates the emphasis on longer transport distances, penalizing them more heavily in the overall calculation. I decided to set $p$ to 2.0 since intuitively probability mass that is far away from the true distribution of mass should be penalized more in CDE, in particular for risk sensitive application where missing out on some further away mass, even tho it might be small, might be critical. For example in a finance application where most probability mass lies at a point where profit would be expected but a small but relevant portion of mass lies at extreme loss.
+
+\section{Experiments and Results}\label{sec:experiments_and_results}
+This work encompasses various experimental strategies integrated into my pipeline, with nested cross-validation emerging as the most effective approach in mirroring real-world conditions. This methodology, also adopted by \citep{rothfuss2019noise} for their investigations, ensures that the test set remains entirely isolated from both the training process and the hyperparameter optimization phase. Specifically, the initial step involves partitioning the dataset into training and test subsets. Subsequently, within the training subset, $k$-fold cross-validation for each set of hyperparameters is conducted, calculating the average performance across the $k$ iterations. This process aids in identifying the optimal hyperparameter configuration, which is then applied to retrain the model on the entire training set. To determine the stopping point for training, the average of the optimal epochs identified from the best cross-validation runs is utilized. This retraining, employing various model initialization seeds, is repeated $n$ times to ensure a robust evaluation. The entire procedure is then executed $m$ times, starting from the initial split of training and test data, and the results are averaged to yield a highly realistic—albeit computationally intensive—performance metric. The primary contributing factor to this method's computational demand is the extensive nature of the hyperparameter grid.
+
+While this rigorous process may not be necessary for all experimental designs, it is deemed justifiable when seeking a definitive evaluation of a model's performance. Consequently, I have applied this method in my experiments, the results of which are detailed in \tef{tab:cde_result_comparison_real} and \tef{tab:cde_result_comparison_synthetic}. Notably, for the Voest dataset and the synthetic datasets $m=1$ while for the other datasets $m=3$. Moreover, the grid for the synthetic datasets was significantly reduced, as evaluating the more accurate metrics is very time-costly.
+
+\subsection{Hyperparameters}
+In the pursuit of generating results that are directly comparable to those reported by \citep{rothfuss2019noise}, I opted for a similar set of hyperparameters. For the MLP layer, the tanh activation function was chosen, complemented by Glorot's method of weight initialization \citep{glorot2010understanding}. The architecture was confined to two hidden layers, each consisting of 32 units. The optimization was carried out using the Adam optimizer \citep{kingma2014adam}, with its learning rate set to 2.0e-3 and default PyTorch parameters for betas (0.9 and 0.999) and epsilon (1e-8), excluding weight decay. Training was capped at 150 epochs, with the incorporation of early stopping based on dataset-specific patience levels, and gradient norm clipping was set at a norm of 5.0. The hyperparameter grid search encompassed batch size, noise regularization hyperparameters as delineated by \citep{rothfuss2019noise}, dropout probability, and model-class-specific parameters such as the number of mixture components for MDNs or the depth of the normalizing flow for NFNs. Although the parameter grid bore similarity to that used by \citep{rothfuss2019noise}, it was not identical, primarily due to computational constraints, particularly in the scope of noise regularization hyperparameters explored.
+
+
+\begin{table}[h!]
+  \centering
+  \caption{CDE Experiment Result ALL for Real Data (higher is better)}
+  \label{tab:cde_result_comparison_real}
+  \begin{tabular}{l*{4}{d{3.8}}}
+    \toprule
+    \multicolumn{1}{c}{Dataset} & \multicolumn{1}{c}{MDN} & \multicolumn{1}{c}{KMN} & \multicolumn{1}{c}{NFN} & \multicolumn{1}{c}{MSE-CDE} \\
+    \midrule
+    Boston Housing & -2.51 \pm 0.09 & -2.53 \pm 0.05 & -2.56 \pm 0.06 & -3.21 \pm 0.03 \\
+    Concrete & -3.09 \pm 0.05 & -3.20 \pm 0.03 & -3.14 \pm 0.06 & -3.79 \pm 0.01 \\
+    Energy & -1.31 \pm 0.10 & -1.62 \pm 0.08 & -1.47 \pm 0.08 & -3.18 \pm 0.01 \\
+    NYC Taxi & 5.32 \pm 0.03 & 5.40 \pm 0.02 & 5.18 \pm 0.04 & 5.03 \pm 0.05 \\
+    Voest & -5.40 \pm 0.08 & -5.30 \pm 0.03 & -6.42 \pm 0.20 & -7.09 \pm 0.02 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+\subsection{Real Datasets Results}
+The results presented in \tef{tab:cde_result_comparison_real} successfully replicate the findings of \citep{rothfuss2019noise}. Despite minor discrepancies, these can reasonably be attributed to slight variations in the hyperparameter grid. Therefore, the objective of reproducing the original study can be deemed achieved. For all datasets, including the Voest Dataset, MDN and KMN perform best.
+
+A notable observation is the consistent inferiority of the MSE-CDE estimator in terms of ALL across all datasets, serving as a form of validation for the applicability of CDE methods. However, the variance in performance across different datasets—markedly large in the Energy dataset and minimal in the NYC taxi dataset—suggests that the efficacy of CDE models may be contingent upon the complexity of the underlying data distributions. This variability could imply either a limitation in the adaptability of CDE approaches to certain types of data or a reflection of the inherent simplicity or complexity of the data distributions themselves.
+
+An unexpected finding was the lack of performance enhancement attributed to dropout in these tasks. This outcome may be linked to the relatively modest architecture utilized in this work. Additional experiments have suggested a relationship between the number of mixture components, the extent of dropout, and the size of the network, hinting at a complex interplay that merits further investigation.
+
+\begin{table}[h!]
+  \centering
+  \caption{CDE Experiment Results for Synthetic Data. Arrows indicate if higher or lower is better.}
+  \label{tab:cde_result_comparison_synthetic}
+  \begin{tabular}{ld{3.8}d{3.8}d{3.8}d{3.8}}
+  \toprule
+  Methods & \multicolumn{1}{c}{GMM-2-1k} & \multicolumn{1}{c}{GMM-2-10k} & \multicolumn{1}{c}{GMM-10-1k} & \multicolumn{1}{c}{GMM-10-10k} \\
+  \midrule
+  \textbf{MDN} \\
+    ALL $\uparrow$& -2.74 \pm 0.03 & -2.49 \pm 0.01 & -2.15 \pm 0.05 & -1.59 \pm 0.02  \\
+    H Dist. $\downarrow$& 0.41 \pm 0.00 & 0.34 \pm 0.00 & 0.44 \pm 0.00 & 0.24 \pm 0.01  \\
+    KL-Div. $\downarrow$     & 1.53 \pm 0.01 & 1.25 \pm 0.01 & 1.36 \pm 0.02 & 0.68 \pm 0.01  \\
+    2W Dist. $\downarrow$    & 0.70 \pm 0.01 & 0.48 \pm 0.01 & 0.69 \pm 0.01 &  0.25 \pm 0.02  \\
+  \textbf{KMN} \\
+    ALL $\uparrow$ & -2.80 \pm 0.02 & -2.38 \pm 0.01 & -1.98 \pm 0.02 & -1.57 \pm 0.01  \\
+    H Dist. $\downarrow$ & 0.43 \pm 0.00 & 0.29 \pm 0.01 & 0.34 \pm 0.01 & 0.22 \pm 0.01 \\
+    KL-Div. $\downarrow$    & 1.63 \pm 0.02 & 0.95 \pm 0.03 & 0.92 \pm 0.03 & 0.57 \pm 0.02  \\
+    2W Dist. $\downarrow$    & 0.78 \pm 0.01 & 0.36 \pm 0.01 & 0.46 \pm 0.01 &  0.21 \pm 0.01 \\
+  \textbf{NFN} \\
+    ALL $\uparrow$ & -2.89 \pm 0.01 & -2.69 \pm 0.01 & -2.39 \pm 0.03 & -1.83 \pm 0.02  \\
+    H Dist. $\downarrow$ & 0.46 \pm 0.00 & 0.40 \pm 0.01 & 0.50 \pm 0.01 & 0.35 \pm 0.01 \\
+    KL-Div. $\downarrow$    & 1.69 \pm 0.02 & 1.43 \pm 0.01 & 1.72 \pm 0.04 & 0.99 \pm 0.03  \\
+    2W Dist. $\downarrow$    & 0.89 \pm 0.01 & 0.67 \pm 0.02 & 0.93 \pm 0.02 & 0.49 \pm 0.03 \\
+  \textbf{MSE-CDE} \\
+    ALL $\uparrow$ & -2.96 \pm 0.00 & -2.93 \pm 0.00 & -2.63 \pm 0.01 & -2.55 \pm 0.00  \\
+    H Dist. $\downarrow$ & 0.48 \pm 0.00 & 0.47 \pm 0.00 & 0.60 \pm 0.00 & 0.60 \pm 0.00 \\
+    KL-Div. $\downarrow$    & 1.74 \pm 0.00 & 1.56 \pm 0.01 & 1.84 \pm 0.03 & 1.69 \pm 0.00  \\
+    2W Dist. $\downarrow$    & 0.96 \pm 0.00 & 0.91 \pm 0.00 & 1.13 \pm 0.01 & 1.16 \pm 0.00 \\
+    \bottomrule
+    \end{tabular}\\
+    
+    Note: Entries that show $0.00$ are rounded.
+\end{table}
+
+\subsection{Synthetic Datasets Results}
+
+The results for methods trained on synthetic datasets, as detailed in \pef{sec:synthetic_datasets}, are presented in \tef{tab:cde_result_comparison_synthetic}. These datasets are instrumental in evaluating the methods using advanced metrics. I limit our discussion to Gaussian Mixture Model (GMM) datasets, as they closely mimic real-world datasets with multivariate distributions.
+
+It is important to note that while the ALL metric is not suitable for cross-dataset performance comparison due to its sensitivity to data scaling, the other three metrics—Hellinger Distance, Kullback-Leibler Divergence, and 2-Wasserstein Distance—offer a more dataset-agnostic basis for comparison. Across individual datasets, a consistent relationship among these metrics can be observed, indicating that improvements in one metric are generally mirrored by improvements in the others. This consistency suggests that each metric, despite measuring distinct aspects of model performance, contributes to a unified understanding of method effectiveness. Nonetheless, it's conceivable that in certain scenarios, a method may outperform another by one metric while underperforming by another, although such instances were not encountered in our experiments.
+
+The analysis reveals that both MDN and KMN consistently exhibit superior performance across all considered datasets and metrics. Notably, the models trained on larger datasets demonstrate enhanced performance compared to their counterparts on smaller datasets, underscoring the impact of sample size on CDE method efficacy. These synthetic datasets provide a robust foundation for comprehensive analysis, facilitating a deeper understanding of the strengths and limitations of various CDE approaches.
+
+\section{Future Work and Conclusion}\label{sec:future_work_and_conclusion}
+Throughout the course of my experimental work, several intriguing questions have emerged, highlighting areas within CDE that lack thorough exploration and could benefit from further rigorous investigation to enhance the SOTA. The areas identified for potential future research include:
+
+\textit{Evaluating the Relevance of Additional Synthetic Metrics}: An exploration into the impact and significance of incorporating extra synthetic metrics on model evaluation and validation processes.
+
+\textit{Correlation Between Synthetic and Real-World Dataset Performance}: Investigating the feasibility of asserting that models performing well on synthetic datasets will exhibit comparable success on real-world datasets, considering the degree of similarity between the two. This also entails devising a methodology to quantitatively measure this similarity.
+
+\textit{Effectiveness of ALL/Calibration Metrics in Reflecting True Performance}: An analysis of how metrics such as ALL and calibration indicate the actual performance of the model. In particular this could be measured when comparing to the Hellinger distance and other relevant measures, accurately indicate a model's real-world performance.
+
+\textit{Determining the Composition of Aleatoric and Epistemic Uncertainty}: A detailed examination of the proportions and implications of aleatoric (randomness inherent in the data) versus epistemic (uncertainty in the model) uncertainty within the context of CDE.
+
+\textit{Confidence in MSE-CDE Prediction Assertions}: A critical assessment of the conditions and contexts in which statements regarding MSE-CDE model's performance in comparison to the other CDE methods can be made with a high degree of confidence.
+
+\textit{Multimodality/Complexity of Real World Distributions}: Investigating the extent to which real world distributions exhibit multimodality in the context of tasks deemed relevant to the field of study, and the implications of this characteristic for model development and application.
+
+\textit{Utilization of CDE predictions in practice}: While having accurate CDE is intuitively very powerful, the literature lacks when it comes to the description of approaches how to utilize such results. In particular this applies in the case when predicting of more complex/multimodal distributions. One potential idea would be to use conformal prediction \citep{shafer2008tutorial,balasubramanian2014conformal} where a confidence percentage is set and then the probability mass could be possibly taken from the top to the bottom of those CDEs in terms of amplitude.
+
+While some of these future research directions are broad and ambitious, others, such as evaluating the effectiveness of ALL/Calibration metrics, are more tangible and readily achievable.
+
+This report has provided a comprehensive overview of the current state-of-the-art in CDE, identifying key challenges within the field and introducing novel methodologies, such as the differentiable calibration loss and the MSE-CDE as a sanity check baseline. It has also endeavored to reproduce the findings of \citep{rothfuss2019noise} and assess the performance of CDE models on synthetic datasets with unprecedented depth. Additionally, it proposes a more scientific approach to the creation of synthetic datasets for CDE evaluation. With all three objectives of this practical work successfully met, this project can be considered a success.
+
+\bibliography{references}
+
+\end{document}
+
+

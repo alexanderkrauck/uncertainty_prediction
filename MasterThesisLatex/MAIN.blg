@@ -1,0 +1,22 @@
+[0] Config.pm:307> INFO - This is Biber 2.17
+[0] Config.pm:310> INFO - Logfile is 'MAIN.blg'
+[75] biber:340> INFO - === So Apr  7, 2024, 15:55:24
+[88] Biber.pm:418> INFO - Reading 'MAIN.bcf'
+[160] Biber.pm:972> INFO - Found 55 citekeys in bib section 0
+[172] Biber.pm:4383> INFO - Processing section 0
+[181] Biber.pm:4574> INFO - Looking for bibtex file 'references.bib' for section 0
+[184] bibtex.pm:1713> INFO - LaTeX decoding ...
+[257] bibtex.pm:1518> INFO - Found BibTeX data source 'references.bib'
+[784] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[784] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[784] Biber.pm:4203> INFO - Sorting list 'nyt/global//global/global' of type 'entry' with template 'nyt' and locale 'en-US'
+[784] Biber.pm:4209> INFO - No sort tailoring available for locale 'en-US'
+[848] bbl.pm:654> INFO - Writing 'MAIN.bbl' with encoding 'UTF-8'
+[903] bbl.pm:757> INFO - Output to MAIN.bbl
+[903] Biber.pm:130> WARN - Duplicate entry key: 'ambrogioni2017kernel' in file 'references.bib', skipping ...
+[903] Biber.pm:130> WARN - Duplicate entry key: 'bishop1994mixture' in file 'references.bib', skipping ...
+[904] Biber.pm:130> WARN - Duplicate entry key: 'ambrogioni2017kernel' in file 'references.bib', skipping ...
+[904] Biber.pm:130> WARN - Duplicate entry key: 'gupta2022nested' in file 'references.bib', skipping ...
+[904] Biber.pm:130> WARN - Duplicate entry key: 'angelopoulos2021gentle' in file 'references.bib', skipping ...
+[904] Biber.pm:130> WARN - legacy month field '20--22 Jun' in entry 'gal_dropout_2016' is not an integer - this will probably not sort properly.
+[904] Biber.pm:132> INFO - WARNINGS: 6

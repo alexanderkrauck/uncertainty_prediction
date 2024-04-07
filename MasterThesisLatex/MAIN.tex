@@ -1,0 +1,250 @@
+% !TeX encoding = UTF-8
+% !TeX program = pdflatex
+% !BIB program = biber
+
+% Template Revision:
+% Rev. C3 -- 2022-03-07 -- Ali Varli
+% Rev. C2 -- 2021-05-11 -- Ali Varli
+% Rev. C1 -- 2021-03-22 -- Ali Varli
+% Rev. B1 -- 2019-11-05 -- Ali Varli
+
+%% HINWEISE:
+%% MAIN.tex ist die Hauptdatei. Hier sind sämtliche Pakete eingebunden und die allgemeine Struktur ist hier festgelegt. Im Allgemeinen müssen hier keine Änderungen vorgenommen werden.
+%% In der eingebundenen Datei config.tex müssen Änderungen vorgenommen werden, die in der Datei näher erläutert sind.
+%% Das Deckblatt wird mit der Datei cover/coversheet.tex eingebunden. Hier sollten keine Änderungen vorgenommen werden.
+%% Für Text im Vorspann (vor der Inhaltsangabe, z.B. für Vorwort, Abstract etc.) ist die Datei frontmatter.tex vorgesehen.
+%% Für den Hauptteil ist die Datei mainmatter.tex vorgesehen.
+%% Das Literaturverzeichnis ist die eingebundene Datei literature.bib.
+%% Die erzeugt Ausgabe ist PDF/A-1B-kompatibel. Bei eingebundenen Dateien (PDFs, PNGs etc.) sollte darauf geachtet werden, dass diese ebenfalls PDF/A-kompatibel sind (PNGs mit transparentem Hintergrund sind es z.B. nicht).
+%% Für Verbesserungsvorschläge bin ich gerne offen.
+%% Viel Erfolg :). Linz, im Oktober 2019, Ali Varli, a_v@gmx.net.
+
+%% PLEASE NOTE:
+%% MAIN.tex is the main file. All packages are pooled here and the general structure is defined here. In general, no changes need to be made here.
+%% Changes must be made in the included file config.tex. Detailed information is in the file.
+%% The cover page is included with the file cover/coversheet.tex. No changes should be made here.
+%% The file frontmatter.tex is provided for text in the lead text (before the summary, i.e. for the foreword, abstract, etc.).
+%% The file mainmatter.tex is intended for the main part.
+%% The bibliography is the included file literature.bib.
+%% The produced output is PDF/A-1B-compliant. Embedded files (PDFs, PNGs etc.) must be also PDF/A-compliant (e.g. PNGs with transparent backgrounds are not PDF/A-compliant).
+%% I am open to suggestions for improvement.
+%% Good luck :-). Linz, October 2019, Ali Varli, a_v@gmx.net.
+
+
+\NeedsTeXFormat{LaTeX2e}[2019-10-01]
+\documentclass[%
+	a4paper,
+	11pt,
+	BCOR=10mm,
+	DIV=12,
+	headinclude,
+	headheight=16mm,
+	oneside,
+	onecolumn,
+	openany,
+	parskip=half,
+	% appendixprefix,
+	% toc=flat,
+	% chapterentrydots=true,
+	table,
+	fleqn,
+	% draft
+]{scrbook}
+
+\usepackage[utf8]{inputenc}
+
+\input{config}
+
+\usepackage[a-1b]{pdfx}[2019-02-27]
+\usepackage[T1]{fontenc}
+\usepackage{helvet,mathpazo}
+\usepackage{microtype}
+\ifeng
+	\usepackage[naustrian,english]{babel}
+\else
+	\usepackage[english,naustrian]{babel}
+\fi
+\usepackage[absolute]{textpos}
+\usepackage{amsmath,siunitx}
+\usepackage[%
+	%backend=biber,
+	style=authoryear, % authoryear
+    %citestyle=authoryearbrack
+	%bibstyle=authoryear, % authoryear
+	%citestyle=authoryear-comp, % authoryear
+	% maxcitenames=2,
+	%sorting=none, %nty
+	%backref=true,
+	%backrefstyle=none,
+    %natbib=true
+]{biblatex}
+\usepackage{csquotes}
+\usepackage{lastpage,scrlayer-scrpage}
+\usepackage[onehalfspacing]{setspace}
+\usepackage{booktabs,colortbl,xcolor}
+\usepackage{graphicx,wrapfig}
+\usepackage[section]{placeins} %\FloatBarrier
+\usepackage{float} %[H]
+\usepackage{enumitem}
+\usepackage{subfiles}
+\usepackage{scrhack}
+%\usepackage[colorlinks=true, allcolors=blue]{hyperref}%mine
+
+
+% \setcounter{tocdepth}{3} %subsubsection
+% \setcounter{secnumdepth}{3}
+
+\newpairofpagestyles[scrheadings]{jku}{%
+	\clearpairofpagestyles
+	\ifeng
+		\ohead*{\includegraphics[width=3cm]{cover/jkuen}}
+	\else
+		\ohead*{\includegraphics[width=3cm]{cover/jkude}}
+	\fi
+	\ifoot*{\date}
+	\cfoot*{\author}
+	\ofoot*{\pagemark/\pageref{LastPage}}	
+	\setkomafont{pageheadfoot}{\sffamily\scriptsize}
+	\setkomafont{pagenumber}{\sffamily\scriptsize}
+}
+
+\hypersetup{%
+	bookmarksnumbered=true,
+	pdfborder={0 0 0},
+}
+
+\tolerance=300
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+
+%------------------------------------------------------
+%My own config stuffs
+%\setcitestyle{authoryear}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{multicol}
+\usepackage{svg}
+\usepackage{subfig}
+%\usepackage[square,numbers]{natbib}
+\usepackage{stackengine}
+\usepackage[english]{babel}
+\usepackage{datetime}
+\usepackage{dsfont}
+\usepackage{dcolumn}
+\usepackage{algorithm} % for pseudocode
+\usepackage{algorithmic} % for pseudocode
+\usepackage{xargs} % for commands with multiple arguments
+%\usepackage{subcaption}
+\usepackage{subfig}
+
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+
+%\DeclareCiteCommand{\cite}[\mkbibbrackets]
+%  {\usebibmacro{prenote}}
+%  {\usebibmacro{citeindex}%
+%   \usebibmacro{author}%
+%   \setunit{\labelnamepunct}\newblock
+%  \usebibmacro{date}}
+%  {\multicitedelim}
+%  {\usebibmacro{postnote}}
+
+
+\AtEveryCite{%
+  \let\parentext=\parentexttrack%
+  \let\bibopenparen=\bibopenbracket%
+  \let\bibcloseparen=\bibclosebracket}
+
+\usepackage{letltxmacro}\LetLtxMacro{\cite}{\parencite}
+\renewcommand*{\nameyeardelim}{\addcomma\space} 
+\DeclareCiteCommand{\cite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \printtext[bibhyperref]{\color{orange}\usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\cite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \printtext[bibhyperref]{\color{orange}\usebibmacro{citeyear}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\hypersetup{
+    citecolor=orange,
+    linkcolor=green,
+    urlcolor=blue % Change 'blue' to whatever color you prefer for URLs
+}
+
+
+
+\newcommand\pef[1]{\hyperref[#1]{\color{green}Section~\ref{#1}}}
+\newcommand\fef[1]{\hyperref[#1]{\color{green}Figure~\ref{#1}}}
+\newcommand\tef[1]{\hyperref[#1]{\color{green}Table~\ref{#1}}}
+\newcommand\eef[1]{\hyperref[#1]{\color{green}Equation~\ref{#1}}}
+
+\newcommandx{\sref}[2][1=]{\hyperref[#2]{\color{green}#1~\ref{#2}}}
+
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+%----------------------------------------------
+
+% \addtocontents{toc}{\protect\enlargethispage{2\normalbaselineskip}}
+% \addtocontents{lof}{\protect\enlargethispage{2\normalbaselineskip}}
+% \addtocontents{lot}{\protect\enlargethispage{2\normalbaselineskip}}
+
+\addtokomafont{caption}{\small}
+\setkomafont{captionlabel}{\small\sffamily\bfseries}
+
+%% Literaturdatenbank / Bibliography:
+\addbibresource{references.bib}
+
+%% Seitenstil / Pagestyle:
+%\pagestyle{jku}
+
+%
+%%
+%%%%
+%%%%%%%%
+%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%
+
+\begin{titlepage}
+	\setcounter{page}{0}
+	\include{cover/coversheet}
+\end{titlepage}
+
+
+%%%%%%%%%%%%
+\frontmatter
+
+\input{frontmatter}
+
+\begin{singlespace}
+	\tableofcontents
+	\listoffigures 
+	\listoftables
+\end{singlespace}
+
+
+%%%%%%%%%%%
+\mainmatter
+
+\input{mainmatter}
+
+
+%%%%%%%%%%%%%%%%%%
+\printbibliography
+
+%%%%%%%%%
+\appendix
+
+\end{document}

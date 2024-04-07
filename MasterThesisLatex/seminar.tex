@@ -1,0 +1,125 @@
+\documentclass{article}
+
+\usepackage[nonatbib, final]{neurips_2021}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+% own packages
+\usepackage{amsmath}
+\usepackage{multicol}
+\usepackage{svg}
+\usepackage[]{graphicx}
+\usepackage{subfig}
+\usepackage[square,numbers]{natbib}
+\usepackage{stackengine}
+
+\bibliographystyle{abbrvnat}
+\setcitestyle{authoryear}
+
+\newcommand\pef[1]{\hyperref[#1]{Section~\ref{#1}}}
+\newcommand\fef[1]{\hyperref[#1]{Figure~\ref{#1}}}
+\newcommand\tef[1]{\hyperref[#1]{Table~\ref{#1}}}
+
+\title{Conditional Density Estimation with Neural Networks - Seminar in AI}
+\author{%
+  Alexander Krauck \\
+  Department of Machine Learning\\
+  Johannes Kepler University Linz\\
+  Upper Austria, Austria \\
+  \texttt{alexander.krauck@gmail.com}
+}
+\date{August 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}\label{sec:introduction}
+
+The landscape of supervised learning is multifaceted, hosting a variety of modeling approaches tailored to diverse problem settings. Within this landscape, Conditional Density Estimation (CDE) stands out as a sophisticated method designed to capture the complex probability structures inherent in real-world data. This introduction delineates the distinct nature of CDE, especially in comparison to traditional regression tasks.
+
+\begin{enumerate}
+   \item \textbf{Traditional Supervised Learning:} 
+   Traditional regression models construct a mapping from inputs \( x \) to a target \( y \), generally producing point estimates that suggest a deterministic relationship. Here, the aim is to predict an expected value \( \mathbb{E}[y \mid x] \), assuming a level of certainty in the data that is often not present in many real-world scenarios.
+
+   \item \textbf{Bayesian Approaches:} 
+   Bayesian methods infuse probabilistic thinking into the modeling process, treating the expected value \( \mathbb{E}[y \mid x] \) not as a fixed point but as a random variable with a distribution \( p(\mathbb{E}[y \mid x]) \). This perspective inherently accounts for uncertainty, enriching the model's predictive power by incorporating a measure of confidence in its predictions. In particular, Bayesian machine learning mostly focuses on the uncertainty in the model parameters.
+
+   \item \textbf{Conditional Density Estimation:} 
+   CDE represents a departure from the notion of single-point predictions, embarking instead on modeling the entire conditional probability distribution \( p(y \mid x) \). This allows for a nuanced understanding of the data, providing insights into all possible outcomes of \( y \) given \( x \), and reflecting the inherent complexity and variability of the dataset. CDE acknowledges that each input \( x \) can be associated with a range of potential outcomes, each with its own probability, thus offering a more detailed portrayal of the underlying data structure.
+\end{enumerate}
+One salient application of CDE can be found in financial risk management as described by \citep{mcneil2015quantitative}. Investors and financial analysts are often concerned with the prediction of asset prices or returns. While point estimates of expected returns are useful, they are insufficient for risk assessment. CDE allows for the modeling of the entire distribution of potential future asset prices or returns, given current market conditions. This detailed probabilistic information is crucial for evaluating the risk associated with various investment strategies. For instance, understanding the distribution enables the calculation of Value at Risk (VaR) and Expected Shortfall (ES), which are critical measures in financial risk assessment. These measures help in making informed decisions by not only considering the most likely outcomes but also by assessing the likelihood of extreme financial losses, thereby providing a comprehensive risk profile.
+
+This seminar report is deeply influenced by the insights from "Conditional Density Estimation with Neural Networks: Best Practices and Benchmarks" by \citep{rothfuss2019conditional}, a comprehensive treatise that steers the discourse towards a profound appreciation of probabilistic modeling within the machine learning domain.
+
+\section{Paper Discussion}
+%from here jut kind of a summary for now of their paper
+\citep{rothfuss2019conditional} propose a noise regularization and data normalization scheme in the context of CDE. Moreover they focus on a finance task with the \textit{Euro Stoxx 50} dataset as well as on synthetic generated data. The two model classes used by them are mixture density networks (MDN) by \citep{bishop1994mixture} and kernel mixture network (KMN) by \citep{ambrogioni2017kernel}. Those two architectures are upon the most used techniques in the field. They also state that given enough parameters (chosen expressive enough), those architectures can approximate arbitrary density structures, however then they are prone to overfitting. They add small random noise to the input during training to reduce this issue and also show the effect empirically. Moreover they introduce a input normalization technique that makes it possible for the network to work with normalized data and still they are able to produce conditional densities in the original domain of the data.
+
+The two density models both basically predict $n$ sets of model parameters for some type of distribution. A very common choice are Gaussian distributions. Thereby the models predicts the mean, variance and weight of the respective distribution, where the weights are normalized using the softmax function. While in the MDNs all three parameters are estimated using a neural network, in the KMN only the weight of the distributions are determined using parametric methods while the other two parameters are predicted using non-parametric kernel methods.
+
+Both methods are optimized by maximizing the (log) likelihood used for NNs conventional stochastic gradient descent, which can be done by simply evaluating the densities of the true $y$ values on the estimated density function for the $x$ values. Formally:
+
+$$\theta^*=\arg \max _\theta \sum_{n=1}^N \log p_\theta\left(\boldsymbol{y}_n \mid \boldsymbol{x}_n\right)$$
+
+\subsection{The Novelties}
+They first describe a new method where they add noise to the data. In particular they add zero mean independent noise to the data and to the labels with standard deviations $\sigma_x$ and $\sigma_y$. They bring attention to the fact that noise regularization is not novel in its entirety but rather that it has not been applied before in the area of density estimation methods. Furthermore, they analytically derive that this indeed puts penalty in the loss on more complex distributions by using a Taylor approximation of the loss function $\mathcal{L}\left(x_n + \xi \right)$, where $\xi$ is the noise.
+
+
+Secondly, they introduce a data normalization method that makes it possible that the model only has to work with normalized data, which makes it much easier for most machine learning approaches. Furthermore, it is still possible to recover the proper densities in the original space by using a change of variables formula. They proof two theorems that show analytically why and how this is possible. This involves the inverse transformation function as well as the Jacobian thereof. Moreover, they show that the mixture components themselves also can be transformed to the original scaling of the data.
+
+\subsection{Evaluation}\label{subsec:evaluation}
+They use simulated datasets to benchmark the effectiveness of their approach and to compare it to other methods. Besides being able to produce unlimited data points, simulated data also has the strong advantage that we have access to the true density function, which we never have in the real world.
+
+As the metric for comparing predicted and true distributions they use the Hellinger distance\footnote{\url{https://en.wikipedia.org/wiki/Hellinger_distance}} averaged over multiple samples of $x$ and also over multiple seeded training runs of the models.
+
+Using grid search over the noise regularization hyperparameters they find that there is some dependence on the dataset which is rather expected. Finally by plotting the number of training samples against the Hellinger distance they show that both of their novelties have a strong impact on the metric. In particular the normalization seems essential as without it some methods can't converge within a reasonable time or not at all as the scaling of the parameters needs to be very large.
+
+Furthermore they compare their methods with other state of the art methods on the simulated data and show that indeed the novel two techniques introduced can help MDNs and KMNs keep up or outperform the other methods on all simulations. In particular, the other methods are Conditional Kernel Density Estimation (CKDE), CKDE with bandwidth selection via cross-validation (CKDE-CV), $\epsilon$-Neighborhood kernel density estimation (NKDE) and Least-Squares Conditional Density Estimation (LSCDE).
+
+Finally, they also do evaluation on a real world data-set, the \textit{Euro Stoxx 50} dataset, where they aim to predict the 1-day log return by conditioning on 14 explanatory variables. For evaluation on this dataset different metrics have to be used. They split into train and test set and use average log-likelihood, the root mean squared error between the mean of the estimated distribution and the actual realization and the root mean squared error between the standard deviation of the estimated distribution and the difference between the mean of the estimated distribution and the true value. The results show superior performance in all metrics of the proposed methods. Moreover, they also do another run where they fine-tune hyperparameters with cross-validation, where again the proposed techniques dominate. Finally, they state that the fact that both kernel methods used improve substantially with the cross validation indicates that the underlying distributions are non-Gaussian.
+
+\section{Related Work}
+
+A pivotal work in this field is "Uncertainty estimation with deep learning for rainfall–runoff modeling" by \citep{klotz2021uncertainty}. In this work also MDNs in conjunction with the two techniques introduced in the seminar paper by \citep{rothfuss2019conditional} as discussed above are utilized. In particular, \citep{klotz2021uncertainty} use Gaussian Mixture Models, Countable Mixture of Assymetric Laplacians, Uncountable Mixtures of Assymetric Laplacian and Monte Carlo Dropout (which is not a MDN). They also attempt to identify reasonable quality metrics for density estimation. They discuss reliability and resolution as two metrics that should be used.
+
+The reliability metric/plot measures how confident/high-peaked the model is in comparison to its actual alignment with the probability density functions (pdfs). We are basically on the test set calculating all the pdfs for the test samples. Then we are for set quantiles looking how frequently the actual target variables lie below each quantile in each individual pdf. We can then plot this probabilities against the quantiles. Ideally the quantiles equal the probabilties always. If the probabilities are higher then its underestimating and if they are lower then its underestimating the pdf. Moreover we can do the same thing in a symmetric manner to determine the general divergence from the actual pdf. This then would be intuitively really like confidence.\footnote{See  \url{https://github.com/neuralhydrology/neuralhydrology/blob/master/neuralhydrology/evaluation/plots.py} for an exact understanding.}
+
+On the other hand resolution as described by \citep{klotz2021uncertainty} additionally measures how peaked a distribution is. They propose multiple metrics for measuring this like mean absolute deviation, standard deviation or distance between the 0.25 and the 0.75 quantiles. This perspective additionally to the reliability is necessary since reliability has the drawback that it does not analyze individual distributions but only the average of all distributions of the test samples. However, I realized that the metrics considered would fail to capture the resolution of more complex distributions with multiple peaks or high aleatoric uncertainty to be precise. It is mentioned tho, that resolution can only work in cooperation with reliability.
+
+Moreover they address higher-order uncertainties: Uncertainties predicted by CDE methods are also prone to be uncertain themselves. That means for example if a MDN makes a distribution prediction of the target value for the test sample that is far from the training distribution, it might be that the model does have high epistemic uncertainty about this distribution estimation. In particular this perspective embraces that we need to take a step back and realize that we can have uncertainty about the estimation of $p(y \mid x)$ itself and not only the predicted distribution is to be considered as the uncertainty. To be frank, with that we might be able to decouple aleatoric and epistemic uncertainty.
+
+
+Another extremely valuable work is "Aleatoric and Epistemic Uncertainty in Machine Learning" by \citep{hullermeier_aleatoric_2021}. They give a broader picture on the topic of uncertainty estimation. Uncertainty estimation is the general topic that also CDE is a part of. Probably the most prominent connection that I want to make between the two works is the aleatoric vs. epistemic uncertainty. Many scientists in the field of uncertainty estimation only concern themselves with distinguishing between those two types of uncertainty. In CDE on the other hand we usually only consider aleatoric uncertainty and completely neglect epistemic one. It seems that often the question whether or not the approximated $\Tilde{p}(y \mid x)$ can even be estimated with the provided data is not looked at even tho this might be very insightful. Furthermore \citep{hullermeier_aleatoric_2021} topics like Bayesian neural networks, reducible vs. irreducible uncertainty, what assumptions are necessary to learn to begin with, conformal prediction, the fact that it is difficult to quantify the quality of uncertainty as well as many other perspectives on the topic.
+
+\section{Critical Assessment}
+In this section, I offer a critical analysis of the work presented in \citep{rothfuss2019conditional}. It is somewhat surprising that the concept of data normalization, as discussed in their work, had not been previously considered, given its apparent straightforwardness. Additionally, I observe that many studies, including \citep{rothfuss2019conditional}, typically estimate $p(y \mid x)$ for real-world datasets (whose explicit distributions are unknown) by essentially evaluating model performance using $\mathbf{E}[p(y \mid x)]$. This evaluation method can be derived from the distribution through the RMSE, as outlined in \pef{subsec:evaluation}. However, this approach does not fully encapsulate the effectiveness of Conditional Density Estimations (CDEs), since it focuses solely on the expected value of the conditional probability, thereby overlooking the potential for more intricate distributions beyond single-peaked ones. The use of the Hellinger distance for synthetic distributions appears more appropriate. Although this metric may not be applicable to real-world datasets, it would be advantageous to employ a metric more akin to the Hellinger distance.
+
+Moreover, basing evaluations on a single dataset does not provide a robust basis for making conclusive statements. It would be more insightful to examine datasets utilized by preceding studies. Such an approach would not only demonstrate the superiority of the method on a select dataset but also its overall superiority.
+
+Lastly, a significant concern in \citep{rothfuss2019conditional}'s paper is evident in one of their result plots, which shows a notably poor performance on the synthetic "GaussianMixture" dataset, with a Hellinger distance of approximately 0.8. In contrast, their methods achieved a Hellinger distance of below 0.1 on other synthetic datasets. The lack of subsequent mention or comparison of this dataset with other state-of-the-art methods, especially when the other three synthetic datasets are discussed, is conspicuous and raises unanswered questions. At the very least, a brief explanation or justification for the performance on this particular dataset would be expected.
+
+\section{Conclusion}
+The field of CDE, while already researched for a long time, still has a lot of potential. In particular, the perspective that CDE is the more specific form of traditional supervised learning as described in \ref{sec:introduction} is still not commonly understood.
+
+Most importantly, \citep{rothfuss2019conditional} show that some techniques that work for normal supervised learning, such as noise regularization and data normalization can also work for CDE. Moreover they provide decent synthetic benchmarks for evaluating the performance of CDE methods exactly.
+
+\section{Future Work}
+Firstly, one could do a more fundamental theoretical paper about how CDE aligns with epistemic and aleatoric uncertainty concepts. While there are many papers in those fields, a paper that not only surveys many different methods like the work of \citep{hullermeier_aleatoric_2021}, but instead merges everything also conceptually to a single theoretical framework is missing.
+
+Secondly, it seems to be a consistent struggle to evaluate predicted density functions. Many works just use the mean of the predicted density function and compare it to the true value. It would be good to develop a method that goes beyond that and allows for more complex distributions that might for example be multimodal.
+
+Finally, it seems that most methods in the field of CDE are some sort of mixture model. There are also some works that utilize more advanced approaches like normalizing flows the work of \citep{trippe2018conditional} but to the best of my knowledge no approaches that effectively make use of the underlying probabilistic nature of variational autoencoders, generative advesarial networks or that generally make use of something like transformers exist so far.
+
+\bibliography{references}
+
+\end{document}
+
+

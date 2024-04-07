@@ -1,0 +1,76 @@
+% !TeX encoding = UTF-8
+% !TeX root = MAIN.tex
+
+\newif\ifeng
+%% HINWEISE: Hier müssen folgende Einstellungen vorgenommen werden:
+%% PLEASE NOTE: Select your settings here:
+
+%% Sprache: Falls die Dokumentensprache Deutsch ist, \engtrue mit einem %-Zeichen davor auskommentieren:
+%% Language: If the document language is German, comment \engtrue with a % sign in front:
+\engtrue
+
+%% Hier den Namen des Autors eingeben:
+%% Enter the author’s name here:
+\def\author{Alexander Krauck}
+
+%% Hier Informationen für den rechten Block unter dem JKU-Logo eingeben, wobei die Elemente mit einem Buchstaben jeweils für die Beschreibung und mit Doppelbuchstaben für den Inhalt sind.
+%% Anzuführen bei Masterarbeit: Eingereicht von, Anfegertigt am, BeurteilerIn, Mitbetreuung.
+%% Anzuführen bei Dissertation: Eingereicht von, Anfegertigt am, ErstbeurteilerIn, ZweitbeurteilerIn, Mitbetreuung.
+%% Anzuführen bei strukturiertem Doktorat: Eingereicht von, Angefertigt am, ErstbetreuerIn, ZweitbetreuerIn, Mitbetreuung.
+%%
+%% Enter information here for the right block under the JKU logo, whereby the elements should have one letter for the heading and double letters for content.
+%% To be given for master thesis: Author, Submission, Thesis Supervisor, Assistant Thesis Supervisor.
+%% To be given for doctoral thesis: Author, Submission, First Supervisor, Second Supervisor, Assistant Thesis Supervisor.
+\def\elementA{Author / Eingereicht von}
+\def\elementAA{\textbf{\author} \\ Matriculation number / Matrikelnummer \\ \textbf{K11904235}}
+
+\def\elementB{Submission / Angefertigt am}
+\def\elementBB{\textbf{Institute of Machine Learning}}
+
+\def\elementC{Thesis Supervisor / First Supervisor / BeurteilerIn / ErstbeurteilerIn / ErstbetreuerIn}
+\def\elementCC{DI~Dr.\@ \textbf{Name}}
+
+\def\elementD{Second Supervisor / ZweitbeurteilerIn / ZweitbetreuerIn}
+\def\elementDD{\textbf{Name}}
+
+\def\elementE{Assistant Thesis Supervisor / Mitbetreuung}
+\def\elementEE{\textbf{Name}}
+
+%% Hier Datum eingeben (Monat der Abgabe im Prüfungs- und Anerkennungsservice):
+%% Enter the date (Month and year of submission to Examination and Recognition Services):
+\def\date{Mai 2024}
+
+%% Hier Ort eingeben:
+%% Enter the location:
+\def\place{Linz}
+
+%% Hier Titel eingeben; steht über dem K:
+%% Enter the title; it appears above the K:
+\def\title{Conditional Density Estimation and Conformal Prediction are Equivalent Tasks in Regression}
+
+%% Hier den Typ der Arbeit eingeben (0: Keine Arbeit, 1: Bachelorarbeit, 2: Masterarbeit, 3: Dissertation, 4: Diplomarbeit):
+%% Enter the type of paper here (0: Not Thesis, 1: Bachelor’s Thesis, 2: Master’s Thesis, 3: Dissertation, 4: Diploma Degree Thesis):
+\def\type{2}
+
+%% Hier ggf. Untertitel eingeben; stehen unter dem K (nur bei 0):
+%% If necessary, enter a subtitle here; below the K (only for 0):
+\def\subtitle{}
+
+%% Hier den angestrebten akademischen Grad eingeben:
+%% Enter the desired academic degree here:
+\def\acadDegree{Master of Science}
+
+%% Hier die Studienrichtung eingeben:
+%% Enter the major here:
+\def\study{Artificial Intelligence}
+
+%% Hier die Metadaten für das PDF eingeben (mehrere Autoren und Keywords durch \sep trennen):
+%% Enter metadata for the PDF here (seperate multiple authors and keywords by \sep):
+\begin{filecontents*}[overwrite]{\jobname.xmpdata}
+\Title{Test\title}
+\Author{Alexander Krauck\author}
+\Subject{}
+\Keywords{}
+\Language{en-US}
+\Publisher{}
+\end{filecontents*}
