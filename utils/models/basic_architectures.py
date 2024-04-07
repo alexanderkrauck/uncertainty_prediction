@@ -345,7 +345,7 @@ class ConditionalDensityEstimator(ABC, torch.nn.Module):
         sorted_indices = torch.argsort(densities, descending=True, dim=-1)
         cumulative_sum = torch.cumsum(torch.gather(densities, 1, sorted_indices), dim=-1)
 
-        wanted_indices = torch.argmin(torch.abs(y.unsqueeze(-1) - y_space[sorted_indices]), dim=-1)
+        wanted_indices = torch.argmin(torch.abs(y.reshape(-1, 1) - y_space[sorted_indices]), dim=-1)
         return torch.gather(cumulative_sum, 1, wanted_indices.unsqueeze(-1)).squeeze()
 
 
