@@ -1,0 +1,49 @@
+config_id: mdn_voest_realistic_normal
+seeds: 42
+data_seed: 1
+
+training_hyperparameters:
+  early_stopping_patience: 10
+  epochs: 500
+  clip_gradient_norm: 4.0
+  batch_size: 32
+  use_lr_scheduler: True
+  optimizer_hyperparameters:
+    lr: 2.0e-4
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+    weight_decay: 0.0
+  optimizer: adam
+  input_noise_x: 0.02
+  input_noise_y: 0.05
+  loss_hyperparameters:
+    reliability_loss_weight: 0.0
+    weights_entropy_loss_weight: 0.125
+    loss_calculation_in_normalised_domain: True
+  eval_metric_for_best_model: val_nll_loss
+  evaluation_function_names: [miscalibration, conformal_prediction]
+  slow_first_n_batches: 1
+  log_train_every_n: 10
+  noisy_start: True
+  noise_level: 0.5
+  noise_decay: 0.2
+  n_random_target_swap_per_epoch: 50
+
+data_hyperparameters:
+  data_type: rothfuss
+  dataset_name: boston_housing
+  val_split: 0.1
+  test_split: 0.2
+  validation_is_test: True
+  remove_quantiles: 0.001 #remove quantiles that are below 0.1% and above 99.9% (outliers)
+  random_state: 1338
+
+model_hyperparameters:
+  model_class: mdn
+  n_hidden: [64, 128, 128, 64]
+  n_distributions: 35
+  dropout_rate: 0.04
+  activation_function: relu
+  distribution_type: gaussian
+  std_stability_mode: softplus
+  use_layer_norm: False
