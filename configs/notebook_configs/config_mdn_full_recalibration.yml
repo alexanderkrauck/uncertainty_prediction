@@ -25,8 +25,8 @@ training_hyperparameters:
   slow_first_n_batches: 1
   log_train_every_n: 10
   noisy_start: True
-  noise_level: 0.5
-  noise_decay: 0.2
+  noise_level: 0.3
+  noise_decay: 0.3
   n_random_target_swap_per_epoch: 50
 
 data_hyperparameters:
