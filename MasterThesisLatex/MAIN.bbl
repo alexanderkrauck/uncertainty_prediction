@@ -374,6 +374,7 @@
       \strng{authorbibnamehash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
       \strng{authornamehash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
       \strng{authorfullhash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
+      \field{extraname}{1}
       \field{sortinit}{B}
       \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
       \field{extradatescope}{labelyear}
@@ -382,6 +383,35 @@
       \field{labeltitlesource}{title}
       \field{title}{Mixture density networks}
       \field{year}{1994}
+    \endentry
+    \entry{bishop2006pattern}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=9dfd0135a5e80aa6d81cea2c10fb7f73}{%
+           family={Bishop},
+           familyi={B\bibinitperiod},
+           given={Christopher\bibnamedelima M},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
+      \strng{fullhash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
+      \strng{bibnamehash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
+      \strng{authorbibnamehash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
+      \strng{authornamehash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
+      \strng{authorfullhash}{9dfd0135a5e80aa6d81cea2c10fb7f73}
+      \field{extraname}{2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Springer google schola}
+      \field{title}{Pattern recognition and machine learning}
+      \field{volume}{2}
+      \field{year}{2006}
+      \field{pages}{645\bibrangedash 678}
+      \range{pages}{34}
     \endentry
     \entry{chernozhukov2021distributional}{article}{}
       \name{author}{3}{}{%
@@ -1297,12 +1327,12 @@
            given={Rafael},
            giveni={R\bibinitperiod},
            givenun=0}}%
-        {{un=1,uniquepart=given,hash=6b14f111655befaaec2b7d240e6c5148}{%
+        {{un=0,uniquepart=base,hash=6b14f111655befaaec2b7d240e6c5148}{%
            family={Shimizu},
            familyi={S\bibinitperiod},
            given={Gilson},
            giveni={G\bibinitperiod},
-           givenun=1}}%
+           givenun=0}}%
         {{un=0,uniquepart=base,hash=84279e7bf9651430804bfce3f8d77f14}{%
            family={Stern},
            familyi={S\bibinitperiod},
@@ -1329,43 +1359,6 @@
       \field{year}{2022}
       \field{pages}{1\bibrangedash 32}
       \range{pages}{32}
-    \endentry
-    \entry{izbicki2019flexible}{article}{}
-      \name{author}{3}{}{%
-        {{un=0,uniquepart=base,hash=c87b1d660c84fdd48a26999544b6571a}{%
-           family={Izbicki},
-           familyi={I\bibinitperiod},
-           given={Rafael},
-           giveni={R\bibinitperiod},
-           givenun=0}}%
-        {{un=1,uniquepart=given,hash=cde7d67ff1eae25e07e460a3987d36b5}{%
-           family={Shimizu},
-           familyi={S\bibinitperiod},
-           given={Gilson\bibnamedelima T},
-           giveni={G\bibinitperiod\bibinitdelim T\bibinitperiod},
-           givenun=1}}%
-        {{un=0,uniquepart=base,hash=84279e7bf9651430804bfce3f8d77f14}{%
-           family={Stern},
-           familyi={S\bibinitperiod},
-           given={Rafael\bibnamedelima B},
-           giveni={R\bibinitperiod\bibinitdelim B\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{a321d9c1badf2a1a9de5dcbd650bb3e0}
-      \strng{fullhash}{a321d9c1badf2a1a9de5dcbd650bb3e0}
-      \strng{bibnamehash}{a321d9c1badf2a1a9de5dcbd650bb3e0}
-      \strng{authorbibnamehash}{a321d9c1badf2a1a9de5dcbd650bb3e0}
-      \strng{authornamehash}{a321d9c1badf2a1a9de5dcbd650bb3e0}
-      \strng{authorfullhash}{a321d9c1badf2a1a9de5dcbd650bb3e0}
-      \field{sortinit}{I}
-      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{year}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{arXiv preprint arXiv:1910.05575}
-      \field{title}{Flexible distribution-free conditional predictive bands using density estimators}
-      \field{year}{2019}
     \endentry
     \entry{jorion2007value}{book}{}
       \name{author}{1}{}{%

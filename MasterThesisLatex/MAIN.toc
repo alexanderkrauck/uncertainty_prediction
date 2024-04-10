@@ -39,37 +39,34 @@
 \contentsline {subsection}{\numberline {2.7.4}Calibration of CDE-methods in General}{41}{subsection.2.7.4}%
 \contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDE-methods}{42}{subsubsection*.17}%
 \contentsline {section}{\numberline {2.8}Uncertainty and Calibration: The Connection}{44}{section.2.8}%
-\contentsline {subsection}{\numberline {2.8.2}Recalibration: A new perspective}{46}{subsection.2.8.2}%
-\contentsline {subsection}{\numberline {2.8.3}Mathematical interpretation}{48}{subsection.2.8.3}%
-\contentsline {subsubsection}{\nonumberline Monotonicity of the PDF between borders}{48}{subsubsection*.20}%
-\contentsline {subsubsection}{\nonumberline Connection to Epistemic Uncertainty}{48}{subsubsection*.22}%
-\contentsline {chapter}{\numberline {3}Empirical Study}{52}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Core Model Classes}{52}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Experimental Setup}{53}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Hyperparameters}{53}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1}Known Hyperparameters - General}{54}{subsection.3.3.1}%
-\contentsline {subsubsection}{\nonumberline Learning Rate}{54}{subsubsection*.24}%
-\contentsline {subsubsection}{\nonumberline Batch Size}{54}{subsubsection*.26}%
-\contentsline {subsubsection}{\nonumberline Number of Epochs}{54}{subsubsection*.28}%
-\contentsline {subsubsection}{\nonumberline Dropout}{54}{subsubsection*.30}%
-\contentsline {subsubsection}{\nonumberline Weight Decay}{55}{subsubsection*.32}%
-\contentsline {subsubsection}{\nonumberline Base Architecture}{55}{subsubsection*.34}%
-\contentsline {subsubsection}{\nonumberline Activation Function}{55}{subsubsection*.36}%
-\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{55}{subsubsection*.38}%
-\contentsline {subsubsection}{\nonumberline Layer Norm}{56}{subsubsection*.40}%
-\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{56}{subsubsection*.42}%
-\contentsline {subsubsection}{\nonumberline Number of Components}{56}{subsubsection*.44}%
-\contentsline {subsubsection}{\nonumberline Component Distribution}{56}{subsubsection*.46}%
-\contentsline {subsubsection}{\nonumberline Kernel Width}{56}{subsubsection*.48}%
-\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{57}{subsection.3.3.2}%
-\contentsline {subsubsection}{\nonumberline Additional Target Noise}{57}{subsubsection*.50}%
-\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{58}{subsubsection*.52}%
-\contentsline {section}{\numberline {3.4}Datasets}{58}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Calculation of the HDR}{59}{section.3.5}%
-\contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{60}{section.3.6}%
-\contentsline {section}{\numberline {3.7}Experiment Results}{62}{section.3.7}%
-\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{62}{subsection.3.7.1}%
-\contentsline {subsection}{\numberline {3.7.2}Main Benchmark Results}{62}{subsection.3.7.2}%
-\contentsline {chapter}{\numberline {4}Conclusion}{65}{chapter.4}%
-\contentsline {chapter}{\numberline {5}ToDos}{66}{chapter.5}%
+\contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty}{45}{subsection.2.8.1}%
+\contentsline {chapter}{\numberline {3}Empirical Study}{47}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Core Model Classes}{47}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Experimental Setup}{48}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Hyperparameters}{48}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Known Hyperparameters - General}{49}{subsection.3.3.1}%
+\contentsline {subsubsection}{\nonumberline Learning Rate}{49}{subsubsection*.20}%
+\contentsline {subsubsection}{\nonumberline Batch Size}{49}{subsubsection*.22}%
+\contentsline {subsubsection}{\nonumberline Number of Epochs}{49}{subsubsection*.24}%
+\contentsline {subsubsection}{\nonumberline Dropout}{49}{subsubsection*.26}%
+\contentsline {subsubsection}{\nonumberline Weight Decay}{50}{subsubsection*.28}%
+\contentsline {subsubsection}{\nonumberline Base Architecture}{50}{subsubsection*.30}%
+\contentsline {subsubsection}{\nonumberline Activation Function}{50}{subsubsection*.32}%
+\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{50}{subsubsection*.34}%
+\contentsline {subsubsection}{\nonumberline Layer Norm}{51}{subsubsection*.36}%
+\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{51}{subsubsection*.38}%
+\contentsline {subsubsection}{\nonumberline Number of Components}{51}{subsubsection*.40}%
+\contentsline {subsubsection}{\nonumberline Component Distribution}{51}{subsubsection*.42}%
+\contentsline {subsubsection}{\nonumberline Kernel Width}{51}{subsubsection*.44}%
+\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{52}{subsection.3.3.2}%
+\contentsline {subsubsection}{\nonumberline Additional Target Noise}{52}{subsubsection*.46}%
+\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{53}{subsubsection*.48}%
+\contentsline {section}{\numberline {3.4}Datasets}{53}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Calculation of the HDR}{54}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{55}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Experiment Results}{57}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{57}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Main Benchmark Results}{57}{subsection.3.7.2}%
+\contentsline {chapter}{\numberline {4}Conclusion}{61}{chapter.4}%
+\contentsline {chapter}{\numberline {5}ToDos}{62}{chapter.5}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

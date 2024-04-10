@@ -11,7 +11,7 @@
 \contentsline {figure}{\numberline {2.2}{\ignorespaces Comparison of HDR, connected HDR and Shortest Interval CP}}{35}{figure.caption.13}%
 \contentsline {figure}{\numberline {2.3}{\ignorespaces Recalibration of a bimodal CDE model. The model is recalibrated by shifting the quantiles of the HDR.\relax }}{43}{figure.caption.18}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Recalibration of the whole estimated conditional PDF on the Concrete dataset. Calibrated on the train dataset and evaluated on the test dataset.\relax }}{63}{figure.caption.54}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Recalibration of the whole estimated conditional PDF on the Concrete dataset. Calibrated on the train dataset and evaluated on the test dataset.\relax }}{58}{figure.caption.50}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

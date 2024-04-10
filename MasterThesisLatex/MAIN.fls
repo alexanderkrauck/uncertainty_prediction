@@ -1,9 +1,9 @@
-PWD /home/alexander/Documents/Latex/MasterThesis
+PWD /mnt/92669E5D669E4241/uncertainty_prediction/MasterThesisLatex
 INPUT /etc/texmf/web2c/texmf.cnf
 INPUT /usr/share/texmf/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/alexander/Documents/Latex/MasterThesis/MAIN.tex
+INPUT /mnt/92669E5D669E4241/uncertainty_prediction/MasterThesisLatex/MAIN.tex
 OUTPUT MAIN.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/koma-script/scrbook.cls
 INPUT /usr/share/texlive/texmf-dist/tex/latex/koma-script/scrbook.cls

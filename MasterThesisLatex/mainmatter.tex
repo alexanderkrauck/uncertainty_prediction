@@ -53,7 +53,6 @@ Moreover, we want to analyze how epistemic and aleatoric uncertainties are both 
 
 Furthermore we want to see how, in practice, evaluated on multiple benchmarks those insights we give improve the performance and what hyperparameters are generally a good choice. In particular, we want to see if we can infer general patterns or rules that can be applied to a wide variety of tasks in the area of CDE and CP.
 
-
 % 10. Based on the insights about the distributions in tasks, in particular also
 % on synthetic tasks, how can we improve the performance of CDE and CP methods?
 % Can we propose a new, better mehthod?
@@ -90,7 +89,6 @@ The main contributions of this work are as follows:
 
 First, in \pef{chap:theoretical} we give a thorough introduction into CP, CDE and QR and show they are fundamentally the same task. Moreover, we show how we can infer CP from CDE and how we can estimate epistemic uncertainty in CDE and CP methods. In \pef{chap:empirical_study} we show how our insights can be applied to a wide variety of tasks and how they improve the performance of CDE, QR and CP methods. Finally, in \pef{chap:conclusion} we summarize our insights and give an outlook on future work.
 
-
 \chapter{Theoretical Analysis}\label{chap:theoretical}
 
 \section{Preliminaries}\label{sec:preliminaries}
@@ -112,7 +110,7 @@ Furthermore, let $I: \Omega \to \mathcal{I}$ be a random variable defined on the
 This extensive notation is required mostly in order to define exchangability, however, in many proofs in this paper we will not require the use of the probability space explicitly, in particular with the index set since we often just integrate over the whole sample space $\mathbb{R}^{n+m}$.
 
 The task of the ML methods discussed here is always to predict some property, like the conditional PDF, about the target variable $\mathbf{Y}_I$ given the features $\mathbf{X}_I$. %when do we talk about a subset of indices of the index set in the context of my proofs?
-In the more practical case we only have access to a subset of the indices in the index set, which is the observed data set $\mathcal{D} = \left\{(\mathbf{X}_i, \mathbf{Y}_i)\right\}_{i\in I_{\mathcal{D}}}$, with $|I_{\mathcal{D}}| < \infty$. 
+In the more practical case we only have access to a subset of the indices in the index set, which is the observed data set $\mathcal{D} = \left\{(\mathbf{X}_i, \mathbf{Y}_i)\right\}_{i\in I_{\mathcal{D}}}$, with $|I_{\mathcal{D}}| < \infty$.
 
 Moreover, any model that we discuss here, regardless if it is CDE, CP or QR, will be parameterized by some parameters $\theta \in \Theta$ where $\Theta$ is the parameter space. Furthermore, we will make the assumption that the model class can perfectly model the optimal model, which seems like a strong assumption, but considering that we focus on model classes that either can be tweaked to be very expressive or NN's that even are universal function approximators \cite{HORNIK1989359}, this assumption is not unreasonably strong. The optimal parameter set is indicated by $\theta^*$.
 
@@ -122,7 +120,7 @@ For the above definitions the corresponding PDF of and event $\mathbf{z} = (\mat
         \mathbf{x}, \mathbf{Y}_I \leq \mathbf{y})}{d \mathbf{x} d \mathbf{y}}
 \end{equation}
 for $\mathbf{x} \in \mathbb{R}^n$, $\mathbf{y}\in\mathbb{R}^m$. It is left as a hint to the reader that $\mathbb{P}(\mathbf{X}_I \leq
-\mathbf{x}, \mathbf{Y}_I \leq \mathbf{y})$ in the above equation is the cumulative distribution function (CDF). The marginal and conditional PDFs can then be found by integrating out and normalizing with the marginal respectively.
+    \mathbf{x}, \mathbf{Y}_I \leq \mathbf{y})$ in the above equation is the cumulative distribution function (CDF). The marginal and conditional PDFs can then be found by integrating out and normalizing with the marginal respectively.
 
 Finally in order to analytically show certain results we require some standard assumptions of the underlying conditional PDF $p(\cdot\mid \mathbf{x})$ which hold $\forall \mathbf{x}\in \mathbb{R}^n$.
 
@@ -213,7 +211,6 @@ We know from \pef{sec:bridge_cde_cp} and \pef{sec:bridge_cde_qr} a practical way
 
 Therefore, let $\mathcal{P}$ be the set off all conditional PDFs, i.e. $\forall p\in\mathcal{P}: p \geq 0 \hat \int_{\Omega} p d \mathbb{P}(\omega) = 1$. Then we define $\mathcal{P}_{\theta}$ as a restriction on this set imposed by a CDE-method which is parameterized by $\theta$. CDE-method refers to any method that imposes a restriction on the conditional PDF which contains CP, QR and CDE. The level of restriction can differ between CDE-methods. In particular, the restriction is always at least to the extent that the desired target type can be obtained uniquely from the restricted set of PDFs. For CDE only a single element is contained in this set and for QR all PDFs that have the integral up to a specific quantile of probability mass and for CP it is a set of PDFs that make it possible to infer that a specific region contains a certain amount of probability mass. In \fef{fig:restricted_pdf_cdf_with_qr5} and \fef{fig:restricted_pdf_cdf_with_qr30} we can see how the restriction on a CDF can look like for different quantiles. %TODO: \mathcal{P} needs not only to be the set of all possible PDFs but actually the set of all mappings from X to PDFs... I suppose we might be able to restrict this to a single X for simplicity as it does not change much but we need to be careful with this!
 
-
 \begin{figure}
     \centering
     \subfloat[Restricted CDF with 5 quantiles]{
@@ -221,10 +218,10 @@ Therefore, let $\mathcal{P}$ be the set off all conditional PDFs, i.e. $\forall 
         \label{fig:restricted_pdf_cdf_with_qr5}
     }\\
     \subfloat[Restricted CDF with 30 quantiles]{
-      \includegraphics[width=0.8\textwidth]{resources/restricted_pdf_cdf_with_qr30.png}
-      \label{fig:restricted_pdf_cdf_with_qr30}
+        \includegraphics[width=0.8\textwidth]{resources/restricted_pdf_cdf_with_qr30.png}
+        \label{fig:restricted_pdf_cdf_with_qr30}
     }
-    
+
     \caption{We can see that if we increase the number of quantiles that we predict, the restriction on the CDF becomes more and more strict and we approach the true PDF on the right side.}
 \end{figure}
 
@@ -259,7 +256,6 @@ While the statements made about CDE, CP and QR being the same task, they all onl
 
 Moreover, when combining restrictions on the PDF, current methods, like swapping quantiles with quantiles inversion, to combine them while maintaining a valid PDF are not well studied and also impose assumptions on the PDF which are often quite arbitrary and of practical nature. However, as all CDE-methods are asymptotically consistent, cases where the restrictions contradict are an artifact of limited data and there approximate solutions are used anyways making it not really a limitation. However, it would be good to have a more theoretical foundation for those methods.
 
-
 \subsection{Conclusion on the Bridge between CDE, CP and QR}
 
 By \pef{sec:bridge_cde_qr} and \pef{sec:bridge_cde_qr} we can see that in the background of each CDE-method the restriction on all PDFs $\mathcal{P}_\theta$ stands. This has two major implications:
@@ -267,7 +263,6 @@ By \pef{sec:bridge_cde_qr} and \pef{sec:bridge_cde_qr} we can see that in the ba
 Firstly, any technique on a CDE-method also implicitly acts on $\mathcal{P}_\theta$ and thus can be thru $\mathcal{P}_\theta$ translated to any other CDE-method. For example if we were to decide that the std of a CDE model is to be inceased a bit by a particular function, e.g. $f(p) = 2 p $, then this will clearly be reflected in the restricted distribution $\mathcal{P}_\theta$ which means we also could find the generalized form of $f$ which explicitly acts on $\mathcal{P}_\theta$ and thus can be applied to any CDE-method. In this case it would be $f(\mathcal{P}_{\theta}) = \left\{2 p: p \in \mathcal{P} \land \frac{p}{2} \in \mathcal{P}_\theta \right\}$, i.e. we just apply the $f$ to each element in $\mathcal{P}_\theta$. So we see that any technique that acts on a CDE-method can be translated to any other CDE-method.
 
 Secondly, any CDE-method goal can be done with any other CDE-method e.g. we can get a full conditional PDF from a method that does QR or CP.
-
 
 \section{Optimal Conformal Prediction}\label{sec:optimal_cp}
 
@@ -288,9 +283,7 @@ Formulated as a proper constrained optimization problem, we can rewrite the opti
     C(\mathbf{x})} d\mathbf{z} = a
 \end{align}
 
-
-
-\subsection{New perspective on MLL and Optimal CP}\label{sec:optimal_cp}
+\subsection{New perspective on MLL and Optimal CP}\label{sec:optimal_cp_proofs}
 
 The method to infer the intervals that will be used by us is the highest density regions method. Using this method we can, given a PDF, infer the set of intervals with the shortest summed Lebesgue measure. In particular, we are shifting our focus from looking at the shortest regions to looking at the regions that contain the most probability mass, even tho that is very similar and mostly the same with HDR there are some delicate differences. This is partiularly beneficial since regions with high densities should usually not be ignored in practice as they often indecate important events. When only focusing on the shortest possible single interval that contains the desired proportion of probability mass, it might happen that a region with high density is ignored even tho this event might have some core interpretation to domain experts. We argue, that if a single interval is desired it is more beneficial in most domains, to simply take the interval from the small edge of the region of the smallest value to the large edge of the largest value region. This might contain more density than $1 - \alpha$ but we argue that it is in most cases still desirable to design intervals this way. %TODO: need to add some practical proof of that here maybe
 
@@ -324,7 +317,7 @@ where $f$ is an arbitrary probability density function (PDF) and $a := 1 - \alph
     \lambda(H(p(\mathbf{\hat{y}} \mid \mathbf{x}; \theta), a))
     d\mathbf{z}
     \\
-    \text{s.t.} \quad            & \int_{\mathbb{R}^{m + n}}
+    \text{s.t.} \quad              & \int_{\mathbb{R}^{m + n}}
     \mathds{1}_{\mathbf{y} \in
     H(p(\mathbf{\hat{y}} \mid \mathbf{x}; \theta), a)} d\mathbf{z} = a
 \end{align}
@@ -344,14 +337,13 @@ Let $\theta^*$ be the argmin of the equation above, we would like to show that
 
 which is the maximum likelihood estimator (MLE). This is of great importance if we wish to optimize a CDE method w.r.t. the maximum likelihood objective function in order to implicitly optimize for the conformal prediction objective function when using HDRs. In order to show this powerful statement we first need to develop some insight into the workings of the components in conformal prediction.
 
-
 First, we require to show that $\lambda(H(p, a))$ is continously differentiable a.e. in order to make sensible statements. Its not that the intuition does not hold if its not continous, however, it complicates things and makes the statemtent more difficult. First in \sref[Lemma]{lem:continuity} below we show that this is fullfilled if the PDF fullfills our standard assumptions in \sref[Assumptions]{def:assumptions}.
 
 Note that the second assumption is fullfilled if it holds that $p$ is changing a.e. or the area with derivative $0$ is of measure $0$ which is left without proof. %TODO: maybe reference to some measure theory book
 
 \begin{lemma}\label{lem:continuity}
     Let \(p: \mathbb{R}^m \to \mathbb{R}\) be a probability density function for which \sref[Assumptions]{def:assumptions} hold where we neglect the $\mathbf{x}$ for breefity.
-    
+
     Furthermore let $p$ be for the random variable $\mathbf{Y}$ (for breefity we neglect the index) and let $g(b) := \mathbb{P}(p(\mathbf{Y}) \geq b)$. Moreover, $\lambda_p:[0, 1] \to \mathbb{R}$ with $\lambda_p(a) = \lambda(H(p, a))$. Then the following statements hold for $a \in (0,1)$:
 
     \begin{enumerate}
@@ -374,7 +366,7 @@ It is in particular required to not have any flat-splots in the PDF because othe
 
 \begin{proof}
     1. Monotonicity itself is obvious since we can not make the set $\mathbf{Y} \geq b$ larger when increasing $b$. For strict monotonicity on $g^{-1}((0,1))$ we require that $\forall b \in g^{-1}((0,1)): \frac{\partial \mathbb{P}(p(\mathbf{Y}) \geq b)}{\partial b} > 0$.
-    
+
     Let $b$ be in $g^{-1}((0,1))$. We essentially need to show that for any $b' > b$ there exists a $\epsilon > 0$ such that $\mathbb{P}(p(\mathbf{Y}) \geq b + \epsilon) = \epsilon + \mathbb{P}(p(\mathbf{Y}) \geq b')$ which essentially means that there is change in $g$ no matter how tight we choose the interval which comes directly from the definition of the derivative. So let $b'$ be like so, and choose any $b'' \in (b, b')$, then continuity of $p$ implies there exists a dense neighborhood around $b''$ which lies in $p(\mathbf{Y}) \in (b, b')$. In particular the fact that this neighborhood is dense also implies via the Lebesgue Density Theroem that this neighborhood has a positive Lebesuge measure and the assumption that $p > 0$ implies that it does also have positive probability measure. This implies the result of strict monotonicity.
 
     2. To show continuity of $g$ we use that it is because of monotonicity and boundedness of the $\mathbb{P}$ measure, that for any $\tilde{b}\in\mathbb{R}^+$
@@ -382,7 +374,7 @@ It is in particular required to not have any flat-splots in the PDF because othe
     \begin{equation}
         \lim_{b \downarrow \tilde{b}} g(b) = \mathbf{P}(\mathbf{Y} > \tilde{b})
     \end{equation}
-        
+
     and also
 
     \begin{equation}
@@ -396,9 +388,9 @@ It is in particular required to not have any flat-splots in the PDF because othe
     4. Differntiability a.e. follows from the Lebesgue's Theorem for Monotonic Function as $g$ is monotonic. Continous differentiability a.e. follows from the fact that $g$ is uniformly continous due to the Heine-Cantor Theorem and this implies that the derivative is continous a.e. as well. %might want to go more into detail here but maybe its not necessary
 
     5. This follows by observing that $g$ is bijective on $g^{-1}((0,1))$ which implies that the maximum of $b$ where $g$ is still greater-equal $a$ will always exactly reach $a$. Then since $g$ is $g^{-1}((0,1))$ is well defined and $g$ is strictly monotonic we see that increasing $a$ will always increase the possible $b$.
-    
+
     6. Continuity follows from the fact that $g$ is also continous and bijective.
-    
+
     7. Bijectivity follows directly from 5. and 6. similar to 3.
 
     8. Follows with the same logic as 4.
@@ -412,14 +404,13 @@ It is in particular required to not have any flat-splots in the PDF because othe
     12. Follows with the same logic as 4.
 \end{proof}
 
-
 From this lemma we can see that iff the PDF is continously diffentiable a.e., also the length of the HDR w.r.t. $a$ will be continously differentiable a.e.. This is required because otherwise we can not show the following lemma about convexity of the HDR length w.r.t. $a$:
 
 \begin{lemma}
     Let \(p: \mathbb{R}^m \to \mathbb{R}\) fullfill the Assumptions~\ref{def:assumptions}. Then, the function \(\lambda_{H_p}(a) := \lambda(H(p, a))\), representing the size of the highest density region (HDR) for PDF \(p\) with coverage \(a\), is strictly convex, i.e.,
 
     \begin{equation}
-        \frac{\partial^2 \lambda_{H_p}(a)}{\partial a^2} > 0. 
+        \frac{\partial^2 \lambda_{H_p}(a)}{\partial a^2} > 0.
     \end{equation}
 
 \end{lemma}
@@ -434,13 +425,13 @@ From this lemma we can see that iff the PDF is continously diffentiable a.e., al
     \end{equation}
 
     This implies that \(\lambda_{H_p}(a_1) \leq \lambda_{H_p}(a) \leq \lambda_{H_p}(a_2)\). Define $k_1 = a-a_1$, $k_2 = a_2 - a$. Consequently, \(H(p, a_1) \subset H(p, a)\), indicating that to transition from \(H(p, a_1)\) to \(H(p, a)\), only points with density less than $B(p, a_1)$ can be utilized. In contrast, if we go from $a$ to $a_2$ only points with a density less than $B(p, a)$ can be utilized.
-    
-    As we know that 
+
+    As we know that
     \begin{equation}
         \lambda_p(a) = \lambda(H(p, a)) = \lambda(H(p, a_1) \cup (H(p,a)\setminus H(p,a_1))) = \lambda(H(p, a_1)) + \lambda(H(p,a)\setminus H(p, a_1))
     \end{equation}
-    and we know that $\lambda(H(p,a)\setminus H(p, a_1)) \leq k_1 \cdot B(p, a)$ and $\lambda(H(p,a_2)\setminus H(p, a)) \geq k_2 \cdot B(p, a)$ we can finally see that we can approximate the gradient by dividing the change of $\lambda_p$ by the change of $a$, which is in $k_1$ and $k_2$ we see that the gradients are bounded from above and below respectively for the invervals $(a_1, a)$ and $(a, a_2)$. Moreover strict monotonicity of $B$ as shown in Lemma~\ref{lem:continuity} implies that the gradient is strictly increasing for $\lambda_p$ which implies a postive second derivative and thus convexity. 
-    
+    and we know that $\lambda(H(p,a)\setminus H(p, a_1)) \leq k_1 \cdot B(p, a)$ and $\lambda(H(p,a_2)\setminus H(p, a)) \geq k_2 \cdot B(p, a)$ we can finally see that we can approximate the gradient by dividing the change of $\lambda_p$ by the change of $a$, which is in $k_1$ and $k_2$ we see that the gradients are bounded from above and below respectively for the invervals $(a_1, a)$ and $(a, a_2)$. Moreover strict monotonicity of $B$ as shown in Lemma~\ref{lem:continuity} implies that the gradient is strictly increasing for $\lambda_p$ which implies a postive second derivative and thus convexity.
+
     In particular, the second derivative exists by the use of the Lebesgue's Theorem for Monotonic Function a.e. since the first derivative exists continuously a.e. and is strictly monotonic as we know from \sref[Lemma]{lem:continuity} which implies absolute continous derivative a.e. and thus twice differentiability a.e..
 \end{proof}
 
@@ -505,7 +496,7 @@ In order to finally be able to use this lemma efficiently we need to define some
     \]
 
 \end{definition}
-In words, the HDR Transform gives us the maximal significance level that we can insert under the distribution $p$ while maintaining a coverage size lower-equal than what we obtain by inserting the significance level $a$ under the distribution $f$. 
+In words, the HDR Transform gives us the maximal significance level that we can insert under the distribution $p$ while maintaining a coverage size lower-equal than what we obtain by inserting the significance level $a$ under the distribution $f$.
 
 In particular, if we evaluate the actual coverage of $H(f, a)$ with samples drawn from $p$, then the coverage will be always lower-equal $a$ which follows from Lemma~\ref{lem:hdr_optimality_mll}. The HDR transform then gives us basically the confidence level that we need to insert into the HDR with the true distribution to obtain the same coverage size but are guranteed to have higher-equal coverage.
 
@@ -519,9 +510,8 @@ Using this definition together with Lemma~\ref{lem:hdr_optimality_mll} establish
     \end{equation}
 \end{lemma}
 \begin{proof}
-    Bijectivity of $\lambda_p(a)$, under the assumptions, with Lemma~\ref{lem:continuity} implies that exactly one $b$ exists such that $\lambda(H(p, b)) = \lambda(H(f, a))$ which finishes the proof. 
+    Bijectivity of $\lambda_p(a)$, under the assumptions, with Lemma~\ref{lem:continuity} implies that exactly one $b$ exists such that $\lambda(H(p, b)) = \lambda(H(f, a))$ which finishes the proof.
 \end{proof}
-
 
 Now we have all tools in order to proof the important statement. From now on, if the expectation $\mathbb{E}$ is used, it is always w.r.t. the whole space $\mathbb{R}^{m+n}$ and with the random variables $\mathbf{Y}$ and $\mathbf{X}$ which have PDF $p(\mathbf{y}, \mathbf{x})$. Moverover, if $\mathbf{\hat{y}}$ is written, it is not an input to the function but a demonstrative artefact to show that the function maps to a conditional density on the same space as $\mathbf{Y}$ is defined.
 
@@ -530,16 +520,16 @@ Now we have all tools in order to proof the important statement. From now on, if
 
     \begin{equation}
         \argmax_{\theta \in \Theta}  \mathbb{E} \left[ \log
-        p(\mathbf{Y} \mid \mathbf{X}; \theta) \right]
+            p(\mathbf{Y} \mid \mathbf{X}; \theta) \right]
     \end{equation}
 
     equals
 
     \begin{align}
-        & \argmin_{\theta \in \Theta} \mathbb{E} \left[
-        \lambda(H(p(\mathbf{\hat{y}} \mid \mathbf{X}; \theta), a))
-        \right] \\
-        & \text{s.t.} \quad \mathbb{E} \left[
+         & \argmin_{\theta \in \Theta} \mathbb{E} \left[
+            \lambda(H(p(\mathbf{\hat{y}} \mid \mathbf{X}; \theta), a))
+        \right]                                          \\
+         & \text{s.t.} \quad \mathbb{E} \left[
         \mathds{1}_{\mathbf{Y} \in
         H(p(\mathbf{\hat{y}} \mid \mathbf{X}; \theta), a)} \right]
         = a
@@ -553,7 +543,7 @@ Now we have all tools in order to proof the important statement. From now on, if
     In this case let's assume that now we have some $\theta \neq \theta^*$. We can show that if for this $\theta$ it holds that if
 
     \begin{equation}
-        \mathbb{E} \left[ \lambda(H_{\theta})\right] 
+        \mathbb{E} \left[ \lambda(H_{\theta})\right]
         <
         \left[\lambda(H_{\mathbf{\Theta^*}}) \right]
     \end{equation}
@@ -570,7 +560,7 @@ Now we have all tools in order to proof the important statement. From now on, if
     \begin{equation}
         \mathbb{E} \left[ \mathds{1}_{\mathbf{Y} \in
         H_{\theta}} \right]
-        \leq 
+        \leq
         \mathbb{E} \left[ \mathds{1}_{\mathbf{Y} \in
         H(p(\mathbf{\hat{y}} \mid \mathbf{X}), IH(p(\mathbf{\hat{y}}\mid
         \mathbf{X};
@@ -581,7 +571,7 @@ Now we have all tools in order to proof the important statement. From now on, if
     \begin{equation}
         = \mathbb{E}\left[IH(p(\mathbf{\hat{y}}\mid \mathbf{X}; \theta),
             a)
-        \right]
+            \right]
         \label{eq:upper_bound_2}
     \end{equation}
 
@@ -648,7 +638,7 @@ Moreover, we can see that this means the MLE can be decomposed into a constraine
 
 AS hinted in \pef{sec:motivation} in this work we argue that it is practically more reasonable to move the focus to the probability mass/density instead of only the length of the inverval while maintaining calibration. The difference is subtle, but via \fef{fig:hdr_vs_shortest_intervals} we hope to give some intuitive understanding of the difference with two different arguments.
 
-Firstly, we are when doing CP only focusing on the length of the single inverval being as short as possible in the prediction while maintaining calibration entriely argnostic to the actual shape of the distribution. In particular, if it were possible to obtain significantly more mass with just a very slight increase the interval size it would be ignored. In the figure this can be observed when comparing the connected HDR with the shortest interval CP. We can see that when we first use HDR but then simply connect it, with the argumentation of \cite{sesia2021conformal} (multiple intervals can be confusing in practice), we will capture the second peak of the distribution while we do not capture low density parts of the first bigger peak. This is a clear example of where focusing on the length of the interval can be misleading. 
+Firstly, we are when doing CP only focusing on the length of the single inverval being as short as possible in the prediction while maintaining calibration entriely argnostic to the actual shape of the distribution. In particular, if it were possible to obtain significantly more mass with just a very slight increase the interval size it would be ignored. In the figure this can be observed when comparing the connected HDR with the shortest interval CP. We can see that when we first use HDR but then simply connect it, with the argumentation of \cite{sesia2021conformal} (multiple intervals can be confusing in practice), we will capture the second peak of the distribution while we do not capture low density parts of the first bigger peak. This is a clear example of where focusing on the length of the interval can be misleading.
 
 Secondly, another intutive reason, even tho we lack empirical evidence of this, why a second predicted peak should be included in the CP prediction is that it appears reasonable to us that if the model learned a second spiky modality at a specific point than there must be a good reason therefore whilst a heavy tail might simply be an artifact of the modeling method. We are looking for further research to confirm this hypothesis.
 
@@ -762,7 +752,7 @@ A Pseudo Code where we use HDR to recalibrate a CDE model is provided in \sref[A
 
 The general area of uncertainty estimation has been growing drastically in recent years. This is because of the increasing complexity of models and the need to understand the models better as well as the requirement in risk-sensitive applications to understand when and how much the model can be trusted. Generally, as described by \cite{hullermeier_aleatoric_2021} there exist a lot of different types and perspectives on uncertainty. Most importantly there exists a distinction between so called aleatoric and epistemic uncertainty. Not all defintions of those two fully agree but generally aleatoric uncertainty is the inherent stochtasticity of the data while epistemic uncertainty is the unsureness of the model if only a limited amount of data is observed.
 
-For example, if we try to model the coinflip of a biased coin with 75\% probability of landing on the head and 25\% on tails, then epistemic uncertainty would be if we did only observe 10 coinflips and we are unsure yet about the exact porbabilities within the coin. Aleatoric uncertainty would be the the inherent randomness of the coin that we might try to model. This means the 75\% and 25\% themselves are the aleatoric uncertainty. 
+For example, if we try to model the coinflip of a biased coin with 75\% probability of landing on the head and 25\% on tails, then epistemic uncertainty would be if we did only observe 10 coinflips and we are unsure yet about the exact porbabilities within the coin. Aleatoric uncertainty would be the the inherent randomness of the coin that we might try to model. This means the 75\% and 25\% themselves are the aleatoric uncertainty.
 Differences of interpretation of those two kinds of uncertainty are in practice often inherent in how we expect the true model of the data to be and how it really is. For example, if we were to expect for the coinflip experiment that the coin is always landing on the same side with the intention to learn this side,and differences in what we observe is simply noise, then we might not be able to model either uncertainty properly. In particular we might in this case predict that the coin always lands on head and there is simply 25\% noise which is of of course not true.
 A slight variation in definitions between aleatoric and epistemic uncertainty within works \cite{hullermeier_aleatoric_2021} is often whether aleatoric uncertainty is only noise or if it also contains stochtasticity of the data that might be reducible with more features like hidden variables that are not really observable. In this work, we do not want to dive into the philosophical interpretation of this and define that aleatoric uncertainty is always the randomness of the targets, given a fixed set of features, without of considering that there might be hidden variables that actually could reduce this uncertainty.
 
@@ -772,7 +762,7 @@ In this work we provide a novel perspective on how one can estimate full uncerta
 
 The tool that we propose for this is a novel method that highlights calibration in a new way. In particular, we argue that recalibration of models can be used to accurately infuse the prediction with a lower bound on epistemic uncertainty. Thereby we can reestimate the whole distribution with both epistemic and aleatoric uncertainty which thus gives us a more accurate perspective on what we really know about the distribution of a target.
 
-\subsection{}
+\subsection{All Model Error corresponds to Epistemic Uncertainty}\label{sec:uncertainty_calibration_connection}
 
 Our proposed method relies on two key insights. First, all error in CDE-method models is exclusively due to epistemic uncertainty if the model is asymptotically correct and does not over-/underfit. Secondly, if we observe that a model is miscalibrated, it is a direct implication that the model is suboptimal and thus that there is error. In particular what that tells us is, if a model is misaclibrated there is epistemic uncertainty. Moreover, we claim that the amount of miscalibration is in a direct relationship with the amount of epistemic uncertainty and we also claim that if we can recalibrate the whole model, we can estimate a lower bound of the epistemic uncertainty as the difference between the distribution of the uncalibrated and the calibrated model.
 
@@ -798,108 +788,13 @@ In order to solidify those claims and insight we need to define a variant of epi
 
 % \end{proof}
 
-\sref[Lemma]{lem:likelihood_increase_calibration} shows us that if we are not calibrated than we know that we still have an error in the model i.e. that we have epistemic uncertainty to some extent. We now aim to construct a method with which we can recalibrate our model such that we have gurantees that it will increase the likelihood.
+\sref[Lemma]{lem:likelihood_increase_calibration} shows us that if we are not calibrated than we know that we still have an error in the model i.e. that we have epistemic uncertainty to some extent. Moreover, it shows that if we racalibrate the model, it will have less epistemic uncertainty and so the difference between the recalibrated and the uncalibrated model is a lower bound on the epistemic uncertainty that we have for the problem at hand. In particular, one way to quantify this epistemic uncertainty is to use distributional measures of difference like the average Hellinger Distance, KL-divergence or the Wasserstein distance.
 
-\subsection{Recalibration: A new perspective} %this is all true but a bit chaotic and needs to be restructured
-
-CDE-method models asymptotically will capture the true conditional PDF perfectly since objective functions used for this purpose, like MLL or minimal Pinball loss gurantee that. The natural question that arises here is why it is then in practice that CDE-method models are usually not calibrated, even on the training data itself. This can be answered by observing that those objective functions are not exclusively looking for calibration but also for the tightest fit. In particular, this can be intuitively interpreted with \pef{sec:optimal_cp} where we can see that true distribution is equivalent with the model that minimizes the size of the HDR, while maintaining calibration. This means that in CDE-method models, the objective is a constrained optimization problem, where the constraint is implicit and not explicit. This implies that it can happen that the model becomes uncalibrated, even for the training data, since it might be w.r.t. the optimization method the way of steepest descent to neglect the constraint but instead to minimize the HDR, conceptually.
-
-Thereby, one needs to realize that the calibration problem by itself is not a difficult one as one can simply take the marginal distribution of the targets as the output PDF and it will be calibrated, but relatively meaningless.
-We claim, that a robust CDE-method model should always to some degree model the marginal distribution, for the reason that it simply is a calibrated educated guess on where the next datapoint might lie, in particular when assuming that we are very unsure about the relationship between features and targets. Even with no modeling knowledge of a datapoint, it is a relatively safe bet to simple estimate the marginal distribution. %TODO thats a good thought but I need to deliver it properly
-
-Recalibration in CDE essentially makes the difference between high and low density regions either greater or smaller, possibly differently for different density levels or even feature locations possibly with clustering like \cite{izbicki2019flexible}. Intuitively this can be interpreted as the model moving further away or closer to the marginal distribution, at least partially, but there might be other distributional influences. Generally what it means is, that you marginally over the whole distribution of training/calibration samples say, based on calibration feature-target pairs, how accurate the model is, and based on that you adjust your general believe in the models predictions.
-
-Particularly, this is based on the premise that all density levels are reasonablbly estimated, but usual optimization methods gurantee that. For example this means that if I calibrate the model on the calibration set and the expected quantile levels are very different from the empirical ones, for example that in less dense regions, there are lots more samples than there are supposed to be, that means via recalibration we can make denser regions less dense and less dense regions more dense. Moreover, if on the train set we also have strong miscalibration, what that tells is is not necissarely that we have a bad fit on the training data, but only that in optimizing we heavily violated the implicit constraint of the calibration and we can recalibrate that. We have to notice that when recalibrating we essentially lose some gurantees about the optimality of peaks etc., however, in practical applications often calibration is more accurate. This gurantees that we loose happens because we, in practice, always need to recalibrate based on a finite set of calibration data which also might be inaccurate. Especially we also marginally calibrate the model which means that even tho our distribution might be accurate for some samples, even in terms of calibration, it might be not accurate for all and thus we basically calibrate them in the way such that we change the model the least. Thereby we of course can again apply a clustering approach in the feature space to get different recalibration strategies for different regions of the feature space, but one needs to be careful that we do not have too little calibration samples for each cluster as we can actually overfit on the calibration data or get simply inaccurate recalibration. This is a very important point to consider when recalibrating models.
-
-\subsection{Mathematical interpretation}
-
-As already discussed in \pef{sec:calibration}, when we need to recalibrate a model due to miscalibration it essentially means that we admit that our model is wrong to some extent. There exist ways to calibrate models based on assumptions given in \sref[Assumptions]{list:recalibration_requirements} and we can also apply those to any CDE-method. However, as already stated, without of further assumptions this is rather meaningless. In particular, we assumed border-wise monotonicity of the PDF during the recalibration process.
-
-Here we give a stronger argumentation why this assumption is reasonable and also that when we take the difference between the uncalibrated and the calibrated PDF, we actually can interpret this as the epistemic uncertainty of the model.
-
-\subsubsection{Monotonicity of the PDF between borders}
-
-For this we need to dive deep into the interpretation of what happens if we make the grid of quantiles tighter infinitely. So, lets do that tomorrow... %TODO 
-
-\subsubsection{Connection to Epistemic Uncertainty} 
-
-For this we require that for the true PDF \sref[Assumptions]{def:assumptions} hold and moreover we require that the model is asymptotically correct. In particular we require a slightly harder type of convergence gurantee where the function that produces the model $\mathcal{P}_{\theta}$ for each amount of data always comes as close as possible to the true distribution, i.e. we do not over or underfit. Thereby we need in practice to consider multiple techniques like noise regularization, dropout, limiting of expressivity or other techniques but generally this is not an issue.
-
-Under those assumptions, if we can find a quantile level $q\in(0,1)$ where we see that the model is not calibrated correctly under the interval finding method which is one of the likes we saw in \pef{} then if the method is $H$ (possibly HDR), then $\mathbb{P}(\mathbf{Y} \in H(\mathcal{P}_\theta, q)) = q' \neq q$. By using the continuity of the true conditional PDF from our assumptions, this implies that there exists a region $\mathcal{R}_q$ around $q$ such that
-
-\begin{equation}
-    \forall \hat{q} \in \mathcal{R}_q: \mathbb{P}(\mathbf{Y} \in H(\mathcal{P}_\theta, \hat{q})) \neq \hat{q}
-\end{equation}
-
-In words, a region around $q$ is uncalibrated and furthermore, it holds that
-
-\begin{equation}
-    \forall \hat{q} \in \mathcal{R}_q \exists \hat{q}'' \in (0,1): \mathbb{P}(\mathbf{Y} \in H(\mathcal{P}_\theta, \hat{q}'')) = \hat{q}
-\end{equation}
-
-under the assumption that also $\mathcal{P}_\theta$ is continous.
-
-\begin{theorem}
-    Under the assumptions above, the epistemic uncertainty, up to scaling by a prior distribution on $\theta$ can be found with:
-
-    \begin{equation}
-        \int_{(0,1)} |\mathbb{P}(\mathbf{Y} \in H(\mathcal{P}_\theta, q)) - q| d q = p(\theta \mid \mathcal{D})^{-1}
-        \label{eq:epistemic_uncertainty0}
-    \end{equation}
-\end{theorem}
-
-\begin{proof}
-    We can decompose $p(\theta \mid \mathcal{D})$ by its definition. In particular, we can write it as:
-
-    \begin{equation}
-        p(\theta \mid \mathcal{D}) = \frac{p(\theta, \mathcal{D})}{p(\mathcal{D})}
-    \end{equation}
-    \begin{equation}
-        = \frac{\frac{\partial^2 \mathbb{P}(\Theta < \theta, \mathbf{Z} < \mathbf{z})}{\partial \theta \partial \mathbf{z}}}{\frac{\partial \mathbb{P}(\mathbf{Z} < \mathbf{z})}{\partial z}}
-        \label{eq:epistemic_uncertainty1}
-    \end{equation}
-
-    where with notational overloading $\Theta$ represents the random variable defining the estimated parameters. Now we need to observe that in \eef{eq:epistemic_uncertainty1} $\Theta$ is actually dependent on the data $\mathbf{Z}$ itself because it is a function of the data. This means that we can write the second part as:
-    \begin{equation}
-        \frac{\frac{\partial^2 \mathbb{P}(f(\mathbf{Z}) < \theta, \mathbf{Z} < \mathbf{z})}{\partial \theta \partial \mathbf{z}}}{\frac{\partial \mathbb{P}(\mathbf{Z} < \mathbf{z})}{\partial z}}
-        \label{eq:epistemic_uncertainty2}
-    \end{equation}
-
-    What we now need to show, is that this quantity is small iff the left hand side of \eef{eq:epistemic_uncertainty0} is large which would imply that the epistemic uncertainty is large iff the error is large. For this we need to go into the details what it means that there can exist such an error. Generally under our assumptions, if there is an error, that means that there is not enough data to model the quantile points of the errors effectively. This, in turn, comes from the fact that $f$ is asymptotically optimal and does not over/underfit. which means that it is as small as it can be with the data. This implies that at $\theta$ the model must change slow in the data i.e. the derivative is small. Formally, this can be shown by contradiction.
-
-    Assume that the error is large, but that the derivative is also large. This implies that with a change of the model, which implicitly happens due to a change in $\mathbf{Z}$ i.e. the data, the probability measure $\mathbb{P}(f(\mathbf{Z}) < \theta, \mathbf{Z} < \mathbf{z})$ changes a lot (high derivative). That implies that the model itself is very sensitive to the data and adjusts its fit very precisely at $\theta$, which due to assumptions implies that the model has a strong understanding of the data i.e. low epistemic uncertainty. However, if we had low epistemic uncertainty, then due to asymptotic optimality, also the error would be small. Which implies that $f$ in this case can not be asymptotically optimal. This is a contradiction which implies that the derivative must be small at $\theta$.
-
-    $p(\theta \mid \mathbf{z}) = p(f(\mathbf{z})\mid \mathbf{z}) = p(f(\mathbf{x}, \mathbf{y})\mid \mathbf{x},\mathbf{y})$
-
-
-    $= \frac{p(f(\mathbf{x}, \mathbf{y}), \mathbf{y}\mid \mathbf{x})}{p(\mathbf{y}\mid \mathbf{x})} = \frac{p(f(\mathbf{x}, \mathbf{y}), \mathbf{y}, \mathbf{x})}{p(x) p(\mathbf{y}\mid \mathbf{x})} = \frac{p(\mathbf{y}, \mathbf{x}\mid f(\mathbf{x}, \mathbf{y})) p(f(\mathbf{x}, \mathbf{y}))}{p(\mathbf{x}) p(\mathbf{y}\mid \mathbf{x})}$
-
-    $= \frac{p(\mathbf{y}\mid\mathbf{x}, f(\mathbf{x}, \mathbf{y}))(\mathbf{x}\mid f(\mathbf{x}, \mathbf{y})) p(f(\mathbf{x}, \mathbf{y}))}{p(\mathbf{x}) p(\mathbf{y}\mid \mathbf{x})}$
-
-    $= \frac{p(\mathbf{y}\mid\mathbf{x}, f(\mathbf{x}, \mathbf{y}))p(\mathbf{x}\mid f(\mathbf{x}, \mathbf{y})) p(f(\mathbf{x}, \mathbf{y}))}{p(x) p(\mathbf{y}\mid \mathbf{x})}$
-
-    where we only used rules of basic probability theory. Now if we see that $f(\mathbf{x}, \mathbf{y}) = p_{\theta}(\cdot \mid \mathbf{x})$ paramerizes a model that approximates $p(\mathbf{y}\mid\mathbf{x})$ and if we assume that it is close to the true distribution we can use it as approxiamtion to obtain:
-
-    $= \frac{p(\mathbf{y}\mid\mathbf{x}, f(\mathbf{x}, \mathbf{y}))(\mathbf{x}\mid f(\mathbf{x}, \mathbf{y})) p(f(\mathbf{x}, \mathbf{y}))}{p(\mathbf{x}) p(\mathbf{y}\mid \mathbf{x})}$
-
-    $= \frac{p(\mathbf{y}\mid\mathbf{x}, p_{\theta}(\cdot \mid \mathbf{x}))(\mathbf{x}\mid p_{\theta}(\cdot \mid \mathbf{x})) p(p_{\theta}(\cdot \mid \mathbf{x}))}{p(\mathbf{x}) p(\mathbf{y}\mid \mathbf{x})}$
-
-    now we can see that in $p(\mathbf{y}\mid\mathbf{x}, p_{\theta}(\cdot \mid \mathbf{x}))$ we have the density of $\mathbf{y}$ conditioned on $\mathbf{x}$ and a model of $p(\mathbf{y}\mid\mathbf{x})$ that is close to the true distribution. This is approximately equal to $p_{\theta}(\mathbf{y}\mid\mathbf{x})$. Now we see that:
-
-    $= \frac{p_{\theta}(\mathbf{y}\mid\mathbf{x})p(\mathbf{x}\mid p_{\theta}(\cdot \mid \mathbf{x})) p(p_{\theta}(\cdot \mid \mathbf{x}))}{p(\mathbf{x}) p(\mathbf{y}\mid \mathbf{x})}
-    = \frac{p(\mathbf{x}\mid p_{\theta}(\cdot \mid \mathbf{x})) p(p_{\theta}(\cdot \mid \mathbf{x}))}{p(\mathbf{x})}$
-
-    approximately. Now we have three terms and two of them are basically independent of the connection between $\mathbf{x}$ and $\mathbf{y}$. That means they are approximately constant and are left with only:
-
-    $= p(\mathbf{x}\mid p_{\theta}(\cdot \mid \mathbf{x}))$
-
-    which is $\mathbf{x}$ conditioned on the model of $\mathbf{y}$ given $\mathbf{x}$. Now for $\mathbf{x}$ we can basically assume that this is calibration data and also we know that for the calibration data we have a corresponding $\mathbf{y}$ to every $\mathbf{x}$ which we can use to approximate the probability. In particular, it is not true that $\mathbf{x}$ is independent from the conditioned quantity since we assume the model to be better at modeling data that it has observed. 
-
-\end{proof}
+This measuring of epistemic uncertainty works if we assume smoothness in the true model, in particular in way that if we have a wrong model and we shift its quantiles, which is what we are doing when recalibrating, that intermediate results of this transition of quantiles are smoothly related to the optimization alogorithm itself. In particular, this is true since we assume that the model does not overfit and thus the model must be to some extent smooth w.r.t. epsitemic uncertainty, i.e. it will not have sharp edges in the distribution of the targets and, in particular, it approaches the true distribution in a smooth way from a less sharp distribution. For a more detailed understanding on the relation between overfitting and smoothness we refer to the work of \cite{bishop2006pattern}.
 
 \chapter{Empirical Study}\label{chap:empirical_study}
 
-In order to practically verify the validity of the novel theoretical findings as described in \pef{} and the approach to use the HDR as described in \pef{} for finding the best conformal regions we did a series of experiments with two different stages and a multitude of benchmark datasets. In particular, the first stage was a extensive hyperparameter search with Bayesian optimization on eight datasets with over 1000 hyperparameter configurations on each. Thereby nested cross validation was utilized. The goal of this stage was to get a better understanding of the hyperparameters, including novel hyperparameters and to find a good starting point for the next stage. The second stage then was to do a more detailed hyperparameter search with a smaller grid but with multiple test set splits to get a better understanding of the generalization of the hyperparameters. In this chapter we will describe the results of the first stage and the setup of the second stage. In particular we will discuss mutliple novel hyperparameters that we experimented with and highlight the ones that significantly improved the performance of the models empirically.
+In order to practically verify the validity of the novel theoretical findings as described in \pef{sec:cp_sub_cde} and the approach to use the HDR as described in \pef{sec:optimal_cp} for finding the best conformal regions we did a series of experiments with two different stages and a multitude of benchmark datasets. In particular, the first stage was a extensive hyperparameter search with Bayesian optimization on eight datasets with over 1000 hyperparameter configurations on each. Thereby nested cross validation was utilized. The goal of this stage was to get a better understanding of the hyperparameters, including novel hyperparameters and to find a good starting point for the next stage. The second stage then was to do a more detailed hyperparameter search with a smaller grid but with multiple test set splits to get a better understanding of the generalization of the hyperparameters. In this chapter we will describe the results of the first stage and the setup of the second stage. In particular we will discuss mutliple novel hyperparameters that we experimented with and highlight the ones that significantly improved the performance of the models empirically.
 
 \section{Core Model Classes}\label{sec:core_model_classes}
 
@@ -984,29 +879,28 @@ MQR asymptotically with an increase in quantile components can as shown in \pef{
 In the course of this work we experimented with a multitude of different datasets. In particular, we tried to orient ourselves at the literature in CP and CDE \cite{rothfuss2019noise,sesia2021conformal} and used most of the datasets that were used there. Moreover we tried to have datasets with some different properties to gain more insight into strenghts and weaknesses of different models. Thereby we used \texttt{Boston Housing}, \texttt{Concrete}, \texttt{Energy Efficiency} as smaller datasets in order to elaborate performance with lower number of samples. Moreover, we used larger datasets \texttt{Meps19}, \texttt{Meps20}, \texttt{Meps21}, \texttt{CASP}, \texttt{Blog}, \texttt{Facebook1}, \texttt{Facebook2}. Finally, we used two versions of a time series dataset provided by VoestAlpine AG about energy price prediction. In particular \texttt{VoestRealistic} and \texttt{VoestIdeal} are two variations of the same data where we used realistic features and features as if we could look into the future respectively. This dataset was used to investigate the performance of CDE-methods on time series data.\footnote{The features used for the Voest datasets were all taken from \url{https://transparency.entsoe.eu/dashboard/show} in a time windows from November 2022 till November 2023 but will not be directly disclosed.} In \tef{tab:dataset_overview} we provide an overview of the characteristics of each dataset.
 
 \begin{table}
-        \caption{Comparison of Different Used Datasets}
-        \label{tab:dataset_overview}
-        \centering
-        \begin{tabular}{lrrr}
-            \toprule
-            Dataset & \# Samples & \# Features & Description\\
-            \midrule
-            Boston Housing & 506 & 13 & Housing prices in Boston \\
-            Concrete & 1030 & 8 & Concrete compressive strength \\
-            Energy & 768 & 8 & Energy efficiency of buildings \\
-            CASP & 45730 & 9 & Protein structure prediction \\
-            Blog & 52397 & 280 & Blog popularity prediction \\
-            Facebook1 & 40948 & 53 & Facebook user engagement \\
-            Facebook2 & 81311 & 53 & Facebook user engagement \\
-            Meps19 & 15785 & 139 & Medical Expenditure Panel Survey \\
-            Meps20 & 17541 & 139 & Medical Expenditure Panel Survey \\
-            Meps21 & 15656 & 139 & Medical Expenditure Panel Survey \\
-            VoestRealistic & 35001 & 42 & Realistic Features Voest Dataset  \\
-            VoestIdeal & 35001 & 42 & Ideal Features Voest Dataset \\
-            \bottomrule
-        \end{tabular}
+    \caption{Comparison of Different Used Datasets}
+    \label{tab:dataset_overview}
+    \centering
+    \begin{tabular}{lrrr}
+        \toprule
+        Dataset        & \# Samples & \# Features & Description                      \\
+        \midrule
+        Boston Housing & 506        & 13          & Housing prices in Boston         \\
+        Concrete       & 1030       & 8           & Concrete compressive strength    \\
+        Energy         & 768        & 8           & Energy efficiency of buildings   \\
+        CASP           & 45730      & 9           & Protein structure prediction     \\
+        Blog           & 52397      & 280         & Blog popularity prediction       \\
+        Facebook1      & 40948      & 53          & Facebook user engagement         \\
+        Facebook2      & 81311      & 53          & Facebook user engagement         \\
+        Meps19         & 15785      & 139         & Medical Expenditure Panel Survey \\
+        Meps20         & 17541      & 139         & Medical Expenditure Panel Survey \\
+        Meps21         & 15656      & 139         & Medical Expenditure Panel Survey \\
+        VoestRealistic & 35001      & 42          & Realistic Features Voest Dataset \\
+        VoestIdeal     & 35001      & 42          & Ideal Features Voest Dataset     \\
+        \bottomrule
+    \end{tabular}
 \end{table}
-
 
 \section{Calculation of the HDR}
 
@@ -1018,13 +912,13 @@ Calculating the HDR is a straightforward procedure which is described in the Pse
     \begin{algorithmic}
         \STATE \textbf{Input:} CDE-method model $f$, Features $x$, Significance Level $\alpha$, Target Grid $y$
         \STATE \textbf{Output:} HDR $H$
-        
+
         \STATE $p \leftarrow f(x, y)$
         \STATE $p_{\text{normalized}} \leftarrow \frac{p}{\text{sum}(p)}$ We normalize the density
         \STATE $I_{\text{sorted}} \leftarrow \text{argsort}(p_{\text{normalized}})[::-1]$ We sort in descending order
         \STATE $p_{\text{sorted}} \leftarrow p_{\text{normalized}}[I_{\text{sorted}}]$
-        \STATE $p_{\text{cumsum}} \leftarrow \text{cumsum}(p_{\text{sorted}})$ 
-        \STATE $I_{\text{HDR}} \leftarrow \text{sum}(p_{\text{cumsum}} < 1 - \alpha)$ We look how many elements we need to take 
+        \STATE $p_{\text{cumsum}} \leftarrow \text{cumsum}(p_{\text{sorted}})$
+        \STATE $I_{\text{HDR}} \leftarrow \text{sum}(p_{\text{cumsum}} < 1 - \alpha)$ We look how many elements we need to take
         \STATE $H \leftarrow y[I_{\text{sorted}}[:I_{\text{HDR}} + 1]]$ We take the elements in the HDR on the overestimated side
 
         \RETURN $H$
@@ -1041,21 +935,19 @@ For calibrating the whole PDFs of a dataset we need to find the adjustment for a
     \begin{algorithmic}
         \STATE \textbf{Input:} Density Grids $p$, Calibration Targets $y$, Significance Level $\alpha$, Target Grid $\bar{y}$
         \STATE \textbf{Output:} Calibrated Significance Level $\alpha'$
-        
+
         \STATE $p_{\text{normalized}} \leftarrow \frac{p}{\text{sum}(p)}$ We normalize the density
         \STATE $I_{\text{sorted}} \leftarrow \text{argsort}(p_{\text{normalized}})[::-1]$ We sort in descending order
         \STATE $p_{\text{sorted}} \leftarrow p_{\text{normalized}}[I_{\text{sorted}}]$
-        \STATE $\text{cumsum} \leftarrow \text{cumsum}(p_{\text{sorted}})$ 
+        \STATE $\text{cumsum} \leftarrow \text{cumsum}(p_{\text{sorted}})$
         \STATE $\hat{alpha} \leftarrow \text{cumsum}[\argmin(|p_{\text{cumsum}} - \alpha|)]$ We find the required quantile levels
 
         \STATE $\alpha' \leftarrow 1 - \text{quantile}(\hat{alpha}, 1 - \alpha)$ We find the quantile level of the closest level
 
         \RETURN $\alpha'$
-        
+
     \end{algorithmic}
 \end{algorithm}
-
-
 
 \begin{algorithm}
     \caption{Calibrating the Conditional PDF}
@@ -1063,32 +955,30 @@ For calibrating the whole PDFs of a dataset we need to find the adjustment for a
     \begin{algorithmic}
         \STATE \textbf{Input:} CDE-method model $f$, Calibration Features $x$, Calibration Targets $y$, Significance Level Grid $\alpha$, Target Grid $\bar{y}$
         \STATE \textbf{Output:} Calibrated Conditional PDF grid $p'$, Epistemic Uncertainty $p_e$
-        
+
         \STATE $p \leftarrow f(x, \bar{y})$
         \STATE $\bar{y}_{\text{spacing}} \leftarrow \bar{y}[1] - \bar{y}[0]$
 
         \FOR{$\alpha_i$ in $\alpha$}
-            \STATE $\alpha'_i \leftarrow \text{HDR-Calibrate}(p, y, \bar{y}, \alpha_i)$ Here we use \sref[Algorithm]{alg:calibrate_hdr} to calibrate the HDR
-            \STATE $H_i \leftarrow \text{HDR}(p, \alpha'_i, \bar{y})$
+        \STATE $\alpha'_i \leftarrow \text{HDR-Calibrate}(p, y, \bar{y}, \alpha_i)$ Here we use \sref[Algorithm]{alg:calibrate_hdr} to calibrate the HDR
+        \STATE $H_i \leftarrow \text{HDR}(p, \alpha'_i, \bar{y})$
         \ENDFOR
 
         \STATE $H_0 \leftarrow \emptyset$
         \STATE $H_{N+1} \leftarrow \text{ones}(\text{len}(\bar{y}))$
         \FOR{$i$ in $1, \dots, \text{len}(\alpha) + 1$}
-            \STATE $H_i \leftarrow H_{i - 1} \cap H_i$ We take the intersection of the HDRs to get the elements for this level
-            \STATE $p'[H_i] \leftarrow \frac{1}{\text{len}(\alpha) \cdot \text{sum}(H_i) \cdot \bar{y}_{\text{spacing}}}$ We adjust the density for the elements in the HDR
+        \STATE $H_i \leftarrow H_{i - 1} \cap H_i$ We take the intersection of the HDRs to get the elements for this level
+        \STATE $p'[H_i] \leftarrow \frac{1}{\text{len}(\alpha) \cdot \text{sum}(H_i) \cdot \bar{y}_{\text{spacing}}}$ We adjust the density for the elements in the HDR
         \ENDFOR
-        
+
         \STATE $p_e \leftarrow \text{p - p'}$ We calculate the epistemic uncertainty grid
 
         \STATE $p' \leftarrow \text{smooth}(p')$ Optional smoothing because of finite samples and finitely fine grids
         \STATE $p_e \leftarrow \text{smooth}(p_e)$ Optional smoothing because of finite samples and finitely fine grids
-        
+
         \RETURN $p', p_e$
     \end{algorithmic}
 \end{algorithm}
-
-
 
 \section{Experiment Results} \label{sec:results}
 
@@ -1106,9 +996,9 @@ We incoperate recalibration of the whole CDE in some of our experiments (not all
 Moreover, we can observe that recalibration of the full CDE can empirically compensate for a significant amount of model misspecification. In particular, as we can also see in \fef{fig:recalibration} where the model was specified as an unimodal gaussian distribution but the true distribution is multimodal. In this case the recalibration can compensate for the misspecification as can even recover the bimodal distribution which makes it more than just a nice utility but a powerful tool that can be used to compensate and potentially identify model misspecification.
 
 \subsection{Main Benchmark Results}
-Here we show the results of the final experiments on the 12 datasets. The main experimental procedure consisted for each dataset except for the two Voest ones of five-fold nested cross validation to obtain a robust estimate of the actual performance. On the two Voest Datasets instead we decided to always use the same train-test split where we consider the time dependence in the data by using the chronologically first 80\% of the data as training data and the last 20\% as test data. Moreover, we do cross-validation on a time series split where we expand the training data and use the chronolocially last part for validation. For the exact implementation we refer to our code. The Algorithm used for the evaluation can be seen in \sref[Algorithm]{alg:evaluation}. This algorithm inspired by \cite{rothfuss2019noise} is a nested cross validation algorithm over multiple seeds and hyperparameters that gurantees a robust estimate of the performance of the models on the test set. In particular, the test set is only used for the final evaluation and the hyperparameters are tuned on the training set which we do CV on.
+Here we show the results of the final experiments on the 12 datasets. The main experimental procedure consisted for each dataset except for the two Voest ones of five-fold nested cross validation to obtain a robust estimate of the actual performance. On the two Voest Datasets instead we decided to always use the same train-test split where we consider the time dependence in the data by using the chronologically first 80\% of the data as training data and the last 20\% as test data. For the other datasets we used 80\%-20\% train-test spilts which is notably different from \cite{sesia2021conformal} who used a fixed test set of 2000 samples, 2000 for calibration and the other part for training. In particular, on all datasets that we have the same, we have signlificantly less train dat but still competitive results.  Moreover, we do cross-validation on a time series split where we expand the training data and use the chronolocially last part for validation. For the exact implementation we refer to our code. The Algorithm used for the evaluation can be seen in \sref[Algorithm]{alg:evaluation}. This algorithm inspired by \cite{rothfuss2019noise} is a nested cross validation algorithm over multiple seeds and hyperparameters that gurantees a robust estimate of the performance of the models on the test set. In particular, the test set is only used for the final evaluation and the hyperparameters are tuned on the training set which we do CV on.
 
-The results final benchmark results are shown in \tef{tab:results}.
+The results final benchmark results are shown in \tef{tab:results_interval_size_hdr} and \tef{tab:results_interval_size_hdr_connected}. As expected, resuls in the table with connected intervals are only slightly larger than the true HDR. Comparing our results to the current state of the art which is \cite{sesia2021conformal} to our best knowledge, we can see that mostly we beat the results with pure HDR and even in some instances like the CASP dataset when using connected intervals which proofs that our methods and hyperparameters are very competitive. 
 
 \begin{algorithm}
     \caption{Evaluation of the Models}
@@ -1118,21 +1008,21 @@ The results final benchmark results are shown in \tef{tab:results}.
         \STATE \textbf{Output:} Performance Metrics $P$
 
         \FOR{$k$ in $1, \dots, K$}
-            \STATE $D_{\text{train}, k}, D_{\text{test}, k} \leftarrow \text{split}(D, k)$
-            
-            \STATE $CVSplits \leftarrow \text{split}(D_{\text{train}, k}, L)$
-            
-            \FOR{$h$ in $H$}
-                \FOR{$D'_{\text{train}} D'_{\text{val}}$ in $CVSplits$}
-                    \STATE $M_h \leftarrow \text{fit}(M, D'_{\text{train}}, h)$
-                    \STATE $P_h \leftarrow \text{score}(M_h, D'_{\text{val}})$
-                \ENDFOR
-            \ENDFOR
+        \STATE $D_{\text{train}, k}, D_{\text{test}, k} \leftarrow \text{split}(D, k)$
 
-            \STATE $h_{\text{best}} \leftarrow H[\text{argmax}(P)]$ Also set calibrated hyperparameters like epoch and $\alpha$ for CP
+        \STATE $CVSplits \leftarrow \text{split}(D_{\text{train}, k}, L)$
 
-            \STATE $P_k \leftarrow \text{fit}(M, D_{\text{train}}, h_{\text{best}})$
-            \STATE $P_k \leftarrow \text{score}(M_k, D_{\text{test}})$    
+        \FOR{$h$ in $H$}
+        \FOR{$D'_{\text{train}} D'_{\text{val}}$ in $CVSplits$}
+        \STATE $M_h \leftarrow \text{fit}(M, D'_{\text{train}}, h)$
+        \STATE $P_h \leftarrow \text{score}(M_h, D'_{\text{val}})$
+        \ENDFOR
+        \ENDFOR
+
+        \STATE $h_{\text{best}} \leftarrow H[\text{argmax}(P)]$ Also set calibrated hyperparameters like epoch and $\alpha$ for CP
+
+        \STATE $P_k \leftarrow \text{fit}(M, D_{\text{train}}, h_{\text{best}})$
+        \STATE $P_k \leftarrow \text{score}(M_k, D_{\text{test}})$
         \ENDFOR
 
         \STATE $P \leftarrow \text{mean}(P)$
@@ -1143,18 +1033,45 @@ The results final benchmark results are shown in \tef{tab:results}.
 
 \begin{table}[h!]
     \centering
-    \caption{CDE Experiment Result ALL for Real Data (higher is better)}
-    \label{tab:results}
-    \begin{tabular}{l*{4}{d{3.8}}}
-      \toprule
-      \multicolumn{1}{c}{Dataset} & \multicolumn{1}{c}{MDN} & \multicolumn{1}{c}{KMN} & \multicolumn{1}{c}{NFN} & \multicolumn{1}{c}{MSE-CDE} \\
-      \midrule
-      Boston Housing & -2.51 \pm 0.09 & -2.53 \pm 0.05 & -2.56 \pm 0.06 & -3.21 \pm 0.03 \\
-      Concrete & -3.09 \pm 0.05 & -3.20 \pm 0.03 & -3.14 \pm 0.06 & -3.79 \pm 0.01 \\
-      Energy & -1.31 \pm 0.10 & -1.62 \pm 0.08 & -1.47 \pm 0.08 & -3.18 \pm 0.01 \\
-      NYC Taxi & 5.32 \pm 0.03 & 5.40 \pm 0.02 & 5.18 \pm 0.04 & 5.03 \pm 0.05 \\
-      Voest & -5.40 \pm 0.08 & -5.30 \pm 0.03 & -6.42 \pm 0.20 & -7.09 \pm 0.02 \\
-      \bottomrule
+    \caption{CDE Experiment Result CP with HDR Interval Size (lower is better)}
+    \label{tab:results_interval_size_hdr}
+    \begin{tabular}{l*{3}{d{3.8}}}
+        \toprule
+        \multicolumn{1}{c}{Dataset} & \multicolumn{1}{c}{MDN} & \multicolumn{1}{c}{KMN} & \multicolumn{1}{c}{MQR} \\
+        \midrule
+        Boston Housing              & 9.45 \pm 0.70           & 9.79 \pm 0.35           & 9.32 \pm 0.37           \\
+        Concrete                    & 19.72 \pm 0.71          & 19.37 \pm 0.97          & 17.56 \pm 0.55          \\
+        Energy                      & 6.26 \pm 0.18           & 3.99 \pm 0.28           & 3.89 \pm 0.27           \\
+        CASP                        & 8.41 \pm 0.17           & 7.81 \pm 0.15           & 9.47 \pm 0.18           \\
+        Blog                        & 11.96 \pm 0.76          & 11.83 \pm 0.72          & 12.46 \pm 0.77          \\
+        Facebook 1                  & 12.19 \pm 0.64          & 11.33 \pm 0.64          & 11.34 \pm 0.53          \\
+        Facebook 2                  & 12.81 \pm 1.72          & 12.02 \pm 1.69          & 12.18 \pm 1.55          \\
+        Meps 19                     & 19.41 \pm 1.59          & 19.49 \pm 1.22          & 21.13 \pm 1.22          \\
+        Meps 20                     & 19.26 \pm 1.00          & 18.53 \pm 0.96          & 19.98 \pm 0.89          \\
+        Meps 21                     & 19.02 \pm 1.17          & 18.85 \pm 0.87          & 20.65 \pm 0.78          \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[h!]
+    \centering
+    \caption{CDE Experiment Result CP with HDR Connected Interval Size (lower is better)}
+    \label{tab:results_interval_size_hdr_connected}
+    \begin{tabular}{l*{3}{d{3.8}}}
+        \toprule
+        \multicolumn{1}{c}{Dataset} & \multicolumn{1}{c}{MDN} & \multicolumn{1}{c}{KMN} & \multicolumn{1}{c}{MQR} \\
+        \midrule
+        Boston Housing              & 9.60 \pm 0.77           & 10.23 \pm 0.55          & 9.32 \pm 0.37           \\
+        Concrete                    & 19.88 \pm 0.72          & 19.39 \pm 0.96          & 17.56 \pm 0.55          \\
+        Energy                      & 6.53 \pm 0.23           & 4.22 \pm 0.29           & 3.89 \pm 0.27           \\
+        CASP                        & 11.29 \pm 0.26          & 11.05 \pm 0.20          & 10.27 \pm 0.26          \\
+        Blog                        & 12.12 \pm 0.77          & 17.89 \pm 1.33          & 15.57 \pm 1.43          \\
+        Facebook 1                  & 12.27 \pm 0.64          & 15.81 \pm 1.31          & 13.21 \pm 0.93          \\
+        Facebook 2                  & 12.84 \pm 1.71          & 15.22 \pm 1.62          & 13.78 \pm 1.85          \\
+        Meps 19                     & 19.86 \pm 1.66          & 29.67 \pm 2.40          & 22.90 \pm 1.59          \\
+        Meps 20                     & 19.59 \pm 1.15          & 27.32 \pm 2.28          & 21.34 \pm 1.14          \\
+        Meps 21                     & 19.75 \pm 1.46          & 28.31 \pm 1.72          & 22.37 \pm 1.14          \\
+        \bottomrule
     \end{tabular}
 \end{table}
 
