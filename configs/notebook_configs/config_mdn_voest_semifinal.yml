@@ -33,7 +33,7 @@ data_hyperparameters:
   data_type: voest
   data_path: datasets/voest_datasets/
   only_use_columns: v5
-  original: False
+  original: True
   validation_is_test: True
   remove_quantiles: 0.001 #remove quantiles that are below 0.1% and above 99.9% (outliers)
   val_split: 0.15
