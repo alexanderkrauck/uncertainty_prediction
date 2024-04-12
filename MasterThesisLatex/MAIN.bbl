@@ -1625,6 +1625,62 @@
       \field{pages}{102830}
       \range{pages}{1}
     \endentry
+    \entry{lei2018distribution}{article}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=5716652c08e70b34048d4a87afff54d5}{%
+           family={Lei},
+           familyi={L\bibinitperiod},
+           given={Jing},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=097d80b3f52290bf38e3b082fa2e11b0}{%
+           family={G’Sell},
+           familyi={G\bibinitperiod},
+           given={Max},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7512f80d6f525f9a779b62c4fe599e9d}{%
+           family={Rinaldo},
+           familyi={R\bibinitperiod},
+           given={Alessandro},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b43d82ea7435e420b39c05f1ccd1d885}{%
+           family={Tibshirani},
+           familyi={T\bibinitperiod},
+           given={Ryan\bibnamedelima J},
+           giveni={R\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6b27f4592197d058b81cb25b0b285942}{%
+           family={Wasserman},
+           familyi={W\bibinitperiod},
+           given={Larry},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Taylor \& Francis}%
+      }
+      \strng{namehash}{eccf738f66caa79445934597adfca141}
+      \strng{fullhash}{b017600bb3480b449c67bab0a5c6cf53}
+      \strng{bibnamehash}{eccf738f66caa79445934597adfca141}
+      \strng{authorbibnamehash}{eccf738f66caa79445934597adfca141}
+      \strng{authornamehash}{eccf738f66caa79445934597adfca141}
+      \strng{authorfullhash}{b017600bb3480b449c67bab0a5c6cf53}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of the American Statistical Association}
+      \field{number}{523}
+      \field{title}{Distribution-free predictive inference for regression}
+      \field{volume}{113}
+      \field{year}{2018}
+      \field{pages}{1094\bibrangedash 1111}
+      \range{pages}{18}
+    \endentry
     \entry{loftus2022uncertainty}{article}{}
       \true{moreauthor}
       \true{morelabelname}
@@ -2673,12 +2729,12 @@
     \endentry
     \entry{wolpert1997no}{article}{}
       \name{author}{2}{}{%
-        {{un=2,uniquepart=given,hash=ad1e9fc8d8c048abe3c7a40671b7a044}{%
+        {{un=0,uniquepart=base,hash=ad1e9fc8d8c048abe3c7a40671b7a044}{%
            family={Wolpert},
            familyi={W\bibinitperiod},
            given={David\bibnamedelima H},
            giveni={D\bibinitperiod\bibinitdelim H\bibinitperiod},
-           givenun=2}}%
+           givenun=0}}%
         {{un=0,uniquepart=base,hash=b8218a164b0224b26cf36cfb4a28aed1}{%
            family={Macready},
            familyi={M\bibinitperiod},
@@ -2708,50 +2764,6 @@
       \field{year}{1997}
       \field{pages}{67\bibrangedash 82}
       \range{pages}{16}
-    \endentry
-    \entry{wolpert_1996}{article}{}
-      \name{author}{1}{}{%
-        {{un=2,uniquepart=given,hash=ad1e9fc8d8c048abe3c7a40671b7a044}{%
-           family={Wolpert},
-           familyi={W\bibinitperiod},
-           given={David\bibnamedelima H.},
-           giveni={D\bibinitperiod\bibinitdelim H\bibinitperiod},
-           givenun=2}}%
-      }
-      \strng{namehash}{ad1e9fc8d8c048abe3c7a40671b7a044}
-      \strng{fullhash}{ad1e9fc8d8c048abe3c7a40671b7a044}
-      \strng{bibnamehash}{ad1e9fc8d8c048abe3c7a40671b7a044}
-      \strng{authorbibnamehash}{ad1e9fc8d8c048abe3c7a40671b7a044}
-      \strng{authornamehash}{ad1e9fc8d8c048abe3c7a40671b7a044}
-      \strng{authorfullhash}{ad1e9fc8d8c048abe3c7a40671b7a044}
-      \field{sortinit}{W}
-      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{year}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{abstract}{{This is the first of two papers that use off-training set (OTS) error to investigate the assumption-free relationship between learning algorithms. This first paper discusses the senses in which there are no a priori distinctions between learning algorithms. (The second paper discusses the senses in which there are such distinctions.) In this first paper it is shown, loosely speaking, that for any two algorithms A and B, there are “as many” targets (or priors over targets) for which A has lower expected OTS error than B as vice versa, for loss functions like zero-one loss. In particular, this is true if A is cross-validation and B is “anti-cross-validation” (choose the learning algorithm with largest cross-validation error). This paper ends with a discussion of the implications of these results for computational learning theory. It is shown that one cannot say: if empirical misclassification rate is low, the Vapnik-Chervonenkis dimension of your generalizer is small, and the training set is large, then with high probability your OTS error is small. Other implications for “membership queries” algorithms and “punting” algorithms are also discussed.}}
-      \field{issn}{0899-7667}
-      \field{journaltitle}{Neural Computation}
-      \field{month}{10}
-      \field{number}{7}
-      \field{title}{{The Lack of A Priori Distinctions Between Learning Algorithms}}
-      \field{volume}{8}
-      \field{year}{1996}
-      \field{pages}{1341\bibrangedash 1390}
-      \range{pages}{50}
-      \verb{doi}
-      \verb 10.1162/neco.1996.8.7.1341
-      \endverb
-      \verb{eprint}
-      \verb https://direct.mit.edu/neco/article-pdf/8/7/1341/813495/neco.1996.8.7.1341.pdf
-      \endverb
-      \verb{urlraw}
-      \verb https://doi.org/10.1162/neco.1996.8.7.1341
-      \endverb
-      \verb{url}
-      \verb https://doi.org/10.1162/neco.1996.8.7.1341
-      \endverb
     \endentry
     \entry{wu2023application}{article}{}
       \name{author}{6}{}{%
