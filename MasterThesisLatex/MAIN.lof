@@ -5,11 +5,11 @@
 \babel@toc {english}{}\relax 
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces We can see that if we increase the number of quantiles that we predict, the restriction on the CDF becomes more and more strict and we approach the true PDF on the right side.\relax }}{19}{figure.caption.22}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces We can see that if we increase the number of quantiles that we predict, the restriction on the CDF becomes more and more strict and we approach the true PDF on the right side.\relax }}{19}{figure.caption.20}%
 \contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Restricted CDF with 5 quantiles}}}{19}{subfigure.1.1}%
 \contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Restricted CDF with 30 quantiles}}}{19}{subfigure.1.2}%
-\contentsline {figure}{\numberline {2.2}{\ignorespaces Comparison of HDR, connected HDR and Shortest Interval CP}}{38}{figure.caption.23}%
-\contentsline {figure}{\numberline {2.3}{\ignorespaces Recalibration of a bimodal CDE model. The model is recalibrated by shifting the quantiles of the HDR.\relax }}{45}{figure.caption.28}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Comparison of HDR, connected HDR and Shortest Interval CP}}{38}{figure.caption.21}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Recalibration of a bimodal CDE model. The model is recalibrated by shifting the quantiles of the HDR according to marginal misconformity quantile levels as in \sref [Algorithm]{alg:calibrate_pdf}.\relax }}{45}{figure.caption.26}%
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {3.1}{\ignorespaces Recalibration of the whole estimated conditional PDF on the Concrete dataset. Calibrated on the train dataset and evaluated on the test dataset.\relax }}{62}{figure.caption.60}%
 \addvspace {10\p@ }

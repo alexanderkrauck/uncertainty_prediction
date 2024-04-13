@@ -24,29 +24,31 @@
 \contentsline {chapter}{\numberline {2}Theoretical Analysis}{10}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Preliminaries}{10}{section.2.1}%
 \contentsline {section}{\numberline {2.2}Conditional Density Estimation}{12}{section.2.2}%
-\contentsline {subsubsection}{\nonumberline Smoothness Assumptions}{12}{subsubsection*.17}%
+\contentsline {subsection}{\numberline {2.2.1}Smoothness Assumptions}{12}{subsection.2.2.1}%
 \contentsline {section}{\numberline {2.3}Quantile Regression}{13}{section.2.3}%
 \contentsline {section}{\numberline {2.4}Conformal Prediction}{14}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Trivial CP}{15}{subsection.2.4.1}%
 \contentsline {section}{\numberline {2.5}CP, CDE and QR are the Same Task}{15}{section.2.5}%
 \contentsline {subsection}{\numberline {2.5.1}Connection between the Model Producing Functions}{16}{subsection.2.5.1}%
-\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and CP}{17}{subsubsection*.19}%
-\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and QR}{18}{subsubsection*.21}%
+\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and CP}{17}{subsubsection*.17}%
+\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and QR}{18}{subsubsection*.19}%
 \contentsline {subsection}{\numberline {2.5.2}CDE can fully be modeled by CP and QR}{18}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}CDM to improve current CP}{21}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.3}CDM to improve current CP}{22}{subsection.2.5.3}%
 \contentsline {subsection}{\numberline {2.5.4}CP methods are practically not distribution free methods}{22}{subsection.2.5.4}%
 \contentsline {subsection}{\numberline {2.5.5}Limitations of the Bridge between CDMs}{23}{subsection.2.5.5}%
-\contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDE, CP and QR}{23}{subsection.2.5.6}%
+\contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDE, CP and QR}{24}{subsection.2.5.6}%
 \contentsline {section}{\numberline {2.6}Optimal Conformal Prediction}{24}{section.2.6}%
 \contentsline {subsection}{\numberline {2.6.1}New perspective on MLL and Optimal CP}{25}{subsection.2.6.1}%
 \contentsline {subsection}{\numberline {2.6.2}Focusing on Density instead of the Coverage Level}{37}{subsection.2.6.2}%
 \contentsline {section}{\numberline {2.7}Calibration and Recalibration}{38}{section.2.7}%
 \contentsline {subsection}{\numberline {2.7.1}Calibration in CP}{39}{subsection.2.7.1}%
-\contentsline {subsection}{\numberline {2.7.2}Common Implicit Assumptions on the CP-Region Fuction}{42}{subsection.2.7.2}%
-\contentsline {subsection}{\numberline {2.7.3}Recalibration of CDE on CP when using HDR}{42}{subsection.2.7.3}%
-\contentsline {subsubsection}{\nonumberline Calibration of CDE on CP}{43}{subsubsection*.25}%
+\contentsline {subsection}{\numberline {2.7.2}Recalibration of CDE on CP when using HDR}{41}{subsection.2.7.2}%
+\contentsline {subsection}{\numberline {2.7.3}Common Implicit Assumptions on the CP-Region Fuction}{41}{subsection.2.7.3}%
+\contentsline {subsubsection}{\nonumberline Likelihood and the Relation to CDMs}{42}{subsubsection*.23}%
 \contentsline {subsection}{\numberline {2.7.4}Calibration of CDMs in General}{43}{subsection.2.7.4}%
-\contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDMs}{44}{subsubsection*.27}%
-\contentsline {section}{\numberline {2.8}Uncertainty and Calibration: The Connection}{46}{section.2.8}%
+\contentsline {subsubsection}{\nonumberline Practical Considerations for Recalibration of CDMs}{44}{subsubsection*.25}%
+\contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDMs}{44}{subsubsection*.28}%
+\contentsline {section}{\numberline {2.8}Uncertainty and Calibration: The Connection}{45}{section.2.8}%
 \contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty}{47}{subsection.2.8.1}%
 \contentsline {chapter}{\numberline {3}Empirical Study}{51}{chapter.3}%
 \contentsline {section}{\numberline {3.1}Core Model Classes}{51}{section.3.1}%
