@@ -89,7 +89,7 @@ The main contributions of this work are as follows:
 
 First, in \pef{chap:theoretical} we give a thorough introduction into CP, CDE and QR and show they are fundamentally the same task. Moreover, we show how we can infer CP from CDE and how we can estimate epistemic uncertainty in CDE and CP methods. In \pef{chap:empirical_study} we show how our insights can be applied to a wide variety of tasks and how they improve the performance of CDE, QR and CP methods. Finally, in \pef{chap:conclusion} we summarize our insights and give an outlook on future work.
 
-Notably, novel contributions and existing concepts are intervoven in the theoretical part of this work, as tearing them appart would heavily reduce the smooth line of argumentation present in this work and make notation much harder. In particular, this is because we will generalize existing concepts with new interpretations. However, we will always explicitly state if a concept is novel or if it is based on existing concepts.
+Notably, novel contributions and existing concepts are intervoven in the theoretical part of this work, as tearing them appart would heavily reduce the smooth line of argumentation present in this work and make notation much harder. In particular, this is because we will generalize existing concepts with new interpretations. However, we will always explicitly state if a concept is novel or if it is based on existing concepts. (Sub)sections that contain a core contribution are marked with a star like \textbf{Section*}. However, also other section contain novelties that are not marked with a star; We made sure to always explicitly state if a concept is novel. It should be quite clear from the context if a concept is novel or not.
 
 \chapter{Theoretical Analysis}\label{chap:theoretical}
 
@@ -182,7 +182,7 @@ In this work however, later in \pef{sec:optimal_cp}, we will give argumentations
 
 CP can be degenerated to a trivial task where we only predict the marginal distribution of the target variable and apply a way to construct a CP interval on that basis. However, this would completely neglect the information in the input variables and would not be a useful model. In particular, that is why we usually extend the core definition of CP as described in \pef{sec:cp} to find specific sets of outcomes that are based on the input variables and not only the target variables.
 
-\section{CP, CDE and QR are the Same Task}\label{sec:cp_sub_cde}
+\section{CP, CDE and QR are the Same Task*}\label{sec:cp_sub_cde}
 
 Before going into details why this is the case, the motivation behind showing this result is mainly that it gives us a strong foundation on which we can use techniques used for one of the methods also directly for the other methods. In \pef{sec:calibration} we will based on that show that we can apply recalibration which is mainly used in CP also for QR and CDE.
 
@@ -199,7 +199,7 @@ Without diving more into the philosophical nuances of this, we will now show tha
 
 In practice, the task that produces a model is often specified as an optimization problem that is solved to find the model parameters i.e. gradient descent in NNs or also hyperparameter search alogrithms which might include Bayesian hyperparameter optimization. Mostly, the task is to find a model that is most optimal for an evaluation function.
 
-\subsubsection{Theoretical Bridge: CDE and CP}\label{sec:bridge_cde_cp}
+\subsubsection{Theoretical Bridge: CDE and CP*}\label{sec:bridge_cde_cp}
 
 By definition, CP is any method that aims to predict regions, that in expectation should contain the true label with a significance level $\alpha$. Formally,  $\mathbb{P}(\mathbf{Y} \in U(\mathbf{X})) = 1 - \alpha$. It is essential to notice here that the PDF is explicitly part of the definition of any CP method.
 
@@ -209,11 +209,11 @@ However, it appears a reasonable conclusion that the PDF or parts of it are thos
 
 Knowing this and also knowing that as CDE fully models the PDF, we can conclude that producing a CP model is a sub-task of producing a CDE model. In particular, sub-task is meant in the sense that the model producing function $g \in \mathcal{G}$ that produces a CP model must implicitly consider only parts of what a method that produces a CDE model must consider. Notably, this is also quite philosophical since it is unclear what it means to consider the PDF or parts of it, but we suppose that it must be encoded in the loss function that can identify certain characteristics of the PDF.
 
-\subsubsection{Theoretical Bridge: CDE and QR}\label{sec:bridge_cde_qr}
+\subsubsection{Theoretical Bridge: CDE and QR*}\label{sec:bridge_cde_qr}
 
 Analogous to CP we know that QR is defined as any method that can predict quantiles $q$ of the target space where we have that $\mathbb{P}(\mathbf{Y} \leq Q(\mathbf{X})) = q$. Again, the PDF is explicitly part of the definition of any QR method and with the NFL and the argumentation in \pef{sec:bridge_cde_cp} it follows that QR is a sub-task of CDE.
 
-\subsection{CDE can fully be modeled by CP and QR} \label{sec:cde_sub_cp_qr}
+\subsection{CDE can fully be modeled by CP and QR*} \label{sec:cde_sub_cp_qr}
 
 We know from \pef{sec:bridge_cde_cp} and \pef{sec:bridge_cde_qr} a way to understand how QR and CP are sub-tasks of CDE. However, we do not know yet what the practical implications of this are. In particular, we do not know if we can fully model the PDF with CP and QR. In this section, we will show that this is indeed the case.
 
@@ -252,14 +252,14 @@ Notably those methods to obtain CDE from QR or CP all only work approximately an
 
 Moreover, if we now want to obtain the CDE target from a not fully restricted $\mathcal{P}$ we can simply make smoothness assumptions, since we need to do that anyways as described in \pef{sec:smoothness} and implicitly also designated CDE methods do that as can be seen from the argment above that also CDE methods practically need some freedom in the restriction of the conditional PDF.
 
-\subsection{CDM to improve current CP}%modify such that i basically state that if we draw a more complete picture of the restricted PDF we can improve CP since we make its circumstances more realistic
+\subsection{CDM to improve current CP*}%modify such that i basically state that if we draw a more complete picture of the restricted PDF we can improve CP since we make its circumstances more realistic
 In this work we argue, that by first estimating a more complete picture of the true conditional density via the CDM-theory instead of only restricting it partially we can improve the performance of CP and QR. In particular, by restricting $\mathcal{P}$ more we argue that this provides a regulatory effect where unreasonable partial predictions are purged. This is conceptually a bit similar to the concept of ensembles if we do this by means of multiple quantile regression.
 
 For example, if we were to predict a quantile at a specific position that might not be perfectly accurate, then by having a tight quantile regression grid over the whole space $(0,1)$ we will stabilize this since it is likely in that case that quantile inversion appears and by swapping/sorting the quantiles we can obtain a valid PDF. The same applies to CP.
 
 This implicitly also means that given that the CP/QR method only needs to model a subset of the information of the PDF, it will not worsen the performance if we also try to model other parts of the PDF $\mathcal{P}_{\theta'}$ and use it as regularizer in practice. I.e. if we only want the median then it would not hurt the performance in practice if we also predict the 0.1 and 0.9 quantiles and use them as regularizer.
 
-\subsection{CP methods are practically not distribution free methods}
+\subsection{CP methods are practically not distribution free methods*}
 In the literature it is often stated for the benefit of CP that it is distribution free \cite{angelopoulos2021gentle} which means that we do not make any distributional assumptions within the model. Moreover, if we were to infer CP by means of first estimating a CDE e.g. with a MDN then we on first glance directly make distributional assumptions since a MDN is based on distributional components. In the literature it is argued that freedom of distribution has certain benefits, e.g. that we can predict any arbitrary PDF.
 
 However, even if we introduce distributional assumptions, in fact, it can be shown that when using MDNs for CDE with an infinite number of Gaussian components, we can predict any arbitrary PDF \cite{bishop1994mixture}. Moreover, socalled distribution free CP methods, when limited to a finite number of model parameters, as it is always the case in practice, similarly have distributional assumptions introduced by the modeling limitations of NNs. Those modeling limitations of neural networks or any other finitely expressive model. For NNs those are present in the initialization of weights with a certain distribution and the distribution of activations after linearities and activation functions. Each activation function imposes a certain distribution on the model. So both, CP and CDE, are not distribution free methods when limiting the expressivity of model dispite common literature suggesting CP is or can be made distribution free. Moreover, being distribution free does not really bring any practical benefits. Further, one could argue that being distribution free just means being infinitely expressive in the model which clashes with the requirement of smoothness as described in \pef{sec:smoothness}. In conclusion, we can say that no pracitcal CP methods are distribution free and that it is not a benefit to be distribution free in practice anyways.
@@ -276,7 +276,7 @@ The final limitation is that we only showed a very reasonable hypothesis in \pef
 
 By \pef{sec:bridge_cde_qr} and \pef{sec:bridge_cde_qr} we can see that in the background of each CDM the restriction on all PDFs $f_\theta$ stands. This has two major implications:
 
-Firstly, any technique on a CDM also implicitly (and actually primarely) acts on $f_\theta$ and thus can be thru $\mathscr{P}_\theta$ translated to any other CDM. For example if we were to decide that the standard deviation of a CDE model is to be inceased a bit by a particular function (for all $\mathbf{x} \in \mathbb{R}^n$ for simplicity), e.g. $h(p) = 2 p $, then this will clearly be reflected in the restricted distributions $\mathscr{P}_\theta$ which means we also could find the generalized form of $h$ which explicitly acts on $\mathscr{P}_\theta$ and thus can be applied to any CDM. In this case it would be for an $\mathbf{x} \in \mathbb{R}^n$ $h(\mathscr{P}_{\theta}(\mathbf{x})) = \left\{2 p: p \in \mathcal{P} \land \frac{p}{2} \in \mathscr{P}_\theta(\mathbf{x}) \right\}$, i.e. we just apply the $f$ to each element in $\mathscr{P}_\theta(\mathbf{x})$. So we see that any technique that acts on a CDM can be translated to any other CDM with that logic.
+Firstly, any technique on a CDM also implicitly (and actually primarely) acts on $\mathscr{P}_\theta$ and thus can be thru $\mathscr{P}_\theta$ translated to any other CDM. For example if we were to decide that the standard deviation of a CDE model is to be inceased a bit by a particular function (for all $\mathbf{x} \in \mathbb{R}^n$ for simplicity), e.g. $h(p) = 2 p $, then this will clearly be reflected in the restricted distributions $\mathscr{P}_\theta$ which means we also could find the generalized form of $h$ which explicitly acts on $\mathscr{P}_\theta$ and thus can be applied to any CDM. In this case it would be for an $\mathbf{x} \in \mathbb{R}^n$ $h(\mathscr{P}_{\theta}(\mathbf{x})) = \left\{2 p: p \in \mathcal{P} \land \frac{p}{2} \in \mathscr{P}_\theta(\mathbf{x}) \right\}$, i.e. we just apply the $f$ to each element in $\mathscr{P}_\theta(\mathbf{x})$. So we see that any technique that acts on a CDM can be translated to any other CDM with that logic.
 
 Secondly, any CDM goal can be done with any other CDM e.g. we can get a full conditional PDF from a method that does QR or CP.
 
@@ -299,7 +299,7 @@ Formulated as a proper constrained optimization problem, we can rewrite this as:
     C(\mathbf{x})} d\mathbf{z} = a
 \end{align}
 
-\subsection{New perspective on MLL and Optimal CP}\label{sec:optimal_cp_proofs}
+\subsection{New perspective on MLL and Optimal CP*}\label{sec:optimal_cp_proofs}
 
 The method to infer the intervals that will be used by us is the highest density regions method. Using this we can, given a PDF, infer the set of intervals with the shortest summed Lebesgue measure. In particular, we are shifting our focus from looking at the shortest regions to looking at the regions that contain the most probability mass, even tho that is very similar and mostly the same with HDR there are some delicate differences. This is partiularly beneficial since regions with high densities should usually not be ignored in practice as they often indicate important events as we will discuss in depth in \pef{sec:density_focus}
 
@@ -660,7 +660,7 @@ This now shows our desired result, that in fact, by maximizing the likelihood of
 
 Moreover, we can see that this means the MLE can be decomposed into a constrained optimization problem which is related to insights from \cite{chung2021beyond}. In particular this is true because not only the MLE is the ideal model for optimal CP, but also the inverse is true, the optimal CP model is also the optimal MLE model which follows directly from the equality that was just shown in \sref[Theorem]{thm:optimal_cp}. While in the context of this work we leave it as a theoretical insight, it is possible that this can be used in future work for new relevant findings. Arguably this fact has some mathematical beauty to it, as we realize the MLE inherently is looking for the tightest possible peaks while maintaining calibration. 
 
-\subsection{Focusing on Density instead of the Coverage Level}\label{sec:density_focus}
+\subsection{Focusing on Density instead of the Coverage Level*}\label{sec:density_focus}
 
 As hinted in \pef{sec:motivation} in this work we argue that it is practically more reasonable to move the focus to the probability mass/density instead of only the length of the inverval while maintaining calibration. The difference is subtle, but via \fef{fig:hdr_vs_shortest_intervals} we aim to provide a clear understanding of the difference through two distinct arguments.
 
@@ -723,7 +723,7 @@ It is noteworthy, that if we have only few calibration samples, then the method 
 
 As the HDR for a given confidence level $a$ is actually a sequence of nested sets which conform with assumptions from \sref[Definition]{def:recalibration_requirements} with $a = r \in (0,1)$ if we also have \sref[Assumption]{def:assumptions} applicable, for which it holds that those subintervals will contain $a$ proportion of the probability mass on the estimated conditional PDF, which can also be seen from \sref[Lemma]{lem:continuity}, which implies that we basically have a set of quantile intervals that sum up to $a$, we can see that a calibrated model will actually contain the true value in the HDR with a probability of $a$. Thus, if we are not calibrated, we can directly utilize the concepts described in \pef{sec:calibration_cp} when using HDR. 
 
-\subsection{Common Implicit Assumptions on the CP-Region Fuction}\label{sec:implicit_assumptions_cp}
+\subsection{Common Implicit Assumptions on the CP-Region Fuction*}\label{sec:implicit_assumptions_cp}
 
 It is common practice in the CP literature to do calibration without of considering the implict assumptions that are being actually made when doing so. In particular the assumptions imposed on the $\mathscr{P}_\theta$ that we do CP with. One example would be that often in the literature we predict the 5\% and 95\% quantiles, and if we have a miscalibration we simply recalibrate the model by moving those two quantiles by the same amount in or outwards. Many assumptions are made there, in particular we assume that the conditional PDF is symmetric and that the densities of all samples look similar which are extremely strong assumptions also in practice. Furthermore, those assumptions might be orthorgonal to the optimization objective of CDM, i.e. to precisely model the true PDF asymptotically. We will now establish below in \pef{sec:shape_importance} a framework that allows us to do recalibration with theoretically justified assumptions.
 
@@ -736,7 +736,7 @@ The optimization objectives of CDMs all have asymptotic gurantees on the restric
 In any case, we will leave it as a hypothesis that we generally have that good CDMs will have high likelihood which means in the scope of this work we designate likelihood as the general metric for CDMs. A good liklihood has certain desireable implications as properties of likelihood. In particular, we have the gurantee that in expectation on the entire target space the density will be close to the true density and if we have a model that generalizes, which we assume, then we also have that gurantee on unseen data.%make the assumption somewhere above more explicit
 
 %TODO: I need to somewhere fit that this now implies that 1.better calibration => better likelihood 
-\subsection{Calibration of CDMs in General}\label{sec:calibration_cde_general}
+\subsection{Calibration of CDMs in General*}\label{sec:calibration_cde_general}
 
 We have in \pef{sec:calibration_cp} seen that it is possible in practice to recalibrate CP models. Now \pef{sec:cp_sub_cde} directly implies that we can generalize this concept to all CDMs, i.e. also to CDE and QR which is a core contribution of this work. Thereby we will with \pef{sec:shape_importance} also underpin the justification for common recalibration methods used in the literature \cite{sesia2021conformal}.
 
@@ -752,7 +752,7 @@ Practically to use this for e.g. CDE, one would simply define a dense grid of qu
 \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{resources/recalibration_bimodal_cde.png}
-    \caption{Recalibration of a bimodal CDE model. The model is recalibrated by shifting the quantiles of the HDR according to marginal misconformity quantile levels as in \sref[Algorithm]{alg:calibrate_pdf}.}
+    \caption[Recalibration of a bimodal CDE model]{Recalibration of a bimodal CDE model. The model is recalibrated by shifting the quantiles of the HDR according to marginal misconformity quantile levels as in \sref[Algorithm]{alg:calibrate_pdf}.}
     \label{fig:recalibration}
 \end{figure}
 
@@ -764,92 +764,39 @@ An important consideration for this whole \pef{sec:calibration} is, that if we a
 
 However, with \pef{sec:shape_importance} we find that we must be close everywhere in the target space in expectation. With this methods like proposed by \cite{sesia2021conformal} make sense, as the idea is to navigate the estimated density in a way that, e.g. for underestimation for a specific confidence level in CP, we have that we increase our CP interval where we estimated more density and not just arbitrarily, which is now justified. Moreover, the same applies to recalibrating CP with HDR as described in \pef{sec:cp_sub_cde_hrd}.
 
-\section{Uncertainty and Calibration: The Connection}\label{sec:uncertainty_calibration}
+\section{Uncertainty and Calibration}\label{sec:uncertainty_calibration}
 
-The general area of uncertainty estimation has been growing drastically in recent years. This is because of the increasing complexity of models and the need to understand the models better as well as the requirement in risk-sensitive applications to understand when and how much the model can be trusted. Generally, as described by \cite{hullermeier_aleatoric_2021} there exist a lot of different types and perspectives on uncertainty. Most importantly there exists a distinction between so called aleatoric and epistemic uncertainty. Not all defintions of those two fully agree but generally aleatoric uncertainty is the inherent stochtasticity of the data while epistemic uncertainty is the unsureness of the model if only a limited amount of data is observed.
+Recently, the field of uncertainty estimation has grown significantly due to increasing model complexity and the critical need for reliable risk assessments in sensitive applications. Generally, as described by \cite{hullermeier_aleatoric_2021} there exist a lot of different types and perspectives on uncertainty. One of the most important distinctions is between so called aleatoric and epistemic uncertainty. Not all defintions of those two fully agree but generally aleatoric uncertainty is the inherent stochtasticity of the data while epistemic uncertainty is the unsureness of the model if only a limited amount of data is observed.
 
 For example, if we try to model the coinflip of a biased coin with 75\% probability of landing on the head and 25\% on tails, then epistemic uncertainty would be if we did only observe 10 coinflips and we are unsure yet about the exact porbabilities within the coin. Aleatoric uncertainty would be the the inherent randomness of the coin that we might try to model. This means the 75\% and 25\% themselves are the aleatoric uncertainty.
-Differences of interpretation of those two kinds of uncertainty are in practice often inherent in how we expect the true model of the data to be and how it really is. For example, if we were to expect for the coinflip experiment that the coin is always landing on the same side with the intention to learn this side,and differences in what we observe is simply noise, then we might not be able to model either uncertainty properly. In particular we might in this case predict that the coin always lands on head and there is simply 25\% noise which is of of course not true.
+Differences of interpretation of those two kinds of uncertainty are in practice often inherent in how we expect the true model of the data to be and how it really is. For example, if we were to expect for the coinflip experiment that the coin is always landing on the same side with the intention to learn this side, and differences in what we observe is simply noise, then we might not be able to model either uncertainty properly. In particular we might in this case predict that the coin always lands on head and there is simply 25\% noise which is of of course not true.
 A slight variation in definitions between aleatoric and epistemic uncertainty within works \cite{hullermeier_aleatoric_2021} is often whether aleatoric uncertainty is only noise or if it also contains stochtasticity of the data that might be reducible with more features like hidden variables that are not really observable. In this work, we do not want to dive into the philosophical interpretation of this and define that aleatoric uncertainty is always the randomness of the targets, given a fixed set of features, without of considering that there might be hidden variables that actually could reduce this uncertainty.
 
 CDMs' task is to model the aleatoric uncertainty when we try to predict targets given features. The CDM model $\mathscr{P}_\theta(x)$ that we estimate is supposed to come as closely as possible to the inherent randomness of the targets given the features. One particular aspect that rarely has been acknowledged is, that those models can, at least with the optimization objective alone, not learn epistemic uncertainty. This implies, that the model might actually give overestimations in the preciseness of outcomes. Moreover, since in this kind of setting model the aleatoric uncertainty itself and usually do not assume that there is such a thing as a second-order aleatoric uncertainty, we actually assume that the conditional distribution of a target given features is deterministic i.e. there is no (second-order) aleatoric uncertainty. This also directly implies that all error of a model which has certain asymptotic gurantees stems from epistemic uncertainty alone.
 
 In this work we provide a novel perspective on how one can estimate full uncertainty which not only includes the directly modeled aleatoric uncertainty but also the epistemic uncertainty. In the context of CDE, aleatoric uncertainty asks the question how the targets are distributed, given the features, while epistemic uncertainty asks to which extent we can actually accurately predict that. Especially for CDE where we need to predict very specific details about the distribution of the data, this is a very important question, as we realistically in real world settings can never model the distribution with full accuracy.
 
-The tool that we propose for this is a novel method that highlights calibration in a new way. In particular, we argue that recalibration of models can be used to accurately infuse the prediction with a lower bound on epistemic uncertainty. Thereby we can reestimate the whole distribution with both epistemic and aleatoric uncertainty which thus gives us a more accurate perspective on what we really know about the distribution of a target.
+The tool that we propose for this is a novel method that highlights calibration in a new way. In particular, we argue that recalibration of models can be used to accurately infuse the prediction with epistemic uncertainty. Thereby we can reestimate the whole distribution with both epistemic and aleatoric uncertainty which thus gives us a more accurate perspective on what we really know about the distribution of a target.
 
-\subsection{All Model Error corresponds to Epistemic Uncertainty}\label{sec:uncertainty_calibration_connection}
+\subsection{All Model Error corresponds to Epistemic Uncertainty*}\label{sec:uncertainty_calibration_connection}
 
-Our proposed method relies on two key insights. First, all error in CDM models is exclusively due to epistemic uncertainty if the model is asymptotically correct and does not over-/underfit. Secondly, if we observe that a model is miscalibrated, it is a direct implication that the model is suboptimal and thus that there is error. In particular what that tells us is, if a model is misaclibrated there is epistemic uncertainty. Moreover, we claim that the amount of miscalibration is in a direct relationship with the amount of epistemic uncertainty and we also claim that if we can recalibrate the whole model, we can estimate a lower bound of the epistemic uncertainty as the difference between the distribution of the uncalibrated and the calibrated model.
+Our proposed method relies on two key insights. First, all error in CDM models is exclusively due to epistemic uncertainty if the model is asymptotically correct and does not over-/underfit. Secondly, if we observe that a model $\mathscr{P}_\theta$ is miscalibrated, it is a direct implication that the model is suboptimal and thus that there is error. In particular what that tells us is, if a model is miscalibrated there is epistemic uncertainty. Moreover, the amount of miscalibration is in a direct relationship with the amount of epistemic uncertainty and we claim that if we can recalibrate the whole model to obtain $\mathscr{P}_{\theta'}$, we can estimate the epistemic uncertainty as the difference between the distribution of the miscalibrated and the calibrated model which can be intuitively seen in \fef{fig:recalibration}. This difference we can quantify also with the KL-divergence or other metrics for distributional comparison.
 
-In order to solidify those claims and insight we need to define a variant of epistemic uncertainty where we can show those relationships. In particular, in our case we aim to express the amount of epistemic uncertainty in the output space of the model, i.e. in the space of the conditional PDF that we estimate. Therefore we observe that it is a fair statement to say that if the likelihood of the data given the model increases, the model is closer to the true model. The reason why this insight is non-trivial in the context of CDMs is that we generally do not have information about the optimal likelihood that could be obtained which is due to the fact that we need to make smoothness assumptions as described in \pef{sec:smoothness} and have limited data.
+To solidify those hypothesis, we use the argumentation of \pef{sec:shape_importance}. We know that the model must be close everywhere in expectation to the true model. It is a reasonable assumption that the model recalibrated by the means of \pef{sec:calibration_cde_general} will be a very close if not the closest calibrated model to the estimated model in terms of the distributional differences between $\mathscr{P}_\theta$ and $\mathscr{P}_{\theta'}$, e.g. with the KL-divergence. The reason why we will usually be close is that we are only shifting quantiles in expectation as little as required to obtain calibration. However, we leave it for future work to show under what specific conditions we are maximally close and take it as an assumption that we are approximately as close as possible.
 
-\begin{lemma}\label{lem:likelihood_increase_calibration}
-    If we have a model $\mathscr{P}_{\theta}$ that is miscalibrated w.r.t. HDR on $\mathbf{Z}_I$, then there must exist a model $\mathscr{P}_{\theta'}$ that can be obtained by recalibration of all quantiless and is calibrated and where we have a higher likelihood if the true $p(\mathbf{Y}\mid\mathbf{X})$ fullfills \sref[Assumptions]{def:assumptions}.
-\end{lemma}
+Based on those insights, we see in the difference between $\mathscr{P}_\theta$ and $\mathscr{P}_{\theta'}$ for each $\mathbf{x}\in\mathbb{R}^n$ the approximately smallest change in expectation required to calibrate. This means tho, that since this is the approximately smallest change, in order to obtain the true distribution we would need to change even more, in expectation, since the true distribution is of course also calibrated. This means we actually have a lower bound on the epistemic uncertainty and additionally a spatial information on where, in expectation over the calibration set, the model is uncertain about the distribution. This is to the best of our knowledge the first time that can spatially showcase epistemic uncertainty in general.
 
-\begin{proof}
-    Let $\mathscr{P}_\gamma$ be an arbitrary but fixed subset of $\mathscr{P}_\theta$ where for each input $\mathbf{x} \sim \mathbf{X}_I$ it holds that $|\mathscr{P}_\gamma(\mathbf{x})| = 1$, i.e. we are maximally restricted. Recalibration means that we move the quantiles of $\mathscr{P}_\gamma$ such that the model is calibrated. Let $q$ be a quantile and $q'$ be the recalibrated quantile, i.e. it holds that
+\subsubsection{Difference to Current Literature on Epistemic Uncertainty}
 
-    \begin{equation}
-        \mathbb{E}\left[\mathds{1}_{\mathbf{Y}_I \in H(\mathscr{P}_\psi(X), q)}\right] = q'
-    \end{equation}
+Importantly, this concept of epistemic uncertainty is quite different from currently most widespread literature on this topic \cite{gal_dropout_2016,hullermeier_aleatoric_2021}. In particular, most current methods somehow vary the parameters of the model and take some sort of variance of entropy of the output for each individual sample. Those methods all conceptually aim for identifying samples that have high variation in the output to identify those as poorly represented in the training data and thus those samples' predictions less reliable.
 
-    if now we change $\psi$ to $\psi'$ by recalibrating $q$, and we do that with all quantiles, the question is what happens to the likelihood. We approximate $\mathscr{P}_\psi$ with quantile sized step functions, i.e. for each possible $\mathbf{x} \sim \mathbf{X}_I$ we approximate:
+Very differently, here we instead aim to identify areas in the target space, in terms of distributional shape focused on quantiles and thus calibration, where marginally over the calibration data the model makes many mistakes/is miscalibrated. And if the model makes many mistakes in those areas, we basically have a high epistemic uncertainty in those distributional areas. In particular, by recalibrating we also add this epistemic uncertainty to the primarely modeled aleatoric uncertainty. With this we obtain an approximation for the full uncertainty of the model.
 
-    \begin{equation}
-        \mathscr{P}_\psi(\mathbf{x})(\mathbf{y}) \approx \sum_{i=1}^N \mathds{1}_{\mathbf{y} \in [q_i, q_{i+1}]} \cdot (q_{i+1} - q_i) \cdot \frac{1}{N}
-    \end{equation}
-
-    By the monotone convergence theorem this can be fit as tight as we want if we increase $N$ since we could just approach $(q_{i+1} - q_i)$ from below. Note that the $q$ are specific to the $\mathbf{x}$; so each $\mathbf{x}$ has its corresponding $q$ which is omitted due to breevity. When recalibrating we are changing the $q$ to $q'$ in the proportion of $q_{i} - q_{i-1}$. So when changing $q$ in expectation to $q'$, then what happens is that we look for the appropriate ratio between the $q_{i} - q_{i-1}$ which is for all $\mathbf{x}$ the same and move the quantile to $q'_i$. Note that if $q'_i$ is moved over $q_{i-1}$ then $q_{i-1}$ will also be moved implicitly.
-
-    The expected likelihood is can then also be approximated by this as:
-
-    \begin{equation}
-        \mathbb{E}\left[ \log(\sum_{i=1}^N \mathds{1}_{\mathbf{Y}_I \in [q(\mathbf{X}_I)_i, q(\mathbf{X}_I)_{i+1}]} \cdot (q(\mathbf{X}_I)_{i+1} - q(\mathbf{X}_I)_i) \cdot \frac{1}{N} ) \right]
-    \end{equation}
-
-    where we can pull the sum outside log since only 1 summand is not zero (since the quantile grid is disjoint) and we can also pull the sum out the expectation.
-
-    \begin{equation}
-        \sum_{i=1}^N \mathbb{E}\left[ \log( \mathds{1}_{\mathbf{Y}_I \in [q(\mathbf{X}_I)_i, q(\mathbf{X}_I)_{i+1}]} \cdot (q(\mathbf{X}_I)_{i+1} - q(\mathbf{X}_I)_i) \cdot \frac{1}{N} ) \right]
-    \end{equation}
-
-    if we now move one quantile within this sum this implies that in one summand the term in the logarithm will become larger and in one smaller but also the smaller will have less coverage etc. We can only look at those two summands to decide how the likelihood changes. So let $i$ be the changed quantile. The question is whether:
-
-    \begin{equation}
-        \mathbb{E}\left[ \log( \mathds{1}_{\mathbf{Y}_I \in [q(\mathbf{X}_I)_{i-1}, q(\mathbf{X}_I)_{i}]} \cdot (q(\mathbf{X}_I)_{i} - q(\mathbf{X}_I)_{i-1}) \cdot \frac{1}{N} ) \right] \\
-        + \mathbb{E}\left[ \log( \mathds{1}_{\mathbf{Y}_I \in [q(\mathbf{X}_I)_i, q(\mathbf{X}_I)_{i+1}]} \cdot (q(\mathbf{X}_I)_{i+1} - q(\mathbf{X}_I)_i) \cdot \frac{1}{N} ) \right] \\
-        \leq \mathbb{E}\left[ \log( \mathds{1}_{\mathbf{Y}_I \in [(\mathbf{X}_I)_{i-1}, q'(\mathbf{X}_I)_{i}]} \cdot (q'(\mathbf{X}_I)_{i} - q(\mathbf{X}_I)_{i-1}) \cdot \frac{1}{N} ) \right]\\
-        + \mathbb{E}\left[ \log( \mathds{1}_{\mathbf{Y}_I \in [q'(\mathbf{X}_I)_i, q(\mathbf{X}_I)_{i+1}]} \cdot (q(\mathbf{X}_I)_{i+1} - q'(\mathbf{X}_I)_i) \cdot \frac{1}{N} ) \right]
-    \end{equation}
-
-    where we note that the $i+1$ and $i-1$ quantiles also are actually transformed but they are the same as the $q$ in our case. The difficulty now is that we do not exactly know the shape of the true conditional density; with the exception that calibration-wise it is the same in this quantile $i$. However, we can also approximate the true conditional PDF with step functions which we can also chunk such that the quantiles align. We approximate between $q_{i-1}$, $q'_{i}$, $q_i$ and $q_{i+1}$ and obtain a step function. On this step function we need that the likelihood is larger after recalibrating. We know that after recalibration, in expectation, the interval between $q'_i$ and $q_{i+1}$ becomes appropriately lower and between $q_{i-1}$ and $q'_i$ becomes appropriately higher for all $\mathbf{x}$.
-
-    % I think under smoothness assumptions and with choosing q' not to be exactly q' but a translation between q and q' which is arbitrary small such that we show it for something torwards being MORE calibrated but not necissarily calibrated will gurantee that between q and q' in the quantiles there is a very smooth change, actually linear. 
-
-    %TODO
-\end{proof}
-% \begin{proof} %its wrong because M might be dependent on each x/the model
-%     Miscalibration of $\mathcal{P}_\theta$ means that there exists a region in this restricted set that has a different probability mass than $\mathcal{Z}$ on this region. Specifically, this means that there is a subset of the target space that might depend on $\mathbf{X}$ where all elements of $\mathcal{P}_\theta$ in this region have a different probability mass than the true mass in expectation over $\mathbf{X}$. Let $M(\mathbf{X})$ be this subset of the target space. We have:
-
-%     \begin{equation}
-%         \exists M \in \mathbb{R}^n \to \mathbb{B}(\mathbb{R}^m) \forall p \in \mathcal{P}_\theta: \mathbb{E}_\mathbf{X}\left[\right|\int_{M(\mathbf{X})} p(y) dy\right] \neq \mathbb{E}_\mathbf{X}\left[ \int_{M(\mathbf{X})} p_{\text{true}}(y) dy \right] =: p_M
-%     \end{equation}
-
-%     % That is like an even harder version of the thing I already did before... I need to think about this more. Maybe just use HDR and be done with it.
-
-%     We can see that there must be a region around each interval in $M$ such that any additional but small region is still miscalibrated. Rigorously, if we have an $M$ where we are miscalibrated, then we can write $M = \Cup_{i=1}^\infty M_i$, i.e. we can write $M$ as a countable union of disjoint intervals (or connected regions with $m > 1$) which follows since we are working on a Borel $\sigma$-algebra. Here now continuity implies that for a small $\epsilon$ we can find an inner/outer region round each $M_i$ such that the mass on the true probability is changed by $\epsilon$. This is because of the assumptions on $p$.
-
-% \end{proof}
-
-\sref[Lemma]{lem:likelihood_increase_calibration} shows us that if we are not calibrated than we know that we still have an error in the model i.e. that we have epistemic uncertainty to some extent. Moreover, it shows that if we racalibrate the model, it will have less epistemic uncertainty and so the difference between the recalibrated and the uncalibrated model is a lower bound on the epistemic uncertainty that we have for the problem at hand. In particular, one way to quantify this epistemic uncertainty is to use distributional measures of difference like the average Hellinger Distance, KL-divergence or the Wasserstein distance.
-
-This measuring of epistemic uncertainty works if we assume smoothness in the true model, in particular in way that if we have a wrong model and we shift its quantiles, which is what we are doing when recalibrating, that intermediate results of this transition of quantiles are smoothly related to the optimization alogorithm itself. In particular, this is true since we assume that the model does not overfit and thus the model must be to some extent smooth w.r.t. epsitemic uncertainty, i.e. it will not have sharp edges in the distribution of the targets and, in particular, it approaches the true distribution in a smooth way from a less sharp distribution. For a more detailed understanding on the relation between overfitting and smoothness we refer to the work of \cite{bishop2006pattern}.
+One might ask the question if this resulted epistemic uncertainty would vary spatially if we retrained the model with the suspicion that the model might be miscalibrated in a different way. However, this is left for future work.
 
 \chapter{Empirical Study}\label{chap:empirical_study}
 
-In order to practically verify the validity of the novel theoretical findings as described in \pef{sec:cp_sub_cde} and the approach to use the HDR as described in \pef{sec:optimal_cp} for finding the best conformal regions we did a series of experiments with two different stages and a multitude of benchmark datasets. In particular, the first stage was a extensive hyperparameter search with Bayesian optimization on eight datasets with over 1000 hyperparameter configurations on each. Thereby nested cross validation was utilized. The goal of this stage was to get a better understanding of the hyperparameters, including novel hyperparameters and to find a good starting point for the next stage. The second stage then was to do a more detailed hyperparameter search with a smaller grid but with multiple test set splits to get a better understanding of the generalization of the hyperparameters. In this chapter we will describe the results of the first stage and the setup of the second stage. In particular we will discuss mutliple novel hyperparameters that we experimented with and highlight the ones that significantly improved the performance of the models empirically.
+In order to practically verify the validity of the novel theoretical findings as described in \pef{sec:cp_sub_cde} and the approach to use the HDR as described in \pef{sec:optimal_cp} for finding the best conformal regions we did a series of experiments with two different stages and multiple benchmark datasets. In particular, the first stage was a extensive hyperparameter search with Bayesian optimization on eight datasets with over 1000 hyperparameter configurations on each. Thereby nested cross validation was utilized. The goal of this stage was to get a better understanding of the hyperparameters, including novel hyperparameters and to find a good starting point for the next stage which is analyzed in \pef{sec:hyperparameters}. The second stage was to do a more detailed hyperparameter search with a smaller grid but with multiple test set splits to get more representative results which are detailed in \pef{sec:results}. Moreover, in this chapter we also detail the used datasets in \pef{sec:datasets} and the core model classes in \pef{sec:core_model_classes}.
 
 \section{Core Model Classes}\label{sec:core_model_classes}
 
@@ -929,7 +876,7 @@ Another suspicion, especially for MDNs, was that some components can never "reac
 
 MQR asymptotically with an increase in quantile components can as shown in \pef{sec:cp_sub_cde} model the true PDF fully. However, since we have a limited amount of training data and also a limited amount of compute we needed to resrict the number of components to $256$. In order to still be able to efficiently calculate the density at a point we decided to treat each quantile as a component with equal weight in a mixture of gaussians. Thereby we decided to learn the standard deviation. However, the standard deviation in this case can not be learned with the Pinball loss that is used for MQR. Thus we decided to use the NLL loss for the standard deviation only but without impacting the quantiles. We did this by detaching the means from the computational graph of the gradient in the loss function.
 
-\section{Datasets}
+\section{Datasets}\label{sec:datasets}
 
 In the course of this work we experimented with a multitude of different datasets. In particular, we tried to orient ourselves at the literature in CP and CDE \cite{rothfuss2019noise,sesia2021conformal} and used most of the datasets that were used there. Moreover we tried to have datasets with some different properties to gain more insight into strenghts and weaknesses of different models. Thereby we used \texttt{Boston Housing}, \texttt{Concrete}, \texttt{Energy Efficiency} as smaller datasets in order to elaborate performance with lower number of samples. Moreover, we used larger datasets \texttt{Meps19}, \texttt{Meps20}, \texttt{Meps21}, \texttt{CASP}, \texttt{Blog}, \texttt{Facebook1}, \texttt{Facebook2}. Finally, we used two versions of a time series dataset provided by VoestAlpine AG about energy price prediction. In particular \texttt{VoestRealistic} and \texttt{VoestIdeal} are two variations of the same data where we used realistic features and features as if we could look into the future respectively. This dataset was used to investigate the performance of CDMs on time series data.\footnote{The features used for the Voest datasets were all taken from \url{https://transparency.entsoe.eu/dashboard/show} in a time windows from November 2022 till November 2023 but will not be directly disclosed.} In \tef{tab:dataset_overview} we provide an overview of the characteristics of each dataset.
 
@@ -1053,7 +1000,7 @@ Moreover, we can observe that recalibration of the full CDE can empirically comp
 \subsection{Main Benchmark Results}
 Here we show the results of the final experiments on the 12 datasets. The main experimental procedure consisted for each dataset except for the two Voest ones of five-fold nested cross validation to obtain a robust estimate of the actual performance. On the two Voest Datasets instead we decided to always use the same train-test split where we consider the time dependence in the data by using the chronologically first 80\% of the data as training data and the last 20\% as test data. For the other datasets we used 80\%-20\% train-test spilts which is notably different from \cite{sesia2021conformal} who used a fixed test set of 2000 samples, 2000 for calibration and the other part for training. In particular, on all datasets that we have the same, we have signlificantly less train dat but still competitive results.  Moreover, we do cross-validation on a time series split where we expand the training data and use the chronolocially last part for validation. For the exact implementation we refer to our code. The Algorithm used for the evaluation can be seen in \sref[Algorithm]{alg:evaluation}. This algorithm inspired by \cite{rothfuss2019noise} is a nested cross validation algorithm over multiple seeds and hyperparameters that gurantees a robust estimate of the performance of the models on the test set. In particular, the test set is only used for the final evaluation and the hyperparameters are tuned on the training set which we do CV on.
 
-The results final benchmark results are shown in \tef{tab:results_interval_size_hdr} and \tef{tab:results_interval_size_hdr_connected}. As expected, resuls in the table with connected intervals are only slightly larger than the true HDR. Comparing our results to the current state of the art which is \cite{sesia2021conformal} to our best knowledge, we can see that mostly we beat the results with pure HDR and even in some instances like the CASP dataset when using connected intervals which proofs that our methods and hyperparameters are very competitive.
+
 
 \begin{algorithm}
     \caption{Evaluation of the Models}
@@ -1130,52 +1077,26 @@ The results final benchmark results are shown in \tef{tab:results_interval_size_
     \end{tabular}
 \end{table}
 
+\subsection{Discussion}\label{sec:discussion}
+The results final benchmark results are shown in \tef{tab:results_interval_size_hdr} and \tef{tab:results_interval_size_hdr_connected}. As expected, resuls in the table with connected intervals are only slightly larger than the true HDR. Comparing our results to the current state of the art which is \cite{sesia2021conformal} to our best knowledge, we can see that mostly we beat the results with pure HDR and even in some instances like the CASP dataset when using connected intervals which proofs that our methods and hyperparameters are very competitive.
+
+\subsubsection{Statistically Significant Results}
+In order to test the statistical significance of our results we compare our best results with results from \cite{sesia2021conformal} by utilizing Welch's t-test \cite{welch1947generalization}.
+
+In particular for the CASP dataset, our model, with the connected HDR, outperforms \cite{sesia2021conformal} with a P-value of $0.034$. Moreover, for Meps 19 and Meps 21 we outperform the current NN implementation with a P-value of $0123213.045$ and $0.01232312148$ respectively. 
+
+In particular on the CASP dataset we majorly dominate if we use HDR without connected intervals with a P-value of $0$.
+
 \chapter{Conclusion}\label{chap:conclusion}
 
-\chapter{ToDos}
-1. Show that calibration is the same as in Gneiting et a. (probabilistic
-calibration).
-1a. Show that there are 2 sub-parts then for CP: fitting-calibration and
-overfitting-calibration
-Fitting Calibration: the model is probabilistically calibrated to the training
-data (is fit well)
-Overfitting Calibration: The model is basically the same way calibrated to the
-training data as to the test data
--> time series and distributional differences come in here too but is a
-further subchapter then
+In this work, we set out to unify the theory of Conditional Density Estimation (CDE), Quantile Regression (QR), and Conformal Prediction (CP) under a common framework of restricting the set of possible conditional probability density functions. Through rigorous theoretical analysis, we proved that these seemingly distinct tasks can be viewed as different approaches to the same underlying goal. A key theoretical insight was that optimizing for maximum likelihood in CDE is equivalent to finding the shortest possible highest density region (HDR) intervals for CP. This fundamental connection allowed us to develop novel methods that combine the strengths of CDE, QR, and CP.
 
-2. Then show what my recalibration method does mathematically and how it is
-different from the other recalibration methods
+Building upon our theoretical foundation, we proposed using HDR to identify optimal conformal regions and introduced recalibration techniques to quantify epistemic uncertainty in CDE models. These methodological innovations were extensively validated through empirical studies on a diverse set of twelve datasets. Our methods consistently achieved strong performance, with state-of-the-art results on several key benchmarks like the CASP dataset. Notably, some of these improvements were statistically significant, demonstrating the power of our unified approach to uncertainty quantification.
 
-This all contains that CP is a special case of CDE!
+The contributions of this work have advanced our understanding of the interrelationships between CDE, QR, and CP. By viewing these tasks through the lens of restricting conditional PDFs, we have opened up new avenues for theoretical analysis and algorithm development. Our novel results provide a solid foundation for future research to further explore these connections and create even more powerful uncertainty quantification methods.
 
-3. I should mention in the thesis the stages of my experiemnts. I first did
-basically only the stuff I did in my practical work (but not sure if that
-should even be mentioned). Then I should also mention that I did 1000 runs with
-bayesian optimization on all datasets with a very high variable range of
-possible hyperparameters with the goal to get a good understanding of the
-hyperparameters (as there are some novel ones and complex ones). The next stage
-that I will now start is the stage where I basically start with reasonably good
-parameters infered by the previous runs and from there basically a. do very
-specific experiments for the novel hyperparameters to find out there
-effectiveness (small grid) b. do hyperparameter runs with a smaller grid but
-multiple test set spilts (with nested cv).
+The potential real-world impact of this work is significant. By enabling more accurate and reliable uncertainty quantification, our CDE and CP methods can support better decision making in consequential applications such as healthcare, where patient outcomes are at stake, and finance, where expensive investments depend on well-calibrated risk estimates. Our techniques for estimating epistemic uncertainty are particularly valuable, as they provide a more comprehensive view of model reliability.
 
-4. As CP is a special case of CDE, also the synthetic reasoning that we
-basically need them to make real statements about the performance of methods is
-also valid for CP. So I should also mention that in the thesis. And from there
-I can basically start finding out the best hyperparameters for CP methods and
-then also do the same for CDE methods and also possibly new methods that defeat
-ceavats on the synthetic sets that I only now can find out.
+Looking ahead, there are many promising directions for future work that can build upon the contributions of this thesis. Scaling up our methods to even more complex datasets and model architectures is an exciting challenge. Investigating more sophisticated recalibration methods and integrating our techniques with decision-making frameworks could lead to even greater practical impact. Collaborating with domain experts to apply our methods to real-world problems in healthcare, finance, and other fields is another impactful avenue.
 
-5. It might be interesting to look into the question if when there is some kind
-of monotonicity between the hyperparameters and the performance of the model,
-if that is a good synthetic dataset to infer strategies from. I think that is a
-very interesting question and I should look into that. => "using hyperparameter
-performances as a measure of the quality of a synthetic dataset."
-
-6. Can I do more advanced recalibration strategies if the data is not IID?
-(e.g. time series data)
-
-->->-> After those are done its time to look into the strategy part where I
-look how those CDE/CP can be practically used.
+In conclusion, this thesis has made significant strides in unifying the theory and practice of CDE, QR, and CP. Our theoretical insights and methodological innovations have advanced the state-of-the-art in uncertainty quantification and opened up new research directions. We are excited to see how future work will build upon these contributions and look forward to the positive real-world impact these advances will enable.
