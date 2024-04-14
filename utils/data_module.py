@@ -983,7 +983,7 @@ class ConformalPredictionDataModule(DataModule):
             self.x_train,
             self.y_train,
             test_size=test_split
-            * (1 / (1 - val_split)),  # because test_split is relative to total size
+            * (1 / (1 - val_split)) if isinstance(val_split, float) else val_split,  # because test_split is relative to total size
             random_state=random_state,
         )
 
