@@ -106,6 +106,31 @@
       \field{pages}{243\bibrangedash 297}
       \range{pages}{55}
     \endentry
+    \entry{agarap2018deep}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=2c4405bb4d2538bf5d9caa79e5c103f0}{%
+           family={Agarap},
+           familyi={A\bibinitperiod},
+           given={Abien\bibnamedelima Fred},
+           giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{2c4405bb4d2538bf5d9caa79e5c103f0}
+      \strng{fullhash}{2c4405bb4d2538bf5d9caa79e5c103f0}
+      \strng{bibnamehash}{2c4405bb4d2538bf5d9caa79e5c103f0}
+      \strng{authorbibnamehash}{2c4405bb4d2538bf5d9caa79e5c103f0}
+      \strng{authornamehash}{2c4405bb4d2538bf5d9caa79e5c103f0}
+      \strng{authorfullhash}{2c4405bb4d2538bf5d9caa79e5c103f0}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:1803.08375}
+      \field{title}{Deep learning using rectified linear units (relu)}
+      \field{year}{2018}
+    \endentry
     \entry{alessandretti2018anticipating}{article}{}
       \name{author}{4}{}{%
         {{un=0,uniquepart=base,hash=964f5858bfd4e6a8e105da1125743398}{%
@@ -517,6 +542,43 @@
       \field{year}{2021}
       \field{pages}{10971\bibrangedash 10984}
       \range{pages}{14}
+    \endentry
+    \entry{clevert2015fast}{article}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=4356103aee47c13e10848e6a527f76b4}{%
+           family={Clevert},
+           familyi={C\bibinitperiod},
+           given={Djork-Arné},
+           giveni={D\bibinithyphendelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1a47640139e63b9b5969c969dfe95def}{%
+           family={Unterthiner},
+           familyi={U\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=41b31e29fb2bdbf9f5c9c1b0d5b3e815}{%
+           family={Hochreiter},
+           familyi={H\bibinitperiod},
+           given={Sepp},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{344c72746ee5436e177a0426176caf8e}
+      \strng{fullhash}{73dfc8e22f6348b9ab52185224c77223}
+      \strng{bibnamehash}{73dfc8e22f6348b9ab52185224c77223}
+      \strng{authorbibnamehash}{73dfc8e22f6348b9ab52185224c77223}
+      \strng{authornamehash}{344c72746ee5436e177a0426176caf8e}
+      \strng{authorfullhash}{73dfc8e22f6348b9ab52185224c77223}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:1511.07289}
+      \field{title}{Fast and accurate deep network learning by exponential linear units (elus)}
+      \field{year}{2015}
     \endentry
     \entry{csillag2023amnioml}{inproceedings}{}
       \name{author}{8}{}{%

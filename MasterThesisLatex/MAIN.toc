@@ -40,7 +40,7 @@
 \contentsline {subsection}{\numberline {2.5.5}Limitations of the Bridge between CDMs}{25}{subsection.2.5.5}%
 \contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDMs}{26}{subsection.2.5.6}%
 \contentsline {section}{\numberline {2.6}Optimal Conformal Prediction}{26}{section.2.6}%
-\contentsline {subsection}{\numberline {2.6.1}New perspective on MLL and Optimal CP*}{27}{subsection.2.6.1}%
+\contentsline {subsection}{\numberline {2.6.1}New perspective on MLE and Optimal CP*}{27}{subsection.2.6.1}%
 \contentsline {subsection}{\numberline {2.6.2}Focusing on Density instead of the Coverage Level*}{39}{subsection.2.6.2}%
 \contentsline {section}{\numberline {2.7}Calibration and Recalibration}{40}{section.2.7}%
 \contentsline {subsection}{\numberline {2.7.1}Recalibration in CP}{41}{subsection.2.7.1}%

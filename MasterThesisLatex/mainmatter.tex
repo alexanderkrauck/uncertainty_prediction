@@ -3,7 +3,7 @@
 
 \chapter{Introduction}\label{chap:introduction}
 
-Machine Learning (ML) models that can not only estimate single targets accurately, but that are capable of estimating distributional information as well as uncertainty are becoming exceedendly important~\cite{hullermeier_aleatoric_2021, gawlikowski2023survey}. The reason therefore is, that most modern ML techniques are mostly black box models that have little intuitive reason behind their predictions but often act on abstract latent representations, especially in the case of Artificial Neural Networks (NN). With a strong focus on regression tasks, in this work we aim to develop a novel understanding of uncertainty estimating methods, where in particular we show that we can combine ideas from multiple different task-types. We show that Conditional Density Estimation (CDE), Conformal Prediction (CP) and Quantile Regression (QR) are fundamentally the same task since they all require to model parts of the conditional probability density function (PDF). Moreover, we develop a novel way to perceive the maximum log likelihood (MLL) objective function, where we show that it is equivalent to the objective function of CP, as we define it. This allows us to split the MLL objective into a constrainted optimization problem, where we intuitively minimize the size of the peaks (we make them as narrow as possible) with the constraint that we maintain calibration. Finally, we aim to introduce a novel way of perceiving epistemic uncertainty in CDE.\@ All details to the theoretical concepts and novel insights are detailed in \pef{chap:theoretical}.
+Machine Learning (ML) models that can not only estimate single targets accurately, but that are capable of estimating distributional information as well as uncertainty are becoming exceedendly important~\cite{hullermeier_aleatoric_2021, gawlikowski2023survey}. The reason therefore is, that most modern ML techniques are mostly black box models that have little intuitive reason behind their predictions but often act on abstract latent representations, especially in the case of Artificial Neural Networks (NN). With a strong focus on regression tasks, in this work we aim to develop a novel understanding of uncertainty estimating methods, where in particular we show that we can combine ideas from multiple different task-types. We show that Conditional Density Estimation (CDE), Conformal Prediction (CP) and Quantile Regression (QR) are fundamentally the same task since they all require to model parts of the conditional probability density function (PDF). Moreover, we develop a novel way to perceive the maximum likelihood estimator (MLE) objective function, where we show that it is equivalent to the objective function of CP, as we define it. This allows us to split the MLE objective into a constrainted optimization problem, where we intuitively minimize the size of the peaks (we make them as narrow as possible) with the constraint that we maintain calibration. Finally, we aim to introduce a novel way of perceiving epistemic uncertainty in CDE.\@ All details to the theoretical concepts and novel insights are detailed in \pef{chap:theoretical}.
 
 Before we go into the details of the theoretical background, we want to give a brief overview of the motivation, the exact research questions that we aim to answer in this work and a summary of the contributions. In particular, the practical implications and applications of this work are first discussed below in \pef{sec:background}. Even though this work is not centered around a particular practical application but is more at home in the theoretical part of machine learning the author of this work belives that a motivation in the practical domain is very important to make the work more accessible and to show the relevance of the work. In particular, we aim to show that the methods proposed in this work can be applied to a broad range of practical tasks and that they can have a significant positive impact on the performance of machine learning models in those tasks.
 
@@ -15,7 +15,7 @@ Mostly in risk-sensitive practical domains like finance and life science uncerta
 
 \subsubsection{Energy Price Prediction}
 
-A practical task that we particularly focus on in this work is an energy price prediction task, in cooperation with Voestalpine AG which provided us with the dataset for the scope of this Master's Thesis, where we attempt to estimate the distribution of the imbalance energy price\footnote{For precise details on this quantity we refer to \url{https://markttransparenz.apg.at/en/markt/Markttransparenz/Netzregelung/Ausgleichsenergiepreise}} of Austria given multiple descriptive input variables/features. In particular, the imbalance energy price we aim to predict is unknown at the time of consumption/production and is only much later revealed.
+A practical task that we particularly focus on in this work is an energy price prediction task, in cooperation with Voestalpine AG which provided us with the dataset for the scope of this Master's Thesis, where we attempt to estimate the distribution of the imbalance energy price\footnote{For precise details on this quantity we refer to \url{https://markttransparenz.apg.at/en/markt/Markttransparenz/Netzregelung/Ausgleichsenergiepreise}} of Austria given multiple descriptive input variables/features. In particular, the imbalance energy price we aim to estimate is unknown at the time of consumption/production and is only much later revealed.
 
 If an entity on the energy market wants to buy or sell electricity at a certain time, this entity does indicate how much electricity it wants to buy or sell for the dayahead price which is known. Hoever, if this entity produces/consumes more energy than agreed on, the energy imbalance price holds for this over-/underestimation, but this price is only known after the fact and heavily depends on what other entities on the market did. In particular, the imbalance energy price is a very volatile price, making it a relevant use case for uncertainty estimation since it can impact the decision if electricity should be bought or produced at a given time.
 
@@ -67,7 +67,7 @@ Based on this main question other questions arise:
 
 \begin{itemize}
     \item Can we develop a general framework on which basis techniques from one of those methods can be transferred to another method?
-    \item What optimization strategy should we choose or which ones can we even choose. CDE mostly relies on the MLL objective function, while CP often relies on the pinball loss. Based on the insights we gain in this work, we want to gain more insight into this question.
+    \item What optimization strategy should we choose or which ones can we even choose. CDE mostly relies on the MLE objective function, while CP often relies on the pinball loss. Based on the insights we gain in this work, we want to gain more insight into this question.
     \item Based on the relation between those methods, can we gain more insight into the often made claim that CP and QR are fundamentally distribution free methods? If they are related with CDE, which is often considered a distribution based method, then how can they be distribution free?
 \end{itemize}
 
@@ -79,7 +79,7 @@ The main contributions of this work are as follows:
 
 \begin{itemize}
     \item We show that CDE, CP and QR all have the same goal, that is they all restric the set of possible conditional PDFs, and that all concepts of one task-domain can fully be transferred to the other one.
-    \item We propose a novel way to perceive the MLL objective function, where we show that it is equivalent to the objective function of CP, as we define it. This allows us to split the MLL objective into a constrainted optimization problem, where we intuitively minimize the size of the peaks (we make them as narrow as possible) with the constraint that we maintain calibration.
+    \item We propose a novel way to perceive the MLE objective function, where we show that it is equivalent to the objective function of CP, as we define it. This allows us to split the MLE objective into a constrainted optimization problem, where we intuitively minimize the size of the peaks (we make them as narrow as possible) with the constraint that we maintain calibration.
     \item We show that it might improve CP intervals if we can use properties of inductive biases provided by e.g.\ a mixture of Gaussians estimtated by using MDNs.
     \item We offer a novel way to estimate epistemic uncertainty in CDE and CP methods, where we show that calibration as often done in CP, actually infuses epistemic uncertainty into the modeled PDF that describes only aleatoric uncertainty.
     \item Finally we empirically verify our insights on multiple benchmarks and show that our method is competitive with SOTA methods and that it can be applied to a wide variety of tasks. Thereby, we also provide a general overview of hyperparameters that are generally a good choice for CDE,CP and QR tasks. In particular we also propose few new hyperparameters and analyze their impact.
@@ -127,7 +127,7 @@ Finally in order to analytically show certain results we require some standard a
 
 Those assumptions are weak in practice since we can approximate any PDF that does not fullfill those assumptions with a PDF that does fullfill those assumptions arbitrary well. We refer to~\cite{klenke2013probability} for a formal argument why this is true. Moreover, note that \sref[Assumption]{def:assumptions} imply that the quantile function $Q(\cdot)$ is well defined for all $q\in[0,1]$ since the corresponding CDF is necessarily strictly increasing which is left without proof but the intuition follows from \sref[Lemma]{lem:continuity}.
 
-In the following we will first detail the three main uncertainty centric tasks already introduced in \pef{sec:motivation}, namely CDE in \pef{sec:cde}, CP in \pef{sec:cp} and QE in \pef{sec:qr}. We will then show how those tasks are fundamentally the same in \pef{sec:cp_sub_cde}, that optimizing the MLL objective function is equivalent to optimizing the CP objective function as we define it in \pef{sec:optimal_cp} and finally a rigorous examination of recalibration where we show that it infuses epistemic uncertainty into the modeled conditional PDF that describes only aleatoric uncertainty in \pef{sec:calibration} and \pef{sec:uncertainty_calibration}. It given as a recommendation to the reader to read the sections in order as certain essential concepts that are introduced in the first sections are used in the later sections.
+In the following we will first detail the three main uncertainty centric tasks already introduced in \pef{sec:motivation}, namely CDE in \pef{sec:cde}, CP in \pef{sec:cp} and QE in \pef{sec:qr}. We will then show how those tasks are fundamentally the same in \pef{sec:cp_sub_cde}, that optimizing the MLE objective function is equivalent to optimizing the CP objective function as we define it in \pef{sec:optimal_cp} and finally a rigorous examination of recalibration where we show that it infuses epistemic uncertainty into the modeled conditional PDF that describes only aleatoric uncertainty in \pef{sec:calibration} and \pef{sec:uncertainty_calibration}. It given as a recommendation to the reader to read the sections in order as certain essential concepts that are introduced in the first sections are used in the later sections.
 
 \section{Conditional Density Estimation}\label{sec:cde}
 
@@ -319,7 +319,7 @@ Let $\alpha \in (0,1)$ be a significance level. Then the goal of conformal predi
 
 In particular, in the context of this \pef{sec:optimal_cp} we always assume that we have infinite data as we aim to show an asymptotic result. In the following \pef{sec:optimal_cp_proofs} we will introduce a new way to infer conformal regions and show a new perspective on the optimization objective of CDMs in the form of \sref[Theorem]{thm:optimal_cp}.
 
-\subsection{New perspective on MLL and Optimal CP*}\label{sec:optimal_cp_proofs}
+\subsection{New perspective on MLE and Optimal CP*}\label{sec:optimal_cp_proofs}
 
 The method to infer the intervals that will be used by us is by utilizing the Highest Density Regions (HDR). Using this we can, given a PDF, infer the set of intervals with the shortest summed Lebesgue measure. In particular, we are shifting our focus from looking at the shortest regions to looking at the regions that contain the most probability mass, even tho that is very similar and mostly the same with HDR there are some delicate differences. This is partiularly beneficial since regions with high densities should usually not be ignored in practice as they often indicate important events as we will discuss in depth in \pef{sec:density_focus}
 
@@ -370,7 +370,7 @@ Let $\theta^*$ be the argmin of the equation in \eef{eq:optimal_cp_obj_func}, we
     \mathbf{z}
 \end{equation}
 
-which is the maximum likelihood estimator (MLE), i.e.\ the model with the highest likelihood. This is of great importance if we wish to optimize a CDE method w.r.t.\ the maximum likelihood objective function in order to implicitly optimize for the conformal prediction objective function when using HDRs. In order to show this powerful statement we first need to develop some insight into the workings of the components in conformal prediction.
+which is the MLE, i.e.\ the model with the highest likelihood. This is of great importance if we wish to optimize a CDE method w.r.t.\ the maximum likelihood objective function in order to implicitly optimize for the conformal prediction objective function when using HDRs. In order to show this powerful statement we first need to develop some insight into the workings of the components in conformal prediction.
 
 First, we require to show that $\lambda(H(p, a))$ is continously differentiable a.e.\ in order to make sensible statements. Its not that the intuition does not hold if its not continous, however, it complicates things and makes the statemtent more difficult. First in \sref[Lemma]{lem:continuity} below we show that this is fullfilled if the PDF fullfills our standard assumptions in \sref[Assumption]{def:assumptions}.
 
@@ -553,7 +553,7 @@ Using this definition together with \sref[Lemma]{lem:hdr_optimality_mll} establi
 
 Now, we have all the necessary tools to prove an important statement. Henceforth, the expectation $\mathbb{E}$ is used with respect to the entire sample space $\mathbb{R}^{m+n}$ and with the random variables $\mathbf{Y}$ and $\mathbf{X}$, which have the joint PDF $p(\mathbf{y}, \mathbf{x})$. Furthermore, if $\mathbf{\hat{y}}$ is mentioned, it is not as an input to a function but as a demonstrative artifact indicating that the function maps to a conditional density defined in the same space as $\mathbf{Y}$.
 
-\begin{theorem}[MLL is equivalent with Optimal Conformal Prediction]\label{thm:optimal_cp}
+\begin{theorem}[MLE is equivalent with Optimal Conformal Prediction]\label{thm:optimal_cp}
     We want to show that if we have definitions as in \pef{sec:cp}, the space of all parameters $\Theta$ and $\forall \mathbf{x}\in\mathbb{R}^n: p(\mathbf{y}\mid \mathbf{x})$ fullfills \sref[Assumption]{def:assumptions} and that
 
     \begin{equation}
@@ -863,7 +863,7 @@ The base architecture used was a multi layer perceptron (MLP). We experimented w
 
 \subsubsection{Activation Function}
 
-The different activation functions we tried were ReLu, Leaky ReLu, TanH, Sigmoid, SELU and ELU.\@ The three best performing ones were ReLu, Leaky ReLu and TanH, however, the differences were not very significant and there are some slight variations between datasets. We decided to use ReLu as it was the most stable one. It is noteworthy that when using ReLu we utilized a He initialization and when using TanH we utilized a Xavier initialization as best practice.
+The different activation functions we tried were ReLu~\cite{agarap2018deep}, Leaky ReLu, TanH, Sigmoid, SELU~\cite{klambauer2017self} and ELU~\cite{clevert2015fast}.\@ The three best performing ones were ReLu, Leaky ReLu and TanH, however, the differences were not very significant and there are some slight variations between datasets. We decided to use ReLu as it was the most stable one. It is noteworthy that when using ReLu we utilized a He initialization and when using TanH we utilized a Xavier initialization as best practice.
 
 \subsubsection{Input-/Output Noise}
 
@@ -1143,7 +1143,7 @@ Moreover, in \fef{fig:voest_ideal_test_set} we visualize a part of the dataset a
 
 \chapter{Conclusion}\label{chap:conclusion}
 
-In this work, we set out to unify the theory of CDE, QR, and CP under a common framework of CDM in which we are restricting the set of possible conditional probability density functions $\mathscr{P}_\theta$. Through rigorous theoretical analysis, we showed that these seemingly distinct tasks can be viewed as different approaches to the same underlying goal.
+In this work, we set out to unify the theory of CDE, QR, and CP under a common framework of CDM in which we are restricting the set of possible conditional probability density functions to obtain $\mathscr{P}_\theta$. Through rigorous theoretical analysis, we showed that these seemingly distinct tasks can be viewed as different approaches to the same underlying goal.
 
 Building upon our theoretical foundation, we proposed using HDR to identify optimal conformal regions and introduced recalibration techniques to quantify epistemic uncertainty in CDE models. These methodological innovations were extensively validated through empirical studies on a diverse set of 12 datasets. Our methods consistently achieved strong performance, with SOTA results on several key benchmarks like the CASP dataset with statistical significance.
 
