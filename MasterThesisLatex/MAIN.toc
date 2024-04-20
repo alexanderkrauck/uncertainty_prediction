@@ -15,8 +15,8 @@
 \contentsline {subsection}{\numberline {1.2.3}Recent Works in QR}{5}{subsection.1.2.3}%
 \contentsline {subsection}{\numberline {1.2.4}Recent Works in Uncertainty Techniques}{6}{subsection.1.2.4}%
 \contentsline {subsection}{\numberline {1.2.5}Practial Methods}{6}{subsection.1.2.5}%
-\contentsline {paragraph}{\nonumberline Mixture Density Networks (MDNs)}{6}{paragraph*.11}%
-\contentsline {paragraph}{\nonumberline Kernel Mixture Networks(KMNs)}{7}{paragraph*.13}%
+\contentsline {paragraph}{\nonumberline MDNs}{6}{paragraph*.11}%
+\contentsline {paragraph}{\nonumberline KMNs}{6}{paragraph*.13}%
 \contentsline {paragraph}{\nonumberline Multiple Quantile Regression (MQR)}{7}{paragraph*.15}%
 \contentsline {section}{\numberline {1.3}Research Questions}{7}{section.1.3}%
 \contentsline {section}{\numberline {1.4}Contributions}{8}{section.1.4}%
@@ -28,57 +28,59 @@
 \contentsline {section}{\numberline {2.3}Quantile Regression}{13}{section.2.3}%
 \contentsline {section}{\numberline {2.4}Conformal Prediction}{14}{section.2.4}%
 \contentsline {subsection}{\numberline {2.4.1}Trivial CP}{15}{subsection.2.4.1}%
-\contentsline {section}{\numberline {2.5}CP, CDE and QR are the Same Task*}{15}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Connection between the Model Producing Functions}{16}{subsection.2.5.1}%
-\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and CP*}{17}{subsubsection*.17}%
-\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and QR*}{18}{subsubsection*.19}%
-\contentsline {subsection}{\numberline {2.5.2}CDE can fully be modeled by CP and QR*}{18}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}CDM to improve current CP*}{22}{subsection.2.5.3}%
-\contentsline {subsection}{\numberline {2.5.4}CP methods are practically not distribution free methods*}{22}{subsection.2.5.4}%
-\contentsline {subsection}{\numberline {2.5.5}Limitations of the Bridge between CDMs}{23}{subsection.2.5.5}%
-\contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDE, CP and QR}{24}{subsection.2.5.6}%
-\contentsline {section}{\numberline {2.6}Optimal Conformal Prediction}{24}{section.2.6}%
-\contentsline {subsection}{\numberline {2.6.1}New perspective on MLL and Optimal CP*}{25}{subsection.2.6.1}%
-\contentsline {subsection}{\numberline {2.6.2}Focusing on Density instead of the Coverage Level*}{37}{subsection.2.6.2}%
-\contentsline {section}{\numberline {2.7}Calibration and Recalibration}{38}{section.2.7}%
-\contentsline {subsection}{\numberline {2.7.1}Calibration in CP}{39}{subsection.2.7.1}%
-\contentsline {subsection}{\numberline {2.7.2}Recalibration of CDE on CP when using HDR}{41}{subsection.2.7.2}%
-\contentsline {subsection}{\numberline {2.7.3}Common Implicit Assumptions on the CP-Region Fuction*}{41}{subsection.2.7.3}%
-\contentsline {subsubsection}{\nonumberline Likelihood and the Relation to CDMs}{42}{subsubsection*.23}%
-\contentsline {subsection}{\numberline {2.7.4}Calibration of CDMs in General*}{43}{subsection.2.7.4}%
-\contentsline {subsubsection}{\nonumberline Practical Considerations for Recalibration of CDMs}{44}{subsubsection*.25}%
-\contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDMs}{44}{subsubsection*.28}%
-\contentsline {section}{\numberline {2.8}Uncertainty and Calibration}{45}{section.2.8}%
-\contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty*}{47}{subsection.2.8.1}%
-\contentsline {subsubsection}{\nonumberline Difference to Current Literature on Epistemic Uncertainty}{48}{subsubsection*.30}%
-\contentsline {chapter}{\numberline {3}Empirical Study}{49}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Core Model Classes}{49}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Experimental Setup}{50}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Hyperparameters}{50}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1}Known Hyperparameters - General}{51}{subsection.3.3.1}%
-\contentsline {subsubsection}{\nonumberline Learning Rate}{51}{subsubsection*.32}%
-\contentsline {subsubsection}{\nonumberline Batch Size}{51}{subsubsection*.34}%
-\contentsline {subsubsection}{\nonumberline Number of Epochs}{51}{subsubsection*.36}%
-\contentsline {subsubsection}{\nonumberline Dropout}{51}{subsubsection*.38}%
-\contentsline {subsubsection}{\nonumberline Weight Decay}{52}{subsubsection*.40}%
-\contentsline {subsubsection}{\nonumberline Base Architecture}{52}{subsubsection*.42}%
-\contentsline {subsubsection}{\nonumberline Activation Function}{52}{subsubsection*.44}%
-\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{52}{subsubsection*.46}%
-\contentsline {subsubsection}{\nonumberline Layer Norm}{53}{subsubsection*.48}%
-\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{53}{subsubsection*.50}%
-\contentsline {subsubsection}{\nonumberline Number of Components}{53}{subsubsection*.52}%
-\contentsline {subsubsection}{\nonumberline Component Distribution}{53}{subsubsection*.54}%
-\contentsline {subsubsection}{\nonumberline Kernel Width}{53}{subsubsection*.56}%
-\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{54}{subsection.3.3.2}%
-\contentsline {subsubsection}{\nonumberline Additional Target Noise}{54}{subsubsection*.58}%
-\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{55}{subsubsection*.60}%
-\contentsline {section}{\numberline {3.4}Datasets}{55}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Calculation of the HDR}{56}{section.3.5}%
-\contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{57}{section.3.6}%
-\contentsline {section}{\numberline {3.7}Experiment Results}{59}{section.3.7}%
-\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{59}{subsection.3.7.1}%
-\contentsline {subsection}{\numberline {3.7.2}Main Benchmark Results}{59}{subsection.3.7.2}%
-\contentsline {subsection}{\numberline {3.7.3}Discussion}{60}{subsection.3.7.3}%
-\contentsline {subsubsection}{\nonumberline Statistically Significant Results}{61}{subsubsection*.66}%
-\contentsline {chapter}{\numberline {4}Conclusion}{63}{chapter.4}%
+\contentsline {subsection}{\numberline {2.4.2}Calibration in CP}{15}{subsection.2.4.2}%
+\contentsline {section}{\numberline {2.5}CP, CDE and QR are the Same Task*}{16}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Connection between Model Producing Functions}{17}{subsection.2.5.1}%
+\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and CP*}{18}{subsubsection*.17}%
+\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and QR*}{19}{subsubsection*.19}%
+\contentsline {subsection}{\numberline {2.5.2}CDE can fully be modeled by CP and QR*}{20}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}CDM to improve CP and QR*}{23}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.4}Reassessing the "Distribution-Free" Nature of CP Methods*}{24}{subsection.2.5.4}%
+\contentsline {subsection}{\numberline {2.5.5}Limitations of the Bridge between CDMs}{25}{subsection.2.5.5}%
+\contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDMs}{26}{subsection.2.5.6}%
+\contentsline {section}{\numberline {2.6}Optimal Conformal Prediction}{26}{section.2.6}%
+\contentsline {subsection}{\numberline {2.6.1}New perspective on MLL and Optimal CP*}{27}{subsection.2.6.1}%
+\contentsline {subsection}{\numberline {2.6.2}Focusing on Density instead of the Coverage Level*}{39}{subsection.2.6.2}%
+\contentsline {section}{\numberline {2.7}Calibration and Recalibration}{40}{section.2.7}%
+\contentsline {subsection}{\numberline {2.7.1}Recalibration in CP}{41}{subsection.2.7.1}%
+\contentsline {subsection}{\numberline {2.7.2}Recalibration of CDE on CP when using HDR}{44}{subsection.2.7.2}%
+\contentsline {subsection}{\numberline {2.7.3}Common Implicit Assumptions on the CP-Region Fuction*}{44}{subsection.2.7.3}%
+\contentsline {subsubsection}{\nonumberline Likelihood and the Relation to CDMs}{44}{subsubsection*.23}%
+\contentsline {subsection}{\numberline {2.7.4}Calibration of CDMs in General*}{45}{subsection.2.7.4}%
+\contentsline {subsubsection}{\nonumberline Practical Considerations for Recalibration of CDMs}{46}{subsubsection*.25}%
+\contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDMs}{47}{subsubsection*.28}%
+\contentsline {section}{\numberline {2.8}Uncertainty and Calibration}{48}{section.2.8}%
+\contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty*}{49}{subsection.2.8.1}%
+\contentsline {subsubsection}{\nonumberline Difference to Current Literature on Epistemic Uncertainty}{50}{subsubsection*.30}%
+\contentsline {chapter}{\numberline {3}Empirical Study}{52}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Core Model Classes}{52}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Experimental Setup}{53}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Hyperparameters}{53}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Known Hyperparameters - General}{54}{subsection.3.3.1}%
+\contentsline {subsubsection}{\nonumberline Learning Rate}{54}{subsubsection*.32}%
+\contentsline {subsubsection}{\nonumberline Batch Size}{54}{subsubsection*.34}%
+\contentsline {subsubsection}{\nonumberline Number of Epochs}{54}{subsubsection*.36}%
+\contentsline {subsubsection}{\nonumberline Dropout}{54}{subsubsection*.38}%
+\contentsline {subsubsection}{\nonumberline Weight Decay}{55}{subsubsection*.40}%
+\contentsline {subsubsection}{\nonumberline Base Architecture}{55}{subsubsection*.42}%
+\contentsline {subsubsection}{\nonumberline Activation Function}{55}{subsubsection*.44}%
+\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{55}{subsubsection*.46}%
+\contentsline {subsubsection}{\nonumberline Layer Norm}{56}{subsubsection*.48}%
+\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{56}{subsubsection*.50}%
+\contentsline {subsubsection}{\nonumberline Number of Components}{56}{subsubsection*.52}%
+\contentsline {subsubsection}{\nonumberline Component Distribution}{56}{subsubsection*.54}%
+\contentsline {subsubsection}{\nonumberline Kernel Width}{56}{subsubsection*.56}%
+\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{57}{subsection.3.3.2}%
+\contentsline {subsubsection}{\nonumberline Additional Target Noise}{57}{subsubsection*.58}%
+\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{58}{subsubsection*.60}%
+\contentsline {section}{\numberline {3.4}Datasets}{58}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Calculation of the HDR}{59}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{60}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Experiment Results}{62}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{62}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}More Restriction on $\mathscr {P}_\theta $ has a Regulatory Effect}{62}{subsection.3.7.2}%
+\contentsline {subsection}{\numberline {3.7.3}Main Benchmark Results}{62}{subsection.3.7.3}%
+\contentsline {subsection}{\numberline {3.7.4}Discussion}{63}{subsection.3.7.4}%
+\contentsline {subsubsection}{\nonumberline Statistically Significant Results}{64}{subsubsection*.66}%
+\contentsline {chapter}{\numberline {4}Conclusion}{66}{chapter.4}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

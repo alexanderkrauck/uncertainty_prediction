@@ -91,15 +91,15 @@
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxbibnames</bcf:key>
-      <bcf:value>3</bcf:value>
+      <bcf:value>102</bcf:value>
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxcitenames</bcf:key>
-      <bcf:value>3</bcf:value>
+      <bcf:value>2</bcf:value>
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxsortnames</bcf:key>
-      <bcf:value>3</bcf:value>
+      <bcf:value>102</bcf:value>
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxitems</bcf:key>
@@ -317,15 +317,15 @@
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxbibnames</bcf:key>
-      <bcf:value>3</bcf:value>
+      <bcf:value>102</bcf:value>
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxcitenames</bcf:key>
-      <bcf:value>3</bcf:value>
+      <bcf:value>2</bcf:value>
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxsortnames</bcf:key>
-      <bcf:value>3</bcf:value>
+      <bcf:value>102</bcf:value>
     </bcf:option>
     <bcf:option type="singlevalued">
       <bcf:key>maxitems</bcf:key>
@@ -2430,104 +2430,115 @@
     <bcf:citekey order="45">chernozhukov2021distributional</bcf:citekey>
     <bcf:citekey order="46">sesia2021conformal</bcf:citekey>
     <bcf:citekey order="47">izbicki2022cd</bcf:citekey>
-    <bcf:citekey order="48">rothfuss2019noise</bcf:citekey>
-    <bcf:citekey order="49">wolpert1997no</bcf:citekey>
-    <bcf:citekey order="50">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="51">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="52">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="52">chernozhukov2021distributional</bcf:citekey>
-    <bcf:citekey order="53">angelopoulos2021gentle</bcf:citekey>
-    <bcf:citekey order="54">bishop1994mixture</bcf:citekey>
-    <bcf:citekey order="55">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="56">hyndman1996computing</bcf:citekey>
-    <bcf:citekey order="57">hyndman1996computing</bcf:citekey>
-    <bcf:citekey order="58">chung2021beyond</bcf:citekey>
-    <bcf:citekey order="59">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="60">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="61">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="61">chernozhukov2021distributional</bcf:citekey>
+    <bcf:citekey order="48">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="48">izbicki2022cd</bcf:citekey>
+    <bcf:citekey order="48">izbicki2019flexible</bcf:citekey>
+    <bcf:citekey order="48">chernozhukov2021distributional</bcf:citekey>
+    <bcf:citekey order="49">rothfuss2019noise</bcf:citekey>
+    <bcf:citekey order="50">vapnik1999overview</bcf:citekey>
+    <bcf:citekey order="51">vapnik1999overview</bcf:citekey>
+    <bcf:citekey order="52">wolpert1997no</bcf:citekey>
+    <bcf:citekey order="53">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="54">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="54">chernozhukov2021distributional</bcf:citekey>
+    <bcf:citekey order="55">angelopoulos2021gentle</bcf:citekey>
+    <bcf:citekey order="56">bishop1994mixture</bcf:citekey>
+    <bcf:citekey order="57">klambauer2017self</bcf:citekey>
+    <bcf:citekey order="57">ioffe2015batch</bcf:citekey>
+    <bcf:citekey order="58">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="59">hyndman1996computing</bcf:citekey>
+    <bcf:citekey order="60">hyndman1996computing</bcf:citekey>
+    <bcf:citekey order="61">chung2021beyond</bcf:citekey>
     <bcf:citekey order="62">sesia2021conformal</bcf:citekey>
     <bcf:citekey order="63">sesia2021conformal</bcf:citekey>
     <bcf:citekey order="64">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="65">gneiting2007probabilistic</bcf:citekey>
+    <bcf:citekey order="64">chernozhukov2021distributional</bcf:citekey>
+    <bcf:citekey order="65">sesia2021conformal</bcf:citekey>
     <bcf:citekey order="66">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="67">hullermeier_aleatoric_2021</bcf:citekey>
-    <bcf:citekey order="68">hullermeier_aleatoric_2021</bcf:citekey>
-    <bcf:citekey order="69">gal_dropout_2016</bcf:citekey>
-    <bcf:citekey order="69">hullermeier_aleatoric_2021</bcf:citekey>
-    <bcf:citekey order="70">bishop1994mixture</bcf:citekey>
-    <bcf:citekey order="71">ambrogioni2017kernel</bcf:citekey>
-    <bcf:citekey order="72">gupta2022nested</bcf:citekey>
-    <bcf:citekey order="72">moon2021learning</bcf:citekey>
-    <bcf:citekey order="73">trippe2018conditional</bcf:citekey>
-    <bcf:citekey order="74">paszke2019pytorch</bcf:citekey>
-    <bcf:citekey order="75">harris2020array</bcf:citekey>
-    <bcf:citekey order="76">reback2020pandas</bcf:citekey>
-    <bcf:citekey order="77">scikit-learn</bcf:citekey>
-    <bcf:citekey order="78">rothfuss2019noise</bcf:citekey>
-    <bcf:citekey order="79">rothfuss2019noise</bcf:citekey>
-    <bcf:citekey order="79">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="80">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="67">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="68">gneiting2007probabilistic</bcf:citekey>
+    <bcf:citekey order="69">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="70">hullermeier_aleatoric_2021</bcf:citekey>
+    <bcf:citekey order="71">hullermeier_aleatoric_2021</bcf:citekey>
+    <bcf:citekey order="72">gal_dropout_2016</bcf:citekey>
+    <bcf:citekey order="72">hullermeier_aleatoric_2021</bcf:citekey>
+    <bcf:citekey order="73">bishop1994mixture</bcf:citekey>
+    <bcf:citekey order="74">ambrogioni2017kernel</bcf:citekey>
+    <bcf:citekey order="75">gupta2022nested</bcf:citekey>
+    <bcf:citekey order="75">moon2021learning</bcf:citekey>
+    <bcf:citekey order="76">trippe2018conditional</bcf:citekey>
+    <bcf:citekey order="77">paszke2019pytorch</bcf:citekey>
+    <bcf:citekey order="78">harris2020array</bcf:citekey>
+    <bcf:citekey order="79">reback2020pandas</bcf:citekey>
+    <bcf:citekey order="80">scikit-learn</bcf:citekey>
     <bcf:citekey order="81">rothfuss2019noise</bcf:citekey>
+    <bcf:citekey order="82">rothfuss2019noise</bcf:citekey>
     <bcf:citekey order="82">sesia2021conformal</bcf:citekey>
     <bcf:citekey order="83">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="84">welch1947generalization</bcf:citekey>
+    <bcf:citekey order="84">rothfuss2019noise</bcf:citekey>
     <bcf:citekey order="85">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="86">hullermeier_aleatoric_2021</bcf:citekey>
-    <bcf:citekey order="87">gawlikowski2023survey</bcf:citekey>
-    <bcf:citekey order="88">abdar2021review</bcf:citekey>
-    <bcf:citekey order="89">xia2020uncertainty</bcf:citekey>
-    <bcf:citekey order="90">ghesu2021quantifying</bcf:citekey>
-    <bcf:citekey order="91">mashrur2020machine</bcf:citekey>
-    <bcf:citekey order="92">romano2019conformalized</bcf:citekey>
-    <bcf:citekey order="93">sesia2020comparison</bcf:citekey>
-    <bcf:citekey order="94">angelopoulos2021gentle</bcf:citekey>
-    <bcf:citekey order="95">chernozhukov2021distributional</bcf:citekey>
-    <bcf:citekey order="96">sesia2021conformal</bcf:citekey>
-    <bcf:citekey order="97">oliveira2022split</bcf:citekey>
-    <bcf:citekey order="98">romano2022conformal</bcf:citekey>
-    <bcf:citekey order="99">izbicki2022cd</bcf:citekey>
-    <bcf:citekey order="100">gupta2022nested</bcf:citekey>
-    <bcf:citekey order="101">auer2024conformal</bcf:citekey>
-    <bcf:citekey order="102">singh2017stock</bcf:citekey>
-    <bcf:citekey order="103">hassanpour2023evaluation</bcf:citekey>
-    <bcf:citekey order="104">alessandretti2018anticipating</bcf:citekey>
-    <bcf:citekey order="105">jorion2007value</bcf:citekey>
-    <bcf:citekey order="106">loftus2022uncertainty</bcf:citekey>
-    <bcf:citekey order="107">lambert2024trustworthy</bcf:citekey>
-    <bcf:citekey order="108">wu2023application</bcf:citekey>
-    <bcf:citekey order="109">csillag2023amnioml</bcf:citekey>
-    <bcf:citekey order="110">prasad2023tumor</bcf:citekey>
-    <bcf:citekey order="111">kvamme2019time</bcf:citekey>
-    <bcf:citekey order="112">sloma2021empirical</bcf:citekey>
-    <bcf:citekey order="113">bishop1994mixture</bcf:citekey>
-    <bcf:citekey order="114">rothfuss2019conditional</bcf:citekey>
-    <bcf:citekey order="115">trippe2018conditional</bcf:citekey>
-    <bcf:citekey order="116">rothfuss2019noise</bcf:citekey>
-    <bcf:citekey order="117">ambrogioni2017kernel</bcf:citekey>
-    <bcf:citekey order="118">Papadopoulos08</bcf:citekey>
-    <bcf:citekey order="119">chung2020beyond</bcf:citekey>
-    <bcf:citekey order="120">gal_dropout_2016</bcf:citekey>
-    <bcf:citekey order="121">klotz2021uncertainty</bcf:citekey>
-    <bcf:citekey order="122">lei2018distribution</bcf:citekey>
-    <bcf:citekey order="123">koenker1978regression</bcf:citekey>
-    <bcf:citekey order="124">barber1998ensemble</bcf:citekey>
-    <bcf:citekey order="125">neal2012bayesian</bcf:citekey>
-    <bcf:citekey order="126">schweighofer2023quantification</bcf:citekey>
-    <bcf:citekey order="127">HORNIK1989359</bcf:citekey>
-    <bcf:citekey order="128">klenke2013probability</bcf:citekey>
-    <bcf:citekey order="129">chung2021beyond</bcf:citekey>
-    <bcf:citekey order="130">balasubramanian2014conformal</bcf:citekey>
-    <bcf:citekey order="131">shafer2008tutorial</bcf:citekey>
-    <bcf:citekey order="132">wolpert1997no</bcf:citekey>
-    <bcf:citekey order="133">hyndman1996computing</bcf:citekey>
-    <bcf:citekey order="134">gneiting2007probabilistic</bcf:citekey>
-    <bcf:citekey order="135">moon2021learning</bcf:citekey>
-    <bcf:citekey order="136">paszke2019pytorch</bcf:citekey>
-    <bcf:citekey order="137">harris2020array</bcf:citekey>
-    <bcf:citekey order="138">reback2020pandas</bcf:citekey>
-    <bcf:citekey order="139">scikit-learn</bcf:citekey>
-    <bcf:citekey order="140">welch1947generalization</bcf:citekey>
+    <bcf:citekey order="86">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="87">welch1947generalization</bcf:citekey>
+    <bcf:citekey order="88">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="89">hullermeier_aleatoric_2021</bcf:citekey>
+    <bcf:citekey order="90">gawlikowski2023survey</bcf:citekey>
+    <bcf:citekey order="91">abdar2021review</bcf:citekey>
+    <bcf:citekey order="92">xia2020uncertainty</bcf:citekey>
+    <bcf:citekey order="93">ghesu2021quantifying</bcf:citekey>
+    <bcf:citekey order="94">mashrur2020machine</bcf:citekey>
+    <bcf:citekey order="95">romano2019conformalized</bcf:citekey>
+    <bcf:citekey order="96">sesia2020comparison</bcf:citekey>
+    <bcf:citekey order="97">angelopoulos2021gentle</bcf:citekey>
+    <bcf:citekey order="98">chernozhukov2021distributional</bcf:citekey>
+    <bcf:citekey order="99">sesia2021conformal</bcf:citekey>
+    <bcf:citekey order="100">oliveira2022split</bcf:citekey>
+    <bcf:citekey order="101">romano2022conformal</bcf:citekey>
+    <bcf:citekey order="102">izbicki2022cd</bcf:citekey>
+    <bcf:citekey order="103">gupta2022nested</bcf:citekey>
+    <bcf:citekey order="104">auer2024conformal</bcf:citekey>
+    <bcf:citekey order="105">singh2017stock</bcf:citekey>
+    <bcf:citekey order="106">hassanpour2023evaluation</bcf:citekey>
+    <bcf:citekey order="107">alessandretti2018anticipating</bcf:citekey>
+    <bcf:citekey order="108">jorion2007value</bcf:citekey>
+    <bcf:citekey order="109">loftus2022uncertainty</bcf:citekey>
+    <bcf:citekey order="110">lambert2024trustworthy</bcf:citekey>
+    <bcf:citekey order="111">wu2023application</bcf:citekey>
+    <bcf:citekey order="112">csillag2023amnioml</bcf:citekey>
+    <bcf:citekey order="113">prasad2023tumor</bcf:citekey>
+    <bcf:citekey order="114">kvamme2019time</bcf:citekey>
+    <bcf:citekey order="115">sloma2021empirical</bcf:citekey>
+    <bcf:citekey order="116">bishop1994mixture</bcf:citekey>
+    <bcf:citekey order="117">rothfuss2019conditional</bcf:citekey>
+    <bcf:citekey order="118">trippe2018conditional</bcf:citekey>
+    <bcf:citekey order="119">rothfuss2019noise</bcf:citekey>
+    <bcf:citekey order="120">ambrogioni2017kernel</bcf:citekey>
+    <bcf:citekey order="121">Papadopoulos08</bcf:citekey>
+    <bcf:citekey order="122">chung2020beyond</bcf:citekey>
+    <bcf:citekey order="123">gal_dropout_2016</bcf:citekey>
+    <bcf:citekey order="124">klotz2021uncertainty</bcf:citekey>
+    <bcf:citekey order="125">lei2018distribution</bcf:citekey>
+    <bcf:citekey order="126">koenker1978regression</bcf:citekey>
+    <bcf:citekey order="127">barber1998ensemble</bcf:citekey>
+    <bcf:citekey order="128">neal2012bayesian</bcf:citekey>
+    <bcf:citekey order="129">schweighofer2023quantification</bcf:citekey>
+    <bcf:citekey order="130">HORNIK1989359</bcf:citekey>
+    <bcf:citekey order="131">klenke2013probability</bcf:citekey>
+    <bcf:citekey order="132">chung2021beyond</bcf:citekey>
+    <bcf:citekey order="133">balasubramanian2014conformal</bcf:citekey>
+    <bcf:citekey order="134">shafer2008tutorial</bcf:citekey>
+    <bcf:citekey order="135">izbicki2019flexible</bcf:citekey>
+    <bcf:citekey order="136">vapnik1999overview</bcf:citekey>
+    <bcf:citekey order="137">wolpert1997no</bcf:citekey>
+    <bcf:citekey order="138">klambauer2017self</bcf:citekey>
+    <bcf:citekey order="139">ioffe2015batch</bcf:citekey>
+    <bcf:citekey order="140">hyndman1996computing</bcf:citekey>
+    <bcf:citekey order="141">gneiting2007probabilistic</bcf:citekey>
+    <bcf:citekey order="142">moon2021learning</bcf:citekey>
+    <bcf:citekey order="143">paszke2019pytorch</bcf:citekey>
+    <bcf:citekey order="144">harris2020array</bcf:citekey>
+    <bcf:citekey order="145">reback2020pandas</bcf:citekey>
+    <bcf:citekey order="146">scikit-learn</bcf:citekey>
+    <bcf:citekey order="147">welch1947generalization</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="nyt">
