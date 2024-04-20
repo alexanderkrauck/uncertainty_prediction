@@ -29,13 +29,14 @@
 \contentsline {section}{\numberline {2.4}Conformal Prediction}{14}{section.2.4}%
 \contentsline {subsection}{\numberline {2.4.1}Trivial CP}{15}{subsection.2.4.1}%
 \contentsline {subsection}{\numberline {2.4.2}Calibration in CP}{15}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3}Exchangability vs. IID}{15}{subsection.2.4.3}%
 \contentsline {section}{\numberline {2.5}CP, CDE and QR are the Same Task*}{16}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Connection between Model Producing Functions}{17}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.1}Connection between Model Producing Functions}{16}{subsection.2.5.1}%
 \contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and CP*}{18}{subsubsection*.17}%
 \contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and QR*}{19}{subsubsection*.19}%
-\contentsline {subsection}{\numberline {2.5.2}CDE can fully be modeled by CP and QR*}{20}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}CDM to improve CP and QR*}{23}{subsection.2.5.3}%
-\contentsline {subsection}{\numberline {2.5.4}Reassessing the "Distribution-Free" Nature of CP Methods*}{24}{subsection.2.5.4}%
+\contentsline {subsection}{\numberline {2.5.2}CDE can fully be modeled by CP and QR*}{19}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}CDM to improve CP and QR*}{24}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.4}Reassessing the `Distribution-Free' Nature of CP Methods*}{24}{subsection.2.5.4}%
 \contentsline {subsection}{\numberline {2.5.5}Limitations of the Bridge between CDMs}{25}{subsection.2.5.5}%
 \contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDMs}{26}{subsection.2.5.6}%
 \contentsline {section}{\numberline {2.6}Optimal Conformal Prediction}{26}{section.2.6}%
@@ -49,38 +50,43 @@
 \contentsline {subsection}{\numberline {2.7.4}Calibration of CDMs in General*}{45}{subsection.2.7.4}%
 \contentsline {subsubsection}{\nonumberline Practical Considerations for Recalibration of CDMs}{46}{subsubsection*.25}%
 \contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDMs}{47}{subsubsection*.28}%
-\contentsline {section}{\numberline {2.8}Uncertainty and Calibration}{48}{section.2.8}%
-\contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty*}{49}{subsection.2.8.1}%
-\contentsline {subsubsection}{\nonumberline Difference to Current Literature on Epistemic Uncertainty}{50}{subsubsection*.30}%
-\contentsline {chapter}{\numberline {3}Empirical Study}{52}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Core Model Classes}{52}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Experimental Setup}{53}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Hyperparameters}{53}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1}Known Hyperparameters - General}{54}{subsection.3.3.1}%
-\contentsline {subsubsection}{\nonumberline Learning Rate}{54}{subsubsection*.32}%
-\contentsline {subsubsection}{\nonumberline Batch Size}{54}{subsubsection*.34}%
-\contentsline {subsubsection}{\nonumberline Number of Epochs}{54}{subsubsection*.36}%
-\contentsline {subsubsection}{\nonumberline Dropout}{54}{subsubsection*.38}%
-\contentsline {subsubsection}{\nonumberline Weight Decay}{55}{subsubsection*.40}%
-\contentsline {subsubsection}{\nonumberline Base Architecture}{55}{subsubsection*.42}%
-\contentsline {subsubsection}{\nonumberline Activation Function}{55}{subsubsection*.44}%
-\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{55}{subsubsection*.46}%
-\contentsline {subsubsection}{\nonumberline Layer Norm}{56}{subsubsection*.48}%
-\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{56}{subsubsection*.50}%
-\contentsline {subsubsection}{\nonumberline Number of Components}{56}{subsubsection*.52}%
-\contentsline {subsubsection}{\nonumberline Component Distribution}{56}{subsubsection*.54}%
-\contentsline {subsubsection}{\nonumberline Kernel Width}{56}{subsubsection*.56}%
-\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{57}{subsection.3.3.2}%
-\contentsline {subsubsection}{\nonumberline Additional Target Noise}{57}{subsubsection*.58}%
-\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{58}{subsubsection*.60}%
-\contentsline {section}{\numberline {3.4}Datasets}{58}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Calculation of the HDR}{59}{section.3.5}%
-\contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{60}{section.3.6}%
-\contentsline {section}{\numberline {3.7}Experiment Results}{62}{section.3.7}%
-\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{62}{subsection.3.7.1}%
-\contentsline {subsection}{\numberline {3.7.2}More Restriction on $\mathscr {P}_\theta $ has a Regulatory Effect}{62}{subsection.3.7.2}%
-\contentsline {subsection}{\numberline {3.7.3}Main Benchmark Results}{62}{subsection.3.7.3}%
-\contentsline {subsection}{\numberline {3.7.4}Discussion}{63}{subsection.3.7.4}%
-\contentsline {subsubsection}{\nonumberline Statistically Significant Results}{64}{subsubsection*.66}%
-\contentsline {chapter}{\numberline {4}Conclusion}{66}{chapter.4}%
+\contentsline {section}{\numberline {2.8}Uncertainty and Calibration}{49}{section.2.8}%
+\contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty*}{50}{subsection.2.8.1}%
+\contentsline {subsubsection}{\nonumberline Difference to Current Literature on Epistemic Uncertainty}{51}{subsubsection*.30}%
+\contentsline {chapter}{\numberline {3}Empirical Study}{53}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Core Model Classes}{53}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Experimental Setup}{54}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Hyperparameters}{54}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Hyperparameters}{55}{subsection.3.3.1}%
+\contentsline {subsubsection}{\nonumberline Learning Rate}{55}{subsubsection*.32}%
+\contentsline {subsubsection}{\nonumberline Batch Size}{55}{subsubsection*.34}%
+\contentsline {subsubsection}{\nonumberline Number of Epochs}{55}{subsubsection*.36}%
+\contentsline {subsubsection}{\nonumberline Dropout}{55}{subsubsection*.38}%
+\contentsline {subsubsection}{\nonumberline Weight Decay}{56}{subsubsection*.40}%
+\contentsline {subsubsection}{\nonumberline Base Architecture}{56}{subsubsection*.42}%
+\contentsline {subsubsection}{\nonumberline Activation Function}{56}{subsubsection*.44}%
+\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{56}{subsubsection*.46}%
+\contentsline {subsubsection}{\nonumberline Layer Norm}{57}{subsubsection*.48}%
+\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{57}{subsubsection*.50}%
+\contentsline {subsubsection}{\nonumberline Number of Components}{57}{subsubsection*.52}%
+\contentsline {subsubsection}{\nonumberline Component Distribution}{57}{subsubsection*.54}%
+\contentsline {subsubsection}{\nonumberline Kernel Width}{57}{subsubsection*.56}%
+\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{58}{subsection.3.3.2}%
+\contentsline {subsubsection}{\nonumberline Additional Target Noise}{58}{subsubsection*.58}%
+\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{59}{subsubsection*.60}%
+\contentsline {section}{\numberline {3.4}Datasets}{59}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Calculation of the HDR*}{60}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{61}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Experiment Results}{63}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{63}{subsection.3.7.1}%
+\contentsline {subsubsection}{\nonumberline Limitations of the Recalibration}{63}{subsubsection*.64}%
+\contentsline {subsection}{\numberline {3.7.2}More Restriction on the possibly PDFs has a Regulatory Effect}{64}{subsection.3.7.2}%
+\contentsline {subsection}{\numberline {3.7.3}Main Benchmark Results}{65}{subsection.3.7.3}%
+\contentsline {subsection}{\numberline {3.7.4}Computational Complexity and Runtime}{67}{subsection.3.7.4}%
+\contentsline {subsection}{\numberline {3.7.5}Discussion}{68}{subsection.3.7.5}%
+\contentsline {subsubsection}{\nonumberline Statistically Significant Results}{68}{subsubsection*.69}%
+\contentsline {subsubsection}{\nonumberline Why do we not always outperform the current SOTA?}{69}{subsubsection*.71}%
+\contentsline {subsubsection}{\nonumberline Voest Dataset Discussion}{69}{subsubsection*.73}%
+\contentsline {chapter}{\numberline {4}Conclusion}{71}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Future Work}{71}{section.4.1}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 
