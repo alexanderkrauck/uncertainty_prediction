@@ -4,89 +4,88 @@
 \babel@toc {english}{}\relax 
 \babel@toc {english}{}\relax 
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
-\contentsline {section}{\numberline {1.1}Background}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.1}Motivation}{2}{section.1.1}%
 \contentsline {subsection}{\numberline {1.1.1}Uncertainty in Finance}{2}{subsection.1.1.1}%
-\contentsline {subsubsection}{\nonumberline Energy Price Prediction}{2}{subsubsection*.7}%
-\contentsline {subsubsection}{\nonumberline Stock Price Prediction}{3}{subsubsection*.9}%
+\contentsline {subsubsection}{\numberline {1.1.1.1}Energy Price Prediction}{2}{subsubsection.1.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1.2}Stock Price Prediction}{3}{subsubsection.1.1.1.2}%
 \contentsline {subsection}{\numberline {1.1.2}Uncertainty in Healthcare and Life Science}{3}{subsection.1.1.2}%
-\contentsline {section}{\numberline {1.2}Related Work and Motivation}{4}{section.1.2}%
+\contentsline {section}{\numberline {1.2}Related Work}{4}{section.1.2}%
 \contentsline {subsection}{\numberline {1.2.1}Recent Works in CP}{4}{subsection.1.2.1}%
 \contentsline {subsection}{\numberline {1.2.2}Recent Works in CDE}{5}{subsection.1.2.2}%
-\contentsline {subsection}{\numberline {1.2.3}Recent Works in QR}{5}{subsection.1.2.3}%
+\contentsline {subsection}{\numberline {1.2.3}Recent Works in QR}{6}{subsection.1.2.3}%
 \contentsline {subsection}{\numberline {1.2.4}Recent Works in Uncertainty Techniques}{6}{subsection.1.2.4}%
 \contentsline {subsection}{\numberline {1.2.5}Practial Methods}{6}{subsection.1.2.5}%
-\contentsline {paragraph}{\nonumberline MDNs}{6}{paragraph*.11}%
-\contentsline {paragraph}{\nonumberline KMNs}{6}{paragraph*.13}%
-\contentsline {paragraph}{\nonumberline Multiple Quantile Regression (MQR)}{7}{paragraph*.15}%
-\contentsline {section}{\numberline {1.3}Research Questions}{7}{section.1.3}%
+\contentsline {subsubsection}{\numberline {1.2.5.1}MDNs}{6}{subsubsection.1.2.5.1}%
+\contentsline {subsubsection}{\numberline {1.2.5.2}KMNs}{7}{subsubsection.1.2.5.2}%
+\contentsline {subsubsection}{\numberline {1.2.5.3}Multiple Quantile Regression (MQR)}{7}{subsubsection.1.2.5.3}%
+\contentsline {section}{\numberline {1.3}Research Questions}{8}{section.1.3}%
 \contentsline {section}{\numberline {1.4}Contributions}{8}{section.1.4}%
 \contentsline {section}{\numberline {1.5}Structure of the Work}{9}{section.1.5}%
-\contentsline {chapter}{\numberline {2}Theoretical Analysis}{10}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Preliminaries}{10}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Conditional Density Estimation}{12}{section.2.2}%
-\contentsline {subsection}{\numberline {2.2.1}Smoothness Assumptions}{12}{subsection.2.2.1}%
-\contentsline {section}{\numberline {2.3}Quantile Regression}{13}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Conformal Prediction}{14}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Trivial CP}{15}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Calibration in CP}{15}{subsection.2.4.2}%
-\contentsline {subsection}{\numberline {2.4.3}Exchangability vs. IID}{15}{subsection.2.4.3}%
-\contentsline {section}{\numberline {2.5}CP, CDE and QR are the Same Task*}{16}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Connection between Model Producing Functions}{16}{subsection.2.5.1}%
-\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and CP*}{18}{subsubsection*.17}%
-\contentsline {subsubsection}{\nonumberline Theoretical Bridge: CDE and QR*}{19}{subsubsection*.19}%
-\contentsline {subsection}{\numberline {2.5.2}CDE can fully be modeled by CP and QR*}{19}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}CDM to improve CP and QR*}{24}{subsection.2.5.3}%
-\contentsline {subsection}{\numberline {2.5.4}Reassessing the `Distribution-Free' Nature of CP Methods*}{24}{subsection.2.5.4}%
-\contentsline {subsection}{\numberline {2.5.5}Limitations of the Bridge between CDMs}{25}{subsection.2.5.5}%
-\contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDMs}{26}{subsection.2.5.6}%
-\contentsline {section}{\numberline {2.6}Optimal Conformal Prediction}{26}{section.2.6}%
-\contentsline {subsection}{\numberline {2.6.1}New perspective on MLE and Optimal CP*}{27}{subsection.2.6.1}%
-\contentsline {subsection}{\numberline {2.6.2}Focusing on Density instead of the Coverage Level*}{39}{subsection.2.6.2}%
-\contentsline {section}{\numberline {2.7}Calibration and Recalibration}{40}{section.2.7}%
-\contentsline {subsection}{\numberline {2.7.1}Recalibration in CP}{41}{subsection.2.7.1}%
+\contentsline {chapter}{\numberline {2}Theoretical Analysis}{11}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Preliminaries}{11}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Conditional Density Estimation}{13}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Smoothness Assumptions}{13}{subsection.2.2.1}%
+\contentsline {section}{\numberline {2.3}Quantile Regression}{14}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Conformal Prediction}{15}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Trivial CP}{16}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Calibration in CP}{16}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3}Exchangability vs. IID}{16}{subsection.2.4.3}%
+\contentsline {section}{\numberline {2.5}CP, CDE and QR are the Same Task*}{17}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Connection between Model Producing Functions}{18}{subsection.2.5.1}%
+\contentsline {subsubsection}{\numberline {2.5.1.1}Theoretical Bridge: CDE and CP*}{19}{subsubsection.2.5.1.1}%
+\contentsline {subsubsection}{\numberline {2.5.1.2}Theoretical Bridge: CDE and QR*}{20}{subsubsection.2.5.1.2}%
+\contentsline {subsection}{\numberline {2.5.2}CDE can fully be modeled by CP and QR*}{21}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}CDM to improve CP and QR*}{25}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.4}Reassessing the `Distribution-Free' Nature of CP Methods*}{25}{subsection.2.5.4}%
+\contentsline {subsection}{\numberline {2.5.5}Limitations of the Bridge between CDMs}{26}{subsection.2.5.5}%
+\contentsline {subsection}{\numberline {2.5.6}Conclusion on the Bridge between CDMs}{27}{subsection.2.5.6}%
+\contentsline {section}{\numberline {2.6}Optimal CP}{28}{section.2.6}%
+\contentsline {subsection}{\numberline {2.6.1}New perspective on MLE and Optimal CP*}{28}{subsection.2.6.1}%
+\contentsline {subsection}{\numberline {2.6.2}Focusing on Density instead of the Coverage Level*}{40}{subsection.2.6.2}%
+\contentsline {section}{\numberline {2.7}Calibration and Recalibration}{41}{section.2.7}%
+\contentsline {subsection}{\numberline {2.7.1}Recalibration in CP}{42}{subsection.2.7.1}%
 \contentsline {subsection}{\numberline {2.7.2}Recalibration of CDE on CP when using HDR}{44}{subsection.2.7.2}%
-\contentsline {subsection}{\numberline {2.7.3}Common Implicit Assumptions on the CP-Region Fuction*}{44}{subsection.2.7.3}%
-\contentsline {subsubsection}{\nonumberline Likelihood and the Relation to CDMs}{44}{subsubsection*.23}%
-\contentsline {subsection}{\numberline {2.7.4}Calibration of CDMs in General*}{45}{subsection.2.7.4}%
-\contentsline {subsubsection}{\nonumberline Practical Considerations for Recalibration of CDMs}{46}{subsubsection*.25}%
-\contentsline {subsubsection}{\nonumberline Implicit Assumptions when Recalibrating CDMs}{47}{subsubsection*.28}%
+\contentsline {subsection}{\numberline {2.7.3}Common Implicit Assumptions on the CP-Region Fuction*}{45}{subsection.2.7.3}%
+\contentsline {subsubsection}{\numberline {2.7.3.1}Likelihood and the Relation to CDMs}{45}{subsubsection.2.7.3.1}%
+\contentsline {subsection}{\numberline {2.7.4}Calibration of CDMs in General*}{46}{subsection.2.7.4}%
+\contentsline {subsubsection}{\numberline {2.7.4.1}Practical Considerations for Recalibration of CDMs}{47}{subsubsection.2.7.4.1}%
+\contentsline {subsubsection}{\numberline {2.7.4.2}Implicit Assumptions when Recalibrating CDMs}{49}{subsubsection.2.7.4.2}%
 \contentsline {section}{\numberline {2.8}Uncertainty and Calibration}{49}{section.2.8}%
-\contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty*}{50}{subsection.2.8.1}%
-\contentsline {subsubsection}{\nonumberline Difference to Current Literature on Epistemic Uncertainty}{51}{subsubsection*.30}%
+\contentsline {subsection}{\numberline {2.8.1}All Model Error corresponds to Epistemic Uncertainty*}{51}{subsection.2.8.1}%
+\contentsline {subsubsection}{\numberline {2.8.1.1}Difference to Current Literature on Epistemic Uncertainty}{52}{subsubsection.2.8.1.1}%
 \contentsline {chapter}{\numberline {3}Empirical Study}{53}{chapter.3}%
 \contentsline {section}{\numberline {3.1}Core Model Classes}{53}{section.3.1}%
 \contentsline {section}{\numberline {3.2}Experimental Setup}{54}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Hyperparameters}{54}{section.3.3}%
-\contentsline {subsection}{\numberline {3.3.1}Hyperparameters}{55}{subsection.3.3.1}%
-\contentsline {subsubsection}{\nonumberline Learning Rate}{55}{subsubsection*.32}%
-\contentsline {subsubsection}{\nonumberline Batch Size}{55}{subsubsection*.34}%
-\contentsline {subsubsection}{\nonumberline Number of Epochs}{55}{subsubsection*.36}%
-\contentsline {subsubsection}{\nonumberline Dropout}{55}{subsubsection*.38}%
-\contentsline {subsubsection}{\nonumberline Weight Decay}{56}{subsubsection*.40}%
-\contentsline {subsubsection}{\nonumberline Base Architecture}{56}{subsubsection*.42}%
-\contentsline {subsubsection}{\nonumberline Activation Function}{56}{subsubsection*.44}%
-\contentsline {subsubsection}{\nonumberline Input-/Output Noise}{56}{subsubsection*.46}%
-\contentsline {subsubsection}{\nonumberline Layer Norm}{57}{subsubsection*.48}%
-\contentsline {subsubsection}{\nonumberline Component Entropy Loss}{57}{subsubsection*.50}%
-\contentsline {subsubsection}{\nonumberline Number of Components}{57}{subsubsection*.52}%
-\contentsline {subsubsection}{\nonumberline Component Distribution}{57}{subsubsection*.54}%
-\contentsline {subsubsection}{\nonumberline Kernel Width}{57}{subsubsection*.56}%
-\contentsline {subsection}{\numberline {3.3.2}Novel Hyperparameters}{58}{subsection.3.3.2}%
-\contentsline {subsubsection}{\nonumberline Additional Target Noise}{58}{subsubsection*.58}%
-\contentsline {subsubsection}{\nonumberline Learn MQR Quantile Distribution Std}{59}{subsubsection*.60}%
-\contentsline {section}{\numberline {3.4}Datasets}{59}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Calculation of the HDR*}{60}{section.3.5}%
+\contentsline {section}{\numberline {3.3}Datasets}{54}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Hyperparameters}{55}{section.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.0.1}Learning Rate*}{56}{subsubsection.3.4.0.1}%
+\contentsline {subsubsection}{\numberline {3.4.0.2}Batch Size**}{56}{subsubsection.3.4.0.2}%
+\contentsline {subsubsection}{\numberline {3.4.0.3}Number of Epochs}{56}{subsubsection.3.4.0.3}%
+\contentsline {subsubsection}{\numberline {3.4.0.4}Dropout**}{56}{subsubsection.3.4.0.4}%
+\contentsline {subsubsection}{\numberline {3.4.0.5}Weight Decay}{57}{subsubsection.3.4.0.5}%
+\contentsline {subsubsection}{\numberline {3.4.0.6}Base Architecture*}{57}{subsubsection.3.4.0.6}%
+\contentsline {subsubsection}{\numberline {3.4.0.7}Activation Function}{57}{subsubsection.3.4.0.7}%
+\contentsline {subsubsection}{\numberline {3.4.0.8}Input-/Output Noise**}{57}{subsubsection.3.4.0.8}%
+\contentsline {subsubsection}{\numberline {3.4.0.9}Layer Norm}{58}{subsubsection.3.4.0.9}%
+\contentsline {subsubsection}{\numberline {3.4.0.10}Component Entropy Loss}{58}{subsubsection.3.4.0.10}%
+\contentsline {subsubsection}{\numberline {3.4.0.11}Number of Components*}{58}{subsubsection.3.4.0.11}%
+\contentsline {subsubsection}{\numberline {3.4.0.12}Component Distribution}{58}{subsubsection.3.4.0.12}%
+\contentsline {subsubsection}{\numberline {3.4.0.13}Kernel Width}{59}{subsubsection.3.4.0.13}%
+\contentsline {subsection}{\numberline {3.4.1}Novel Hyperparameters}{59}{subsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.1.1}Additional Target Noise}{59}{subsubsection.3.4.1.1}%
+\contentsline {subsubsection}{\numberline {3.4.1.2}Learn MQR Quantile Distribution Std}{60}{subsubsection.3.4.1.2}%
+\contentsline {section}{\numberline {3.5}Calculation of the HDR}{60}{section.3.5}%
 \contentsline {section}{\numberline {3.6}Calculating the Calibrated Conditional PDF}{61}{section.3.6}%
-\contentsline {section}{\numberline {3.7}Experiment Results}{63}{section.3.7}%
-\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{63}{subsection.3.7.1}%
-\contentsline {subsubsection}{\nonumberline Limitations of the Recalibration}{63}{subsubsection*.64}%
-\contentsline {subsection}{\numberline {3.7.2}More Restriction on the possibly PDFs has a Regulatory Effect}{64}{subsection.3.7.2}%
-\contentsline {subsection}{\numberline {3.7.3}Main Benchmark Results}{65}{subsection.3.7.3}%
-\contentsline {subsection}{\numberline {3.7.4}Computational Complexity and Runtime}{67}{subsection.3.7.4}%
-\contentsline {subsection}{\numberline {3.7.5}Discussion}{68}{subsection.3.7.5}%
-\contentsline {subsubsection}{\nonumberline Statistically Significant Results}{68}{subsubsection*.69}%
-\contentsline {subsubsection}{\nonumberline Why do we not always outperform the current SOTA?}{69}{subsubsection*.71}%
-\contentsline {subsubsection}{\nonumberline Voest Dataset Discussion}{69}{subsubsection*.73}%
-\contentsline {chapter}{\numberline {4}Conclusion}{71}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Future Work}{71}{section.4.1}%
+\contentsline {section}{\numberline {3.7}Experiment Results}{64}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Recalibration of the Whole CDE}{64}{subsection.3.7.1}%
+\contentsline {subsubsection}{\numberline {3.7.1.1}Limitations of the Recalibration}{64}{subsubsection.3.7.1.1}%
+\contentsline {subsection}{\numberline {3.7.2}More Restriction on the possibly PDFs has a Regulatory Effect}{65}{subsection.3.7.2}%
+\contentsline {subsection}{\numberline {3.7.3}Main Benchmark Results}{66}{subsection.3.7.3}%
+\contentsline {subsection}{\numberline {3.7.4}Computational Complexity and Runtime}{68}{subsection.3.7.4}%
+\contentsline {subsection}{\numberline {3.7.5}Discussion}{69}{subsection.3.7.5}%
+\contentsline {subsubsection}{\numberline {3.7.5.1}Statistically Significant Results}{69}{subsubsection.3.7.5.1}%
+\contentsline {subsubsection}{\numberline {3.7.5.2}Why do we not always outperform the current SOTA?}{70}{subsubsection.3.7.5.2}%
+\contentsline {subsubsection}{\numberline {3.7.5.3}Voest Dataset Discussion}{70}{subsubsection.3.7.5.3}%
+\contentsline {chapter}{\numberline {4}Conclusion}{72}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Future Work}{72}{section.4.1}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

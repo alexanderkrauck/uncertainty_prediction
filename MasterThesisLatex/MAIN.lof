@@ -5,18 +5,18 @@
 \babel@toc {english}{}\relax 
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces Restriction on the CDF with multiple Quantile Regression}}{21}{figure.caption.20}%
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Restricted CDF with 5 quantiles}}}{21}{subfigure.1.1}%
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Restricted CDF with 30 quantiles}}}{21}{subfigure.1.2}%
-\contentsline {figure}{\numberline {2.2}{\ignorespaces Comparison of HDR, connected HDR and Shortest Interval CP}}{40}{figure.caption.21}%
-\contentsline {figure}{\numberline {2.3}{\ignorespaces Recalibration of a bimodal CDE model}}{48}{figure.caption.26}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Restriction on the CDF with MQR}}{22}{figure.caption.6}%
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Restricted CDF with 5 quantiles}}}{22}{subfigure.1.1}%
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Restricted CDF with 30 quantiles}}}{22}{subfigure.1.2}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Comparison of HDR, connected HDR and Shortest Interval CP}}{41}{figure.caption.7}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Recalibration of a bimodal CDE model}}{48}{figure.caption.8}%
 \contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Window Size = 1}}}{48}{subfigure.3.1}%
 \contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Window Size = 51}}}{48}{subfigure.3.2}%
 \contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Window Size = 101}}}{48}{subfigure.3.3}%
 \contentsline {subfigure}{\numberline {(d)}{\ignorespaces {Window Size = 401}}}{48}{subfigure.3.4}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Recalibration of the whole estimated conditional PDF}}{64}{figure.caption.62}%
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Histogram of Dense vs. Sparse Quantile Restriction}}{65}{figure.caption.65}%
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Visualization of the Timeseries in Ideal Voest}}{70}{figure.caption.74}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Recalibration of the whole estimated conditional PDF}}{65}{figure.caption.10}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Histogram of Dense vs. Sparse Quantile Restriction}}{66}{figure.caption.11}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Visualization of the Timeseries in Ideal Voest}}{71}{figure.caption.14}%
 \addvspace {10\p@ }
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

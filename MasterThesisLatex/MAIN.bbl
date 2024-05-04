@@ -1210,6 +1210,39 @@
       \field{title}{Evaluation of deep neural network in directional prediction of Forex market}
       \field{year}{2023}
     \endentry
+    \entry{hewitt2012real}{book}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=bad518edbc49f555fc80bc4f4feebbea}{%
+           family={Hewitt},
+           familyi={H\bibinitperiod},
+           given={Edwin},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=501824064895dac303f45ca44dba236c}{%
+           family={Stromberg},
+           familyi={S\bibinitperiod},
+           given={Karl},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Springer Science \& Business Media}%
+      }
+      \strng{namehash}{87e6739c57b668cec785683d0ed0891c}
+      \strng{fullhash}{87e6739c57b668cec785683d0ed0891c}
+      \strng{bibnamehash}{87e6739c57b668cec785683d0ed0891c}
+      \strng{authorbibnamehash}{87e6739c57b668cec785683d0ed0891c}
+      \strng{authornamehash}{87e6739c57b668cec785683d0ed0891c}
+      \strng{authorfullhash}{87e6739c57b668cec785683d0ed0891c}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Real and abstract analysis: a modern treatment of the theory of functions of a real variable}
+      \field{year}{2012}
+    \endentry
     \entry{HORNIK1989359}{article}{}
       \name{author}{3}{}{%
         {{un=0,uniquepart=base,hash=bec8dd1340457a82c21b54971e4c9417}{%
@@ -1967,6 +2000,35 @@
       \field{pages}{203203\bibrangedash 203223}
       \range{pages}{21}
     \endentry
+    \entry{mattila1999geometry}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=6e99a4a941a43fb2726c25eba5024bd7}{%
+           family={Mattila},
+           familyi={M\bibinitperiod},
+           given={Pertti},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Cambridge University Press}%
+      }
+      \strng{namehash}{6e99a4a941a43fb2726c25eba5024bd7}
+      \strng{fullhash}{6e99a4a941a43fb2726c25eba5024bd7}
+      \strng{bibnamehash}{6e99a4a941a43fb2726c25eba5024bd7}
+      \strng{authorbibnamehash}{6e99a4a941a43fb2726c25eba5024bd7}
+      \strng{authornamehash}{6e99a4a941a43fb2726c25eba5024bd7}
+      \strng{authorfullhash}{6e99a4a941a43fb2726c25eba5024bd7}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Corollary 2.14, p.38}
+      \field{number}{44}
+      \field{title}{Geometry of sets and measures in Euclidean spaces: fractals and rectifiability}
+      \field{year}{1999}
+    \endentry
     \entry{moon2021learning}{article}{}
       \name{author}{4}{}{%
         {{un=0,uniquepart=base,hash=1d0e4dd00367e7933f968cb6f93457d1}{%
@@ -2556,6 +2618,38 @@
       \verb{eprint}
       \verb 1903.00954
       \endverb
+    \endentry
+    \entry{russ1980translation}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=6a0cf54ae10de3175bf2b5719f391dc0}{%
+           family={Russ},
+           familyi={R\bibinitperiod},
+           given={Steve\bibnamedelima B},
+           giveni={S\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{6a0cf54ae10de3175bf2b5719f391dc0}
+      \strng{fullhash}{6a0cf54ae10de3175bf2b5719f391dc0}
+      \strng{bibnamehash}{6a0cf54ae10de3175bf2b5719f391dc0}
+      \strng{authorbibnamehash}{6a0cf54ae10de3175bf2b5719f391dc0}
+      \strng{authornamehash}{6a0cf54ae10de3175bf2b5719f391dc0}
+      \strng{authorfullhash}{6a0cf54ae10de3175bf2b5719f391dc0}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Historia Mathematica}
+      \field{number}{2}
+      \field{title}{A translation of Bolzano's paper on the intermediate value theorem}
+      \field{volume}{7}
+      \field{year}{1980}
+      \field{pages}{156\bibrangedash 185}
+      \range{pages}{30}
     \endentry
     \entry{schweighofer2023quantification}{misc}{}
       \name{author}{5}{}{%
