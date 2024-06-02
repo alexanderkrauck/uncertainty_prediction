@@ -2,6 +2,8 @@
 
 This repository contains conditional density estimation approaches for regression tasks. The associated master's thesis can be found in `Master Thesis - A New Perspective on Uncertainty Techniques in Regression.pdf`.
 
+![Thesis Poster](graphics/thesis_poster.svg)
+
 This code is not meant to be a comprehensive framework for general use but rather an experimental code-stack that I used for my research. Nevertheless, I am happy if others can learn from it or find it useful in some way.
 
 The folders in this repository include:
